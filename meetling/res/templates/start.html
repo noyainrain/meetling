@@ -1,0 +1,22 @@
+{% extends 'page.html' %}
+
+{% block page-content %}
+    <div class="meetling-start-intro">
+        <h1 class="meetling-start-logo" href="/">
+            <a class="link"><img src="/static/images/icon.svg" /> Meetling</a>
+        </h1>
+        <p class="meetling-start-slogan">Prepare meetings together</p>
+        <p class="meetling-start-description">
+            Collaboratively draft an agenda. Let everyone propose and edit agenda items. Free,
+            simple and no registration required.
+        </p>
+        <p>
+            <a class="action meetling-start-create-meeting" href="/create-meeting">
+                <i class="fa fa-paper-plane"></i> Start a meeting
+            </a>
+        </p>
+        <p>
+            or <button class="link"><i class="fa fa-book"></i> View an example</button>
+        </p>
+    </div>
+{% end %}

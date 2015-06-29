@@ -1,0 +1,346 @@
+/*
+ * Meetling style.
+ *
+ * Color palette:
+ *
+ * - text: #333
+ * - text subtle: #888
+ * - text inverse: #fff
+ * - primary: #4d8dd9
+ * - primary shade 66%: #225ca0
+ * - secondary: #d94b1f
+ * - delimiter: #ddd
+ * - border: #bbb
+ */
+
+/* ---- Fonts ---- */
+
+@font-face {
+    font-family: "Open Sans";
+    src: url("lib/open-sans/OpenSans-Regular.ttf");
+}
+
+@font-face {
+    font-family: "Open Sans";
+    src: url("lib/open-sans/OpenSans-Italic.ttf");
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Open Sans";
+    src: url("lib/open-sans/OpenSans-Bold.ttf");
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: "Open Sans";
+    src: url("lib/open-sans/OpenSans-Light.ttf");
+    font-weight: 300;
+}
+
+/* ---- General ---- */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    color: #333;
+    background: #fff;
+    font: medium / 1.5 "Open Sans";
+}
+
+body {
+    margin: 0;
+}
+
+h1,
+p,
+ul,
+ol {
+    display: block;
+    margin: 1.5rem 0;
+    font-weight: normal;
+}
+
+h1 {
+    border-bottom: 1px solid #ddd;
+    font-size: 2rem;
+}
+
+section h1 { font-size: 1.66rem; }
+section section h1 { font-size: 1.33rem; }
+
+header h1,
+footer h1,
+li h1 {
+    border-bottom: none;
+}
+
+.templates {
+    display: none;
+}
+
+/* ---- Links ---- */
+
+.link {
+    display: inline;
+    padding: 0;
+    border: none;
+    color: #d94b1f;
+    background: none;
+    font: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+h1 .link {
+    color: inherit;
+}
+
+h1 .link:hover {
+    text-decoration: none;
+}
+
+/* ---- Actions ---- */
+
+.action {
+    display: inline-block;
+    padding: calc(0.25 * 1.5em);
+    border: none;
+    border-bottom: 2px solid #225ca0;
+    border-radius: calc(0.25 * 1.5em);
+    color: #fff;
+    background: #4d8dd9;
+    font: inherit;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.action-subtle {
+    display: inline;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    color: #4d8dd9;
+    background: none;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.action-subtle:hover {
+    text-decoration: underline;
+}
+
+.actions {
+    display: flex;
+}
+
+.actions > .action {
+    border-radius: 0;
+}
+
+.actions > .action:first-child {
+    border-top-left-radius: calc(0.25 * 1.5em);
+    border-bottom-left-radius: calc(0.25 * 1.5em);
+}
+
+.actions > .action:last-child {
+    border-top-right-radius: calc(0.25 * 1.5em);
+    border-bottom-right-radius: calc(0.25 * 1.5em);
+}
+
+.actions > .action:nth-child(+2) {
+    border-left: 1px solid #225ca0;
+}
+
+.actions > .action-subtle:nth-child(+2) {
+    border-left: none;
+    margin-left: calc(0.25 * 1.5rem);
+}
+
+/* ---- Forms ---- */
+
+label {
+    display: block;
+    margin: 1.5rem 0;
+}
+
+label > input,
+label > textarea {
+    display: block;
+    width: 100%;
+    padding: calc(0.25 * 1.5em);
+    border: 1px solid #bbb;
+    font: inherit;
+}
+
+label > textarea {
+    height: calc(5 * 1.5em + 2 * 0.25 * 1.5em);
+}
+
+label > small {
+    display: block;
+    font-size: 0.9rem;
+}
+
+/* ---- Page ---- */
+
+.meetling-page-inside {
+    box-sizing: content-box;
+    max-width: 70ch;
+    padding: 0 1.5rem;
+    margin: 0 auto;
+}
+
+.meetling-page-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.33);
+    background: #fff;
+}
+
+.meetling-page-header nav {
+    display: flex;
+    white-space: nowrap;
+}
+
+.meetling-page-logo {
+    flex: none;
+    margin: 0;
+    font-size: 1rem;
+}
+
+.meetling-page-logo .link {
+    display: block;
+    padding: calc(0.25 * 1.5em) 0;
+}
+
+.meetling-page-logo img {
+    vertical-align: middle;
+}
+
+.meetling-page-notification {
+    display: none;
+    padding: calc(0.5 * 1.5rem) 0;
+    border-top: 1px solid #ddd;
+}
+
+.meetling-page-notification-content > :first-child {
+    margin-top: 0;
+}
+
+.meetling-page-notification .actions {
+    margin-bottom: 0;
+}
+
+main {
+    padding-top: calc(1.5 * 1.5rem);
+}
+
+/* ---- StartPage ---- */
+
+.meetling-start-intro {
+    margin: calc(3 * 1.5rem) 0;
+    text-align: center;
+}
+
+.meetling-start-logo {
+    border-bottom: none;
+    font-size: 3rem;
+    font-weight: 300;
+}
+
+.meetling-start-logo img {
+    height: 6rem;
+    vertical-align: text-bottom;
+}
+
+.meetling-start-slogan {
+    font-size: 2rem;
+}
+
+.meetling-start-description {
+    color: #888;
+}
+
+.meetling-start-create-meeting {
+    font-size: 1.5rem;
+}
+
+/* ---- MeetingPage ---- */
+
+.meetling-meeting-items {
+    padding-left: calc(1.5 * 1.5rem);
+    list-style: none;
+}
+
+.meetling-meeting-items li {
+    position: relative;
+    padding: calc(0.5 * 1.5rem) 0;
+}
+
+.meetling-meeting-items li:nth-child(n+2) {
+    border-top: 1px solid #ddd;
+}
+
+.meetling-meeting-items li:not(:last-child)::before {
+    position: absolute;
+    top: calc(0.5 * 1.5rem);
+    left: calc(-1.5 * 1.5rem);
+    content: '▪';
+    color: #888;
+}
+
+.meetling-meeting-actions > * {
+    margin: calc(0.25 * 1.5rem);
+}
+
+.meetling-meeting-actions h1 {
+    color: #888;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+/* ---- AgendaItemElement ---- */
+
+.meetling-agenda-item header {
+    display: flex;
+}
+
+.meetling-agenda-item header h1 {
+    flex: auto;
+    margin: 0;
+    font-size: 1rem;
+}
+
+.meetling-agenda-item-content > * {
+    margin: calc(0.25 * 1.5rem) 0;
+}
+
+.meetling-agenda-item-description {
+    color: #888;
+}
+
+.meetling-agenda-item .actions {
+    margin-bottom: 0;
+}
+
+/* ---- AgendaItemEditor ---- */
+
+.meetling-agenda-item-editor h1 {
+    margin-top: 0;
+    font-size: 1rem;
+}
+
+.meetling-agenda-item-editor .actions {
+    margin-bottom: 0;
+}

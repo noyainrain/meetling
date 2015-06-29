@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width; initial-scale=1; user-scalable=no" />
+        <title>Meetling</title>
+        <link rel="icon" href="/static/images/favicon.png" />
+        <link rel="stylesheet" href="/static/lib/font-awesome/css/font-awesome.min.css" />
+        <link rel="stylesheet" href="/static/meetling.css" />
+        <script src="/static/lib/fetch/fetch.js"></script>
+        <script src="/static/lib/webcomponentsjs/webcomponents-lite.js"></script>
+        <script src="/static/meetling.js"></script>
+    </head>
+
+    <body {% block page-attrs %}is="meetling-page"{% end %}>
+        <header class="meetling-page-header">
+            <nav class="meetling-page-inside">
+                <h1 class="meetling-page-logo">
+                    <a class="link" href="/"><img src="/static/images/favicon.png" /> Meetling</a>
+                </h1>
+            </nav>
+            <div class="meetling-page-notification">
+                <div class="meetling-page-inside">
+                    <div class="meetling-page-notification-content"></div>
+                    <p class="actions">
+                        <button class="action action-subtle meetling-page-notification-dismiss">
+                            Dismiss
+                        </button>
+                    </p>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="meetling-page-inside">
+                {% block page-content %}{% end %}
+            </div>
+        </main>
+    </body>
+</html>

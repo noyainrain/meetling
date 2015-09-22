@@ -110,20 +110,17 @@ class JSONRedisMapping(Mapping):
         self.r = r
         self.map_key = map_key
 
-    def keys(self):
-        # NOTE: with set:
-        #return {k.decode() for k in self.r.smembers(self.map_key)}
-        return {k.decode() for k in self.r.lrange(self.map_key, 0, -1)}
-
     def __getitem__(self, key):
         # NOTE: with set:
         #if key not in self:
-        if key not in self.keys():
+        if key not in iter(self):
             raise KeyError()
         return self.r.oget(key)
 
     def __iter__(self):
-        return iter(self.keys())
+        # NOTE: with set:
+        #return (k.decode() for k in self.r.smembers(self.map_key))
+        return (k.decode() for k in self.r.lrange(self.map_key, 0, -1))
 
     def __len__(self):
         # NOTE: with set:

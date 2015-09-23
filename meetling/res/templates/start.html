@@ -1,5 +1,7 @@
 {% extends 'page.html' %}
 
+{% block page-attrs %}is="meetling-start-page"{% end %}
+
 {% block page-content %}
     <div class="meetling-start-intro">
         <h1 class="meetling-start-logo" href="/">
@@ -16,7 +18,10 @@
             </a>
         </p>
         <p>
-            or <button class="link"><i class="fa fa-book"></i> View an example</button>
+            or
+            <button class="link meetling-start-create-example-meeting">
+                <i class="fa fa-book"></i> View an example
+            </button>
         </p>
     </div>
 {% end %}

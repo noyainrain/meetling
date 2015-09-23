@@ -57,6 +57,29 @@ meetling.Page = document.registerElement("meetling-page",
 })});
 
 /**
+ * Start page, built on ``start.html``.
+ */
+meetling.StartPage = document.registerElement("meetling-start-page",
+        {extends:"body", prototype: Object.create(meetling.Page.prototype, {
+    createdCallback: {value: function() {
+        meetling.Page.prototype.createdCallback.call(this);
+        this.querySelector(".meetling-start-create-example-meeting").addEventListener("click",
+                                                                                      this);
+    }},
+
+    handleEvent: {value: function(event) {
+        meetling.Page.prototype.handleEvent.call(this, event);
+        if (event.currentTarget === this.querySelector(".meetling-start-create-example-meeting")) {
+            fetch("/api/create-example-meeting", {method: "POST"}).then(function(response) {
+                return response.json();
+            }).then(function(meeting) {
+                location.assign("/meetings/" + meeting.id);
+            });
+        }
+    }}
+})});
+
+/**
  * Meeting page, built on ``meeting.html``.
  *
  * .. attribute:: meeting
@@ -64,12 +87,12 @@ meetling.Page = document.registerElement("meetling-page",
  *    Represented :ref:`Meeting`. The initial value is set from the JSON value of the HTML attribute
  *    of the same name.
  */
-meetling.MeetingPage = document.registerElement('meetling-meeting-page',
+meetling.MeetingPage = document.registerElement("meetling-meeting-page",
         {extends: "body", prototype: Object.create(meetling.Page.prototype, {
     createdCallback: {value: function() {
         meetling.Page.prototype.createdCallback.call(this);
-        this.querySelector(".meetling-meeting-create-agenda-item .action")
-            .addEventListener("click", this);
+        this.querySelector(".meetling-meeting-create-agenda-item .action").addEventListener("click",
+                                                                                            this);
         this.meeting = JSON.parse(this.getAttribute("meeting"));
     }},
 

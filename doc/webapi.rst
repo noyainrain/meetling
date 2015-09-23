@@ -24,6 +24,12 @@ Meetling application.
 
    Create a :ref:`Meeting` with the given *title* and optional *description* and return it.
 
+.. http:post:: /api/create-example-meeting
+
+   Create a :ref:`Meeting` with an example agenda and return it.
+
+   Useful to illustrate how meetings work.
+
 .. _Meeting:
 
 Meeting

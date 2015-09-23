@@ -54,6 +54,10 @@ class MeetlingServerTest(AsyncTestCase):
         yield self.request('/api/meetings', method='POST', body='{"title": "Cat Hangout"}')
 
     @gen_test
+    def test_post_create_example_meeting(self):
+        yield self.request('/api/create-example-meeting', method='POST', body='')
+
+    @gen_test
     def test_get_meeting(self):
         response = yield self.request('/api/meetings/' + self.meeting.id)
         meeting = json.loads(response.body.decode())

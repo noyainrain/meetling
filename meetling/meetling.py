@@ -15,6 +15,7 @@
 """Core parts of Meetling."""
 
 from urllib.parse import ParseResult, urlparse, urljoin
+from datetime import datetime, timedelta
 from redis import StrictRedis
 from meetling.lib.jsonredis import JSONRedis, JSONRedisMapping
 from meetling.util import randstr, str_or_none
@@ -68,6 +69,18 @@ class Meetling:
         self.r.rpush('meetings', meeting.id)
         return meeting
 
+    def create_example_meeting(self):
+        """See :http:post:`/api/create-example-meeting`."""
+        time = (datetime.utcnow() + timedelta(days=7)).replace(hour=12, minute=0, second=0,
+                                                               microsecond=0)
+        meeting = self.create_meeting(
+            'Working group meeting',
+            'We meet on {} at the office and discuss important issues.'.format(time.ctime()))
+        meeting.create_agenda_item('Round of introductions')
+        meeting.create_agenda_item('Lunch poll', 'What will we have for lunch today?')
+        meeting.create_agenda_item('Next meeting', 'When and where will our next meeting be?')
+        return meeting
+
     @staticmethod
     def _encode(object):
         try:
@@ -107,6 +120,9 @@ class Object:
         json = {'__type__': type(self).__name__, 'id': self.id}
         json.update(attrs)
         return json
+
+    def __repr__(self):
+        return '<{}>'.format(self.id)
 
 class Meeting(Object):
     """See :ref:`Meeting`.

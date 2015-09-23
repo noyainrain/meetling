@@ -31,7 +31,7 @@ def main(args):
     parser.add_argument('--debug', action='store_true', help='Debug mode.')
     parser.add_argument(
         '--redis-url',
-        help='URL of the Redis server. Only host, port and path (representing the database index) are considered, all other components are ignored. Defaults to redis://localhost:6379/0.')
+        help='URL of the Redis database. Only host, port and path (representing the database index) are considered, all other components are ignored. Defaults to redis://localhost:6379/0.')
     args = parser.parse_args(args[1:])
 
     MeetlingServer(**vars(args)).run()

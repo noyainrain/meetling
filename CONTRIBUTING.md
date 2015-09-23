@@ -24,6 +24,14 @@ To run all unit tests, type:
 python3 -m unittest discover -v
 ```
 
+## Setting up Sample Data
+
+To set up some sample data for Meetling, type:
+
+```sh
+./misc/sample.py
+```
+
 ## Generating the Documentation
 
 To build the Meetling documentation, type:

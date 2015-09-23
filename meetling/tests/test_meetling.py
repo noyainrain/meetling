@@ -44,6 +44,10 @@ class MeetlingTest(MeetlingTestCase):
         with self.assertRaises(RedisError):
             app.create_meeting('Cat Hangout')
 
+    def test_create_example_meeting(self):
+        meeting = self.app.create_example_meeting()
+        self.assertTrue(len(meeting.items))
+
 class MeetingTest(MeetlingTestCase):
     def setUp(self):
         super().setUp()

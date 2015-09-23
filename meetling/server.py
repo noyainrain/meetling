@@ -50,6 +50,7 @@ class MeetlingServer(HTTPServer):
             (r'/meetings/([^/]+)$', MeetingPage),
             (r'/meetings/([^/]+)/edit$', EditMeetingPage),
             (r'/api/meetings$', MeetingsEndpoint),
+            (r'/api/create-example-meeting$', CreateExampleMeetingEndpoint),
             (r'/api/meetings/([^/]+)$', MeetingEndpoint),
             (r'/api/meetings/([^/]+)/items$', MeetingItemsEndpoint),
             (r'/api/meetings/([^/]+)/items/([^/]+)$', AgendaItemEndpoint)
@@ -134,6 +135,11 @@ class MeetingsEndpoint(Endpoint):
         e.trigger()
 
         meeting = self.app.create_meeting(**args)
+        self.write(meeting.json())
+
+class CreateExampleMeetingEndpoint(Endpoint):
+    def post(self):
+        meeting = self.app.create_example_meeting()
         self.write(meeting.json())
 
 class MeetingEndpoint(Endpoint):

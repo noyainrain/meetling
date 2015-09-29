@@ -27,35 +27,32 @@ class MeetlingServerTest(AsyncTestCase):
         self.server = MeetlingServer(redis_url='15')
         self.server.listen(16160, 'localhost')
         self.server.app.r.flushdb()
-        self.meeting = self.server.app.create_meeting('Cat Hangout')
-        self.item = self.meeting.create_agenda_item('Purring')
+        self.meeting = self.server.app.create_meeting('Cat hangout')
+        self.item = self.meeting.create_agenda_item('Eating')
 
     def request(self, url, **args):
         return AsyncHTTPClient().fetch(urljoin('http://localhost:16160/', url), **args)
 
     @gen_test
-    def test_get_start_page(self):
+    def test_availability(self):
+        # UI
         yield self.request('/')
-
-    @gen_test
-    def test_get_create_meeting_page(self):
         yield self.request('/create-meeting')
-
-    @gen_test
-    def test_get_meeting_page(self):
         yield self.request('/meetings/' + self.meeting.id)
-
-    @gen_test
-    def test_get_edit_meeting_page(self):
         yield self.request('/meetings/{}/edit'.format(self.meeting.id))
 
-    @gen_test
-    def test_post_meetings(self):
-        yield self.request('/api/meetings', method='POST', body='{"title": "Cat Hangout"}')
-
-    @gen_test
-    def test_post_create_example_meeting(self):
+        # API
+        yield self.request('/api/meetings', method='POST', body='{"title": "Cat hangout"}')
         yield self.request('/api/create-example-meeting', method='POST', body='')
+        yield self.request('/api/meetings/' + self.meeting.id)
+        yield self.request('/api/meetings/' + self.meeting.id, method='POST',
+                           body='{"description": "Good mood!"}')
+        yield self.request('/api/meetings/{}/items'.format(self.meeting.id))
+        yield self.request('/api/meetings/{}/items'.format(self.meeting.id), method='POST',
+                           body='{"title": "Purring"}')
+        yield self.request('/api/meetings/{}/items/{}'.format(self.meeting.id, self.item.id))
+        yield self.request('/api/meetings/{}/items/{}'.format(self.meeting.id, self.item.id),
+                           method='POST', body='{"description": "Bring food!"}')
 
     @gen_test
     def test_get_meeting(self):
@@ -70,11 +67,6 @@ class MeetlingServerTest(AsyncTestCase):
         self.assertEqual(cm.exception.code, http.client.NOT_FOUND)
 
     @gen_test
-    def test_post_meeting(self):
-        yield self.request('/api/meetings/' + self.meeting.id, method='POST',
-                           body='{"description": "Bring food!"}')
-
-    @gen_test
     def test_post_meeting_description_bad_type(self):
         with self.assertRaises(HTTPError) as cm:
             yield self.request('/api/meetings/' + self.meeting.id, method='POST',
@@ -82,21 +74,3 @@ class MeetlingServerTest(AsyncTestCase):
         self.assertEqual(cm.exception.code, http.client.BAD_REQUEST)
         error = json.loads(cm.exception.response.body.decode())
         self.assertEqual(error.get('__type__'), 'InputError')
-
-    @gen_test
-    def test_get_meeting_items(self):
-        yield self.request('/api/meetings/{}/items'.format(self.meeting.id))
-
-    @gen_test
-    def test_post_meeting_items(self):
-        yield self.request('/api/meetings/{}/items'.format(self.meeting.id), method='POST',
-                           body='{"title": "Purring"}')
-
-    @gen_test
-    def test_get_agenda_item(self):
-        yield self.request('/api/meetings/{}/items/{}'.format(self.meeting.id, self.item.id))
-
-    @gen_test
-    def test_post_agenda_item(self):
-        yield self.request('/api/meetings/{}/items/{}'.format(self.meeting.id, self.item.id),
-                           method='POST', body='{"description": "Good mood!"}')

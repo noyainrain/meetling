@@ -95,6 +95,13 @@ class EditMeetingPage(Page):
         self.render('edit-meeting.html', meeting=meeting)
 
 class Endpoint(RequestHandler):
+    """JSON REST API endpoint.
+
+    .. attribute:: args
+
+       Dictionary of JSON arguments passed by the client.
+    """
+
     def initialize(self):
         self.server = self.application.settings['server']
         self.app = self.server.app
@@ -124,16 +131,46 @@ class Endpoint(RequestHandler):
             return
         super().log_exception(typ, value, tb)
 
-class MeetingsEndpoint(Endpoint):
-    def post(self):
-        args = {k: v for k, v in self.args.items() if k in ('title', 'description')}
+    def check_args(self, type_info):
+        """Check *args* for their expected type.
+
+        *type_info* maps argument names to :class:`type` s. If multiple types are valid for an
+        argument, a tuple can be given. The special keyword ``'opt'`` marks an argument as optional.
+        ``None`` is equvialent to ``type(None)``. An example *type_info* could look like::
+
+            {'name': str, 'pattern': (str, 'opt')}
+
+        If any argument has an unexpected type, an :exc:`InputError` with ``bad_type`` is raised. If
+        an argument is missing but required, an :exc:`InputError` with ``missing`` is raised.
+
+        A filtered subset of *args* is returned, matching those present in *type_info*. Thus any
+        excess argument passed by the client can safely be ignored.
+        """
+        args = {k: v for k, v in self.args.items() if k in type_info.keys()}
+
         e = InputError()
-        if not isinstance(args.get('title'), str):
-            e.errors['title'] = 'bad_type'
-        if not isinstance(args.get('description'), (str, type(None))):
-            e.errors['description'] = 'bad_type'
+        for arg, types in type_info.items():
+            # Normalize
+            if not isinstance(types, tuple):
+                types = (types, )
+            types = tuple(type(None) if t is None else t for t in types)
+
+            # Check
+            if arg not in args:
+                if 'opt' not in types:
+                    e.errors[arg] = 'missing'
+            else:
+                types = tuple(t for t in types if isinstance(t, type))
+                # TODO: Raise error if types is empty (e.g. if it contained only keywords)
+                if not isinstance(args.get(arg), types):
+                    e.errors[arg] = 'bad_type'
         e.trigger()
 
+        return args
+
+class MeetingsEndpoint(Endpoint):
+    def post(self):
+        args = self.check_args({'title': str, 'description': (str, None, 'opt')})
         meeting = self.app.create_meeting(**args)
         self.write(meeting.json())
 
@@ -148,14 +185,7 @@ class MeetingEndpoint(Endpoint):
         self.write(meeting.json())
 
     def post(self, id):
-        args = {k: v for k, v in self.args.items() if k in ('title', 'description')}
-        e = InputError()
-        if not isinstance(args.get('title', ''), str):
-            e.errors['title'] = 'bad_type'
-        if not isinstance(args.get('description'), (str, type(None))):
-            e.errors['description'] = 'bad_type'
-        e.trigger()
-
+        args = self.check_args({'title': (str, 'opt'), 'description': (str, None, 'opt')})
         meeting = self.app.meetings[id]
         meeting.edit(**args)
         self.write(meeting.json())
@@ -166,14 +196,7 @@ class MeetingItemsEndpoint(Endpoint):
         self.write(json.dumps([i.json() for i in meeting.items.values()]))
 
     def post(self, id):
-        args = {k: v for k, v in self.args.items() if k in ('title', 'description')}
-        e = InputError()
-        if not isinstance(args.get('title'), str):
-            e.errors['title'] = 'bad_type'
-        if not isinstance(args.get('description'), (str, type(None))):
-            e.errors['description'] = 'bad_type'
-        e.trigger()
-
+        args = self.check_args({'title': str, 'description': (str, None, 'opt')})
         meeting = self.app.meetings[id]
         item = meeting.create_agenda_item(**args)
         self.write(item.json())
@@ -185,14 +208,7 @@ class AgendaItemEndpoint(Endpoint):
         self.write(item.json())
 
     def post(self, meeting_id, item_id):
-        args = {k: v for k, v in self.args.items() if k in ('title', 'description')}
-        e = InputError()
-        if not isinstance(args.get('title', ''), str):
-            e.errors['title'] = 'bad_type'
-        if not isinstance(args.get('description'), (str, type(None))):
-            e.errors['description'] = 'bad_type'
-        e.trigger()
-
+        args = self.check_args({'title': (str, 'opt'), 'description': (str, None, 'opt')})
         meeting = self.app.meetings[meeting_id]
         item = meeting.items[item_id]
         item.edit(**args)

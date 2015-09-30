@@ -60,7 +60,7 @@ meetling.Page = document.registerElement("meetling-page",
  * Start page, built on ``start.html``.
  */
 meetling.StartPage = document.registerElement("meetling-start-page",
-        {extends:"body", prototype: Object.create(meetling.Page.prototype, {
+        {extends: "body", prototype: Object.create(meetling.Page.prototype, {
     createdCallback: {value: function() {
         meetling.Page.prototype.createdCallback.call(this);
         this.querySelector(".meetling-start-create-example-meeting").addEventListener("click",
@@ -75,6 +75,38 @@ meetling.StartPage = document.registerElement("meetling-start-page",
             }).then(function(meeting) {
                 location.assign("/meetings/" + meeting.id);
             });
+        }
+    }}
+})});
+
+/**
+ * Edit settings page, built on ``edit-settings.html``.
+ */
+meetling.EditSettingsPage = document.registerElement("meetling-edit-settings-page",
+        {extends: "body", prototype: Object.create(meetling.Page.prototype, {
+    createdCallback: {value: function() {
+        meetling.Page.prototype.createdCallback.call(this);
+        this.querySelector(".meetling-edit-settings-edit").addEventListener("submit", this);
+    }},
+
+    handleEvent: {value: function(event) {
+        meetling.Page.prototype.handleEvent.call(this, event);
+        var form = this.querySelector(".meetling-edit-settings-edit");
+        if (event.currentTarget === form) {
+            event.preventDefault();
+            fetch("/api/settings", {method: "POST", body: JSON.stringify({
+                title: form.elements["title"].value,
+                icon: form.elements["icon"].value,
+                favicon: form.elements["favicon"].value
+            })}).then(function(response) {
+                return response.json();
+            }).then(function(settings) {
+                if (settings.__type__ === "InputError") {
+                    this.notify("The title is missing");
+                    return;
+                }
+                location.assign("/");
+            }.bind(this));
         }
     }}
 })});

@@ -1,7 +1,11 @@
+![Icon](https://raw.githubusercontent.com/NoyaInRain/meetling/master/meetling/res/static/images/favicon.png)
+
 Meetling
 ========
 
 Web app for collaboratively preparing meetings.
+
+You can give it a try at [meetling.org](http://meetling.org/).
 
 ## Dependencies
 

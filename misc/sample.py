@@ -35,7 +35,9 @@ def main(args):
 
     app = Meetling(**vars(args))
     app.r.flushdb()
+    app.update()
 
+    app.settings.edit(title='Meetling Lab')
     meeting1 = app.create_example_meeting()
     meeting2 = app.create_meeting('Cat hangout')
     meeting2.create_agenda_item('Eating')

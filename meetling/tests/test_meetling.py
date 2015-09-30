@@ -23,6 +23,7 @@ class MeetlingTestCase(AsyncTestCase):
         super().setUp()
         self.app = Meetling(redis_url='15')
         self.app.r.flushdb()
+        self.app.update()
 
 class MeetlingTest(MeetlingTestCase):
     def test_init_redis_url_invalid(self):
@@ -47,6 +48,19 @@ class MeetlingTest(MeetlingTestCase):
     def test_create_example_meeting(self):
         meeting = self.app.create_example_meeting()
         self.assertTrue(len(meeting.items))
+
+class MeetlingUpdateTest(MeetlingTestCase):
+    def test_update(self):
+        # update() is called by setUp()
+        self.assertEqual(self.app.settings.title, 'My Meetling')
+
+class SettingsTest(MeetlingTestCase):
+    def test_edit(self):
+        settings = self.app.settings
+        settings.edit(title='Cat Meetling', icon='http://example.org/static/icon.svg')
+        self.assertEqual(settings.title, 'Cat Meetling')
+        self.assertEqual(settings.icon, 'http://example.org/static/icon.svg')
+        self.assertIsNone(settings.favicon)
 
 class MeetingTest(MeetlingTestCase):
     def setUp(self):

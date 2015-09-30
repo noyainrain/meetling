@@ -45,12 +45,16 @@ class MeetlingServer(HTTPServer):
 
     def __init__(self, port=8080, debug=False, **args):
         handlers = [
+            # UI
             (r'/$', StartPage),
             (r'/create-meeting$', EditMeetingPage),
+            (r'/settings/edit$', EditSettingsPage),
             (r'/meetings/([^/]+)$', MeetingPage),
             (r'/meetings/([^/]+)/edit$', EditMeetingPage),
+            # API
             (r'/api/meetings$', MeetingsEndpoint),
             (r'/api/create-example-meeting$', CreateExampleMeetingEndpoint),
+            (r'/api/settings$', SettingsEndpoint),
             (r'/api/meetings/([^/]+)$', MeetingEndpoint),
             (r'/api/meetings/([^/]+)/items$', MeetingItemsEndpoint),
             (r'/api/meetings/([^/]+)/items/([^/]+)$', AgendaItemEndpoint)
@@ -66,6 +70,7 @@ class MeetlingServer(HTTPServer):
 
     def run(self):
         """Run the server."""
+        self.app.update()
         self.listen(self.port)
         IOLoop.instance().start()
 
@@ -74,9 +79,16 @@ class Page(RequestHandler):
         self.server = self.application.settings['server']
         self.app = self.server.app
 
+    def get_template_namespace(self):
+        return {'settings': self.app.settings}
+
 class StartPage(Page):
     def get(self):
         self.render('start.html')
+
+class EditSettingsPage(Page):
+    def get(self):
+        self.render('edit-settings.html')
 
 class MeetingPage(Page):
     def get(self, id):
@@ -178,6 +190,20 @@ class CreateExampleMeetingEndpoint(Endpoint):
     def post(self):
         meeting = self.app.create_example_meeting()
         self.write(meeting.json())
+
+class SettingsEndpoint(Endpoint):
+    def get(self):
+        self.write(self.app.settings.json())
+
+    def post(self):
+        args = self.check_args({
+            'title': (str, 'opt'),
+            'icon': (str, None, 'opt'),
+            'favicon': (str, None, 'opt')
+        })
+        settings = self.app.settings
+        settings.edit(**args)
+        self.write(settings.json())
 
 class MeetingEndpoint(Endpoint):
     def get(self, id):

@@ -27,6 +27,7 @@ class MeetlingServerTest(AsyncTestCase):
         self.server = MeetlingServer(redis_url='15')
         self.server.listen(16160, 'localhost')
         self.server.app.r.flushdb()
+        self.server.app.update()
         self.meeting = self.server.app.create_meeting('Cat hangout')
         self.item = self.meeting.create_agenda_item('Eating')
 
@@ -38,12 +39,17 @@ class MeetlingServerTest(AsyncTestCase):
         # UI
         yield self.request('/')
         yield self.request('/create-meeting')
+        yield self.request('/settings/edit')
         yield self.request('/meetings/' + self.meeting.id)
         yield self.request('/meetings/{}/edit'.format(self.meeting.id))
 
         # API
         yield self.request('/api/meetings', method='POST', body='{"title": "Cat hangout"}')
         yield self.request('/api/create-example-meeting', method='POST', body='')
+        yield self.request('/api/settings')
+        yield self.request(
+            '/api/settings', method='POST',
+            body='{"title": "Cat Meetling", "icon": "http://example.org/static/icon.svg"}')
         yield self.request('/api/meetings/' + self.meeting.id)
         yield self.request('/api/meetings/' + self.meeting.id, method='POST',
                            body='{"description": "Good mood!"}')

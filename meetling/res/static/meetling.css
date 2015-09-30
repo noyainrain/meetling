@@ -189,6 +189,10 @@ label > small {
     font-size: 0.9rem;
 }
 
+label > small + small {
+    color: #888;
+}
+
 /* ---- Page ---- */
 
 .meetling-page-inside {

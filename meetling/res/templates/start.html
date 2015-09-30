@@ -5,7 +5,10 @@
 {% block page-content %}
     <div class="meetling-start-intro">
         <h1 class="meetling-start-logo" href="/">
-            <a class="link"><img src="/static/images/icon.svg" /> Meetling</a>
+            <a class="link">
+                {% if settings.icon %}<img src="{{ settings.icon }}" />{% end %}
+                {{ settings.title }}
+            </a>
         </h1>
         <p class="meetling-start-slogan">Prepare meetings together</p>
         <p class="meetling-start-description">

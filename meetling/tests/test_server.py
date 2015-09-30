@@ -39,6 +39,7 @@ class MeetlingServerTest(AsyncTestCase):
         # UI
         yield self.request('/')
         yield self.request('/create-meeting')
+        yield self.request('/settings/edit')
         yield self.request('/meetings/' + self.meeting.id)
         yield self.request('/meetings/{}/edit'.format(self.meeting.id))
 

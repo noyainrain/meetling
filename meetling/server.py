@@ -48,6 +48,7 @@ class MeetlingServer(HTTPServer):
             # UI
             (r'/$', StartPage),
             (r'/create-meeting$', EditMeetingPage),
+            (r'/settings/edit$', EditSettingsPage),
             (r'/meetings/([^/]+)$', MeetingPage),
             (r'/meetings/([^/]+)/edit$', EditMeetingPage),
             # API
@@ -78,9 +79,16 @@ class Page(RequestHandler):
         self.server = self.application.settings['server']
         self.app = self.server.app
 
+    def get_template_namespace(self):
+        return {'settings': self.app.settings}
+
 class StartPage(Page):
     def get(self):
         self.render('start.html')
+
+class EditSettingsPage(Page):
+    def get(self):
+        self.render('edit-settings.html')
 
 class MeetingPage(Page):
     def get(self, id):

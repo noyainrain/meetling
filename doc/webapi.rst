@@ -30,6 +30,39 @@ Meetling application.
 
    Useful to illustrate how meetings work.
 
+.. _Settings:
+
+Settings
+--------
+
+App settings.
+
+.. describe:: id
+
+   Unique ID ``Settings``.
+
+.. describe:: title
+
+   Site title.
+
+.. describe:: icon
+
+   URL of the site icon. May be ``null``.
+
+.. describe:: favicon
+
+   URL of the site icon optimized for a small size. May be ``null``.
+
+.. http:get:: /api/settings
+
+   Get the settings.
+
+.. http:post:: /api/settings
+
+   ``{attrs...}``
+
+   Edit the attributes given by *attrs* and return the updated settings.
+
 .. _Meeting:
 
 Meeting

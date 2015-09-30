@@ -23,6 +23,10 @@ from meetling.util import randstr, str_or_none
 class Meetling:
     """See :ref:`Meetling`.
 
+    .. attribute:: settings
+
+       App :class:`Settings`.
+
     .. attribute:: meetings
 
        Map of all :class:`Meeting` s.
@@ -55,6 +59,24 @@ class Meetling:
         self.r = JSONRedis(self.r, self._encode, self._decode)
 
         self.meetings = JSONRedisMapping(self.r, 'meetings')
+
+    @property
+    def settings(self):
+        return self.r.oget('Settings')
+
+    def update(self):
+        """Update the Meetling database.
+
+        If the database is fresh, it will be initialized. If the database is already up-to-date,
+        nothing will be done. It is thus safe to call :meth:`update` without knowing if an update is
+        necessary or not.
+        """
+        db_version = self.r.get('version')
+        if not db_version:
+            settings = Settings(id='Settings', app=self, title='My Meetling', icon=None,
+                                favicon=None)
+            self.r.oset(settings.id, settings)
+            self.r.set('version', 1)
 
     def create_meeting(self, title, description=None):
         """See :http:post:`/api/meetings`."""
@@ -89,7 +111,7 @@ class Meetling:
             raise TypeError()
 
     def _decode(self, json):
-        types = {'Meeting': Meeting, 'AgendaItem': AgendaItem}
+        types = {'Settings': Settings, 'Meeting': Meeting, 'AgendaItem': AgendaItem}
         try:
             type = json.pop('__type__')
         except KeyError:
@@ -123,6 +145,33 @@ class Object:
 
     def __repr__(self):
         return '<{}>'.format(self.id)
+
+class Settings(Object):
+    """See :ref:`Settings`."""
+
+    def __init__(self, id, app, title, icon, favicon):
+        super().__init__(id=id, app=app)
+        self.title = title
+        self.icon = icon
+        self.favicon = favicon
+
+    def edit(self, **attrs):
+        """See :http:post:`/api/settings`."""
+        e = InputError()
+        if 'title' in attrs and not str_or_none(attrs['title']):
+            e.errors['title'] = 'empty'
+        e.trigger()
+
+        if 'title' in attrs:
+            self.title = attrs['title']
+        if 'icon' in attrs:
+            self.icon = str_or_none(attrs['icon'])
+        if 'favicon' in attrs:
+            self.favicon = str_or_none(attrs['favicon'])
+        self.app.r.oset(self.id, self)
+
+    def json(self):
+        return super().json({'title': self.title, 'icon': self.icon, 'favicon': self.favicon})
 
 class Meeting(Object):
     """See :ref:`Meeting`.

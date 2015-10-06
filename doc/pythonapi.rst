@@ -5,7 +5,8 @@ meetling
 --------
 
 .. automodule:: meetling
-   :members: Meetling, Object, Editable, User, Settings, Meeting, AgendaItem, InputError
+   :members: Meetling, Object, Editable, User, Settings, Meeting, AgendaItem, InputError,
+             PermissionError
 
 util
 ----

@@ -16,7 +16,7 @@
 
 from redis import RedisError
 from tornado.testing import AsyncTestCase
-from meetling import Meetling, InputError
+from meetling import Meetling, InputError, PermissionError
 
 class MeetlingTestCase(AsyncTestCase):
     def setUp(self):
@@ -24,6 +24,7 @@ class MeetlingTestCase(AsyncTestCase):
         self.app = Meetling(redis_url='15')
         self.app.r.flushdb()
         self.app.update()
+        self.staff_member = self.app.login()
         self.user = self.app.login()
 
 class MeetlingTest(MeetlingTestCase):
@@ -44,6 +45,7 @@ class MeetlingTest(MeetlingTestCase):
         # login() is called by setUp()
         self.assertIn(self.user.id, self.app.users)
         self.assertEqual(self.user, self.app.user)
+        self.assertIn(self.staff_member.id, self.app.settings.staff)
 
     def test_create_meeting(self):
         meeting = self.app.create_meeting('Cat Hangout', '  ')
@@ -55,10 +57,15 @@ class MeetlingTest(MeetlingTestCase):
         with self.assertRaises(InputError):
             self.app.create_meeting('  ')
 
+    def test_create_meeting_user_anonymous(self):
+        self.app.user = None
+        with self.assertRaises(PermissionError):
+            self.app.create_meeting('Cat hangout')
+
     def test_create_meeting_no_redis(self):
         app = Meetling(redis_url='//localhoax')
         with self.assertRaises(RedisError):
-            app.create_meeting('Cat Hangout')
+            app.login()
 
     def test_create_example_meeting(self):
         meeting = self.app.create_example_meeting()
@@ -71,6 +78,7 @@ class MeetlingUpdateTest(MeetlingTestCase):
 
 class SettingsTest(MeetlingTestCase):
     def test_edit(self):
+        self.app.user = self.staff_member
         settings = self.app.settings
         settings.edit(title='Cat Meetling', icon='http://example.org/static/icon.svg')
         self.assertEqual(settings.title, 'Cat Meetling')

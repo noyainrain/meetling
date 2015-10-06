@@ -22,7 +22,7 @@ from collections import Mapping
 from tornado.httpserver import HTTPServer
 from tornado.web import Application, RequestHandler, HTTPError
 from tornado.ioloop import IOLoop
-from meetling import Meetling, InputError
+from meetling import Meetling, InputError, PermissionError
 
 class MeetlingServer(HTTPServer):
     """Meetling server.
@@ -175,6 +175,9 @@ class Endpoint(Resource):
         if issubclass(exc_info[0], InputError):
             self.set_status(http.client.BAD_REQUEST)
             self.write({'__type__': exc_info[0].__name__, 'errors': exc_info[1].errors})
+        elif issubclass(exc_info[0], PermissionError):
+            self.set_status(http.client.FORBIDDEN)
+            self.write({'__type__': exc_info[0].__name__})
         else:
             status_code = {KeyError: http.client.NOT_FOUND}.get(exc_info[0], status_code)
             self.set_status(status_code)
@@ -182,7 +185,7 @@ class Endpoint(Resource):
 
     def log_exception(self, typ, value, tb):
         # These errors are handled specially and there is no need to log them as exceptions
-        if issubclass(typ, (InputError, KeyError)):
+        if issubclass(typ, (InputError, PermissionError, KeyError)):
             return
         super().log_exception(typ, value, tb)
 
@@ -245,7 +248,7 @@ class UserEndpoint(Endpoint):
 
 class SettingsEndpoint(Endpoint):
     def get(self):
-        self.write(self.app.settings.json())
+        self.write(self.app.settings.json(include_users=True))
 
     def post(self):
         args = self.check_args({
@@ -255,7 +258,7 @@ class SettingsEndpoint(Endpoint):
         })
         settings = self.app.settings
         settings.edit(**args)
-        self.write(settings.json())
+        self.write(settings.json(include_users=True))
 
 class MeetingEndpoint(Endpoint):
     def get(self, id):

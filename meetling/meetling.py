@@ -84,7 +84,7 @@ class Meetling:
         db_version = self.r.get('version')
         if not db_version:
             settings = Settings(id='Settings', app=self, title='My Meetling', icon=None,
-                                favicon=None)
+                                favicon=None, staff=[])
             self.r.oset(settings.id, settings)
             self.r.set('version', 1)
 
@@ -109,10 +109,20 @@ class Meetling:
         self.r.oset(user.id, user)
         self.r.rpush('users', user.id)
         self.r.hset('auth_secret_map', user.auth_secret, user.id)
+
+        # Promote first user to staff
+        if len(self.users) == 1:
+            settings = self.settings
+            settings.staff = [user.id]
+            self.r.oset(settings.id, settings)
+
         return self.authenticate(user.auth_secret)
 
     def create_meeting(self, title, description=None):
         """See :http:post:`/api/meetings`."""
+        if not self.user:
+            raise PermissionError()
+
         e = InputError()
         if not str_or_none(title):
             e.errors['title'] = 'empty'
@@ -126,6 +136,9 @@ class Meetling:
 
     def create_example_meeting(self):
         """See :http:post:`/api/create-example-meeting`."""
+        if not self.user:
+            raise PermissionError()
+
         time = (datetime.utcnow() + timedelta(days=7)).replace(hour=12, minute=0, second=0,
                                                                microsecond=0)
         meeting = self.create_meeting(
@@ -184,6 +197,8 @@ class Editable:
 
     def edit(self, **attrs):
         """See :http:post:`/api/(object-url)`."""
+        if not self.app.user:
+            raise PermissionError()
         self.do_edit(**attrs)
         self.app.r.oset(self.id, self)
 
@@ -191,7 +206,7 @@ class Editable:
         """Subclass API: Perform the edit operation.
 
         More precisely, validate and then set the given *attrs*. Called by :meth:`edit`, which takes
-        care of finally storing the updated object in the database.
+        care of basic permission checking and finally storing the updated object in the database.
         """
         raise NotImplementedError()
 
@@ -215,14 +230,18 @@ class User(Object):
 class Settings(Object, Editable):
     """See :ref:`Settings`."""
 
-    def __init__(self, id, app, title, icon, favicon):
+    def __init__(self, id, app, title, icon, favicon, staff):
         super().__init__(id=id, app=app)
         Editable.__init__(self)
         self.title = title
         self.icon = icon
         self.favicon = favicon
+        self.staff = staff
 
     def do_edit(self, **attrs):
+        if not self.app.user.id in self.staff:
+            raise PermissionError()
+
         e = InputError()
         if 'title' in attrs and not str_or_none(attrs['title']):
             e.errors['title'] = 'empty'
@@ -235,8 +254,21 @@ class Settings(Object, Editable):
         if 'favicon' in attrs:
             self.favicon = str_or_none(attrs['favicon'])
 
-    def json(self):
-        return super().json({'title': self.title, 'icon': self.icon, 'favicon': self.favicon})
+    def json(self, include_users=False):
+        """See :meth:`Object.json`.
+
+        If *include_users* is ``True``, :class:`User` s are included as JSON objects (instead of
+        IDs).
+        """
+        json = super().json({
+            'title': self.title,
+            'icon': self.icon,
+            'favicon': self.favicon,
+            'staff': self.staff
+        })
+        if include_users:
+            json['staff'] = [self.app.users[i].json(exclude_private=True) for i in self.staff]
+        return json
 
 class Meeting(Object, Editable):
     """See :ref:`Meeting`.
@@ -266,6 +298,9 @@ class Meeting(Object, Editable):
 
     def create_agenda_item(self, title, description=None):
         """See :http:post:`/api/meetings/(id)/items`."""
+        if not self.app.user:
+            raise PermissionError()
+
         e = InputError()
         if not str_or_none(title):
             e.errors['title'] = 'empty'
@@ -328,3 +363,7 @@ class InputError(ValueError):
         """
         if self.errors:
             raise self
+
+class PermissionError(Exception):
+    """See :ref:`PermissionError`."""
+    pass

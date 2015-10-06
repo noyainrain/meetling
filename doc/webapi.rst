@@ -11,6 +11,15 @@ Arguments are passed to an endpoint simply as JSON object and the result is retu
 
 For any endpoint an :ref:`InputError` is returned if the input contains invalid arguments.
 
+Authentication and Permissions
+------------------------------
+
+To make an API request authenticated as some user, include a cookie named ``auth_secret`` with the
+:ref:`User` 's *auth_secret*.
+
+For any endpoint an :ref:`PermissionError` is returned if the current user is not allowed to perform
+the action.
+
 .. _Meetling:
 
 Meetling
@@ -24,17 +33,23 @@ Meetling application.
 
    A new user is created and returned.
 
+   The very first user that logs in is registered as staff member.
+
 .. http:post:: /api/meetings
 
    ``{"title", "description": null}``
 
    Create a :ref:`Meeting` with the given *title* and optional *description* and return it.
 
+   Permission: Authenticated users.
+
 .. http:post:: /api/create-example-meeting
 
    Create a :ref:`Meeting` with an example agenda and return it.
 
    Useful to illustrate how meetings work.
+
+   Permission: Authenticated users.
 
 .. _Editable:
 
@@ -51,6 +66,8 @@ a :ref:`Meeting` with the *id* ``abc``.
    ``{attrs...}``
 
    Edit the attributes given by *attrs* and return the updated object.
+
+   Permission: Authenticated users.
 
 .. _User:
 
@@ -78,7 +95,7 @@ Settings
 
 App settings.
 
-Settings is :ref:`Editable`.
+Settings is :ref:`Editable` by staff members.
 
 .. describe:: id
 
@@ -95,6 +112,10 @@ Settings is :ref:`Editable`.
 .. describe:: favicon
 
    URL of the site icon optimized for a small size. May be ``null``.
+
+.. describe:: staff
+
+   Staff users.
 
 .. http:get:: /api/settings
 
@@ -135,6 +156,8 @@ Meeting is :ref:`Editable`.
 
    Create an :ref:`AgendaItem` with the given *title* and optional *description* and return it.
 
+   Permission: Authenticated users.
+
 .. _AgendaItem:
 
 AgendaItem
@@ -170,3 +193,10 @@ Returned if the input to an endpoint contains one or more arguments with an inva
 .. attribute:: errors
 
    Map of argument names / error strings for every problematic argument of the input.
+
+.. _PermissionError:
+
+PermissionError
+---------------
+
+Returned if the current user is not allowed to perform an action.

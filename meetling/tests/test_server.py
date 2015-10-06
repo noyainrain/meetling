@@ -30,6 +30,7 @@ class MeetlingServerTest(AsyncTestCase):
         app = self.server.app
         app.r.flushdb()
         app.update()
+        self.staff_member = app.login()
         self.user = app.login()
         self.meeting = self.server.app.create_meeting('Cat hangout')
         self.item = self.meeting.create_agenda_item('Eating')
@@ -58,9 +59,6 @@ class MeetlingServerTest(AsyncTestCase):
         yield self.request('/api/create-example-meeting', method='POST', body='')
         yield self.request('/api/users/' + self.user.id)
         yield self.request('/api/settings')
-        yield self.request(
-            '/api/settings', method='POST',
-            body='{"title": "Cat Meetling", "icon": "http://example.org/static/icon.svg"}')
         yield self.request('/api/meetings/' + self.meeting.id)
         yield self.request('/api/meetings/' + self.meeting.id, method='POST',
                            body='{"description": "Good mood!"}')
@@ -70,6 +68,12 @@ class MeetlingServerTest(AsyncTestCase):
         yield self.request('/api/meetings/{}/items/{}'.format(self.meeting.id, self.item.id))
         yield self.request('/api/meetings/{}/items/{}'.format(self.meeting.id, self.item.id),
                            method='POST', body='{"description": "Bring food!"}')
+
+        # API (as staff member)
+        self.client_user = self.staff_member
+        yield self.request(
+            '/api/settings', method='POST',
+            body='{"title": "Cat Meetling", "icon": "http://example.org/static/icon.svg"}')
 
     @gen_test
     def test_get_meeting(self):

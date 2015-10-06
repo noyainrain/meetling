@@ -24,11 +24,26 @@ class MeetlingTestCase(AsyncTestCase):
         self.app = Meetling(redis_url='15')
         self.app.r.flushdb()
         self.app.update()
+        self.user = self.app.login()
 
 class MeetlingTest(MeetlingTestCase):
     def test_init_redis_url_invalid(self):
         with self.assertRaises(InputError):
             Meetling(redis_url='//localhost:foo')
+
+    def test_authenticate(self):
+        user = self.app.authenticate(self.user.auth_secret)
+        self.assertEqual(user, self.user)
+        self.assertEqual(user, self.app.user)
+
+    def test_authenticate_secret_invalid(self):
+        with self.assertRaisesRegex(ValueError, 'secret_invalid'):
+            self.app.authenticate('foo')
+
+    def test_login(self):
+        # login() is called by setUp()
+        self.assertIn(self.user.id, self.app.users)
+        self.assertEqual(self.user, self.app.user)
 
     def test_create_meeting(self):
         meeting = self.app.create_meeting('Cat Hangout', '  ')

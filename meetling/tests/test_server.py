@@ -26,13 +26,22 @@ class MeetlingServerTest(AsyncTestCase):
         super().setUp()
         self.server = MeetlingServer(redis_url='15')
         self.server.listen(16160, 'localhost')
-        self.server.app.r.flushdb()
-        self.server.app.update()
+
+        app = self.server.app
+        app.r.flushdb()
+        app.update()
+        self.user = app.login()
         self.meeting = self.server.app.create_meeting('Cat hangout')
         self.item = self.meeting.create_agenda_item('Eating')
 
+        self.client_user = self.user
+
     def request(self, url, **args):
-        return AsyncHTTPClient().fetch(urljoin('http://localhost:16160/', url), **args)
+        headers = args.pop('headers', {})
+        if self.client_user:
+            headers.update({'Cookie': 'auth_secret=' + self.client_user.auth_secret})
+        return AsyncHTTPClient().fetch(urljoin('http://localhost:16160/', url), headers=headers,
+                                       **args)
 
     @gen_test
     def test_availability(self):
@@ -44,8 +53,10 @@ class MeetlingServerTest(AsyncTestCase):
         yield self.request('/meetings/{}/edit'.format(self.meeting.id))
 
         # API
+        yield self.request('/api/login', method='POST', body='')
         yield self.request('/api/meetings', method='POST', body='{"title": "Cat hangout"}')
         yield self.request('/api/create-example-meeting', method='POST', body='')
+        yield self.request('/api/users/' + self.user.id)
         yield self.request('/api/settings')
         yield self.request(
             '/api/settings', method='POST',

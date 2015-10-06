@@ -37,15 +37,25 @@ def main(args):
     app.r.flushdb()
     app.update()
 
+    user = app.login()
     app.settings.edit(title='Meetling Lab')
     meeting1 = app.create_example_meeting()
     meeting2 = app.create_meeting('Cat hangout')
     meeting2.create_agenda_item('Eating')
     meeting2.create_agenda_item('Purring', 'No snooping!')
 
-    print('Meetings:')
+    text = [
+        'To log in, visit:',
+        '',
+        'http://localhost:8080/?login={}'.format(user.auth_secret),
+        '',
+        'Meetings:',
+        ''
+    ]
     for meeting in [meeting1, meeting2]:
-        print('* {}: http://localhost:8080/meetings/{}'.format(meeting.title, meeting.id))
+        text.append('* {}: http://localhost:8080/meetings/{}'.format(meeting.title, meeting.id))
+
+    print('\n'.join(text))
     return 0
 
 if __name__ == '__main__':

@@ -52,8 +52,10 @@ class MeetlingServer(HTTPServer):
             (r'/meetings/([^/]+)$', MeetingPage),
             (r'/meetings/([^/]+)/edit$', EditMeetingPage),
             # API
+            (r'/api/login$', LoginEndpoint),
             (r'/api/meetings$', MeetingsEndpoint),
             (r'/api/create-example-meeting$', CreateExampleMeetingEndpoint),
+            (r'/api/users/([^/]+)$', UserEndpoint),
             (r'/api/settings$', SettingsEndpoint),
             (r'/api/meetings/([^/]+)$', MeetingEndpoint),
             (r'/api/meetings/([^/]+)/items$', MeetingItemsEndpoint),
@@ -74,10 +76,51 @@ class MeetlingServer(HTTPServer):
         self.listen(self.port)
         IOLoop.instance().start()
 
-class Page(RequestHandler):
+class Resource(RequestHandler):
+    """Web resource.
+
+    .. attribute:: server
+
+       Context :class:`MeetlingServer`.
+
+    .. attribute:: app
+
+       :class:`Meetling` application.
+    """
+
     def initialize(self):
         self.server = self.application.settings['server']
         self.app = self.server.app
+
+    def prepare(self):
+        self.app.user = None
+        auth_secret = self.get_cookie('auth_secret')
+        if auth_secret:
+            try:
+                self.app.authenticate(auth_secret)
+            except ValueError:
+                # Ignore invalid authentication secrets
+                pass
+
+class Page(Resource):
+    def prepare(self):
+        super().prepare()
+
+        # If requested, log in with code
+        login_code = self.get_query_argument('login', None)
+        if login_code:
+            try:
+                user = self.app.authenticate(login_code)
+            except ValueError:
+                # Ignore invalid login codes
+                pass
+            else:
+                self.set_cookie('auth_secret', user.auth_secret, expires_days=360, httponly=True)
+
+        # If not authenticated yet, log in a new user
+        if not self.app.user:
+            user = self.app.login()
+            self.set_cookie('auth_secret', user.auth_secret, expires_days=360, httponly=True)
 
     def get_template_namespace(self):
         return {'settings': self.app.settings}
@@ -106,7 +149,7 @@ class EditMeetingPage(Page):
             raise HTTPError(http.client.NOT_FOUND)
         self.render('edit-meeting.html', meeting=meeting)
 
-class Endpoint(RequestHandler):
+class Endpoint(Resource):
     """JSON REST API endpoint.
 
     .. attribute:: args
@@ -115,11 +158,11 @@ class Endpoint(RequestHandler):
     """
 
     def initialize(self):
-        self.server = self.application.settings['server']
-        self.app = self.server.app
+        super().initialize()
         self.args = {}
 
     def prepare(self):
+        super().prepare()
         if self.request.body:
             try:
                 self.args = json.loads(self.request.body.decode())
@@ -180,6 +223,11 @@ class Endpoint(RequestHandler):
 
         return args
 
+class LoginEndpoint(Endpoint):
+    def post(self):
+        user = self.app.login()
+        self.write(user.json())
+
 class MeetingsEndpoint(Endpoint):
     def post(self):
         args = self.check_args({'title': str, 'description': (str, None, 'opt')})
@@ -190,6 +238,10 @@ class CreateExampleMeetingEndpoint(Endpoint):
     def post(self):
         meeting = self.app.create_example_meeting()
         self.write(meeting.json())
+
+class UserEndpoint(Endpoint):
+    def get(self, id):
+        self.write(self.app.users[id].json(exclude_private=True))
 
 class SettingsEndpoint(Endpoint):
     def get(self):

@@ -18,6 +18,12 @@ Meetling
 
 Meetling application.
 
+.. http:post:: /api/login
+
+   Log in a new :ref:`User` (device).
+
+   A new user is created and returned.
+
 .. http:post:: /api/meetings
 
    ``{"title", "description": null}``
@@ -45,6 +51,25 @@ a :ref:`Meeting` with the *id* ``abc``.
    ``{attrs...}``
 
    Edit the attributes given by *attrs* and return the updated object.
+
+.. _User:
+
+User
+----
+
+Meetling user.
+
+.. describe:: id
+
+   Unique ID of the user.
+
+.. describe:: auth_secret
+
+   Secret for authentication. Visible only to the user oneself.
+
+.. http:get:: /api/users/(id)
+
+   Get the user given by *id*.
 
 .. _Settings:
 

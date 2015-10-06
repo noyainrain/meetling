@@ -23,6 +23,14 @@ from meetling.util import randstr, str_or_none
 class Meetling:
     """See :ref:`Meetling`.
 
+    .. attribute:: user
+
+       Current :class:`User`. ``None`` means anonymous access.
+
+    .. attribute:: users
+
+       Map of all :class:`User` s.
+
     .. attribute:: settings
 
        App :class:`Settings`.
@@ -58,7 +66,9 @@ class Meetling:
         self.r = StrictRedis(components.hostname, components.port, components.path.lstrip('/'))
         self.r = JSONRedis(self.r, self._encode, self._decode)
 
+        self.user = None
         self.meetings = JSONRedisMapping(self.r, 'meetings')
+        self.users = JSONRedisMapping(self.r, 'users')
 
     @property
     def settings(self):
@@ -77,6 +87,29 @@ class Meetling:
                                 favicon=None)
             self.r.oset(settings.id, settings)
             self.r.set('version', 1)
+
+    def authenticate(self, secret):
+        """Authenticate an :class:`User` (device) with *secret*.
+
+        The identified user is set as current *user* and returned. If the authentication fails, a
+        :exc:`ValueError` (``secret_invalid``) is raised.
+        """
+        id = self.r.hget('auth_secret_map', secret)
+        if not id:
+            raise ValueError('secret_invalid')
+        self.user = self.users[id.decode()]
+        return self.user
+
+    def login(self):
+        """See :http:post:`/api/login`.
+
+        The new user is set as current *user*.
+        """
+        user = User(id='User:' + randstr(), app=self, auth_secret=randstr())
+        self.r.oset(user.id, user)
+        self.r.rpush('users', user.id)
+        self.r.hset('auth_secret_map', user.auth_secret, user.id)
+        return self.authenticate(user.auth_secret)
 
     def create_meeting(self, title, description=None):
         """See :http:post:`/api/meetings`."""
@@ -111,7 +144,7 @@ class Meetling:
             raise TypeError()
 
     def _decode(self, json):
-        types = {'Settings': Settings, 'Meeting': Meeting, 'AgendaItem': AgendaItem}
+        types = {'User': User, 'Settings': Settings, 'Meeting': Meeting, 'AgendaItem': AgendaItem}
         try:
             type = json.pop('__type__')
         except KeyError:
@@ -161,6 +194,23 @@ class Editable:
         care of finally storing the updated object in the database.
         """
         raise NotImplementedError()
+
+class User(Object):
+    """See :ref:`User`."""
+
+    def __init__(self, id, app, auth_secret):
+        super().__init__(id=id, app=app)
+        self.auth_secret = auth_secret
+
+    def json(self, exclude_private=False):
+        """See :meth:`Object.json`.
+
+        If *exclude_private* is ``True``, private attributes (*auth_secret*) are excluded.
+        """
+        json = super().json({'auth_secret': self.auth_secret})
+        if exclude_private:
+            del json['auth_secret']
+        return json
 
 class Settings(Object, Editable):
     """See :ref:`Settings`."""

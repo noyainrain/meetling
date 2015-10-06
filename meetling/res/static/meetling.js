@@ -70,7 +70,9 @@ meetling.StartPage = document.registerElement("meetling-start-page",
     handleEvent: {value: function(event) {
         meetling.Page.prototype.handleEvent.call(this, event);
         if (event.currentTarget === this.querySelector(".meetling-start-create-example-meeting")) {
-            fetch("/api/create-example-meeting", {method: "POST"}).then(function(response) {
+            var request = new Request("/api/create-example-meeting",
+                                      {method: "POST", credentials: "include"})
+            fetch(request).then(function(response) {
                 return response.json();
             }).then(function(meeting) {
                 location.assign("/meetings/" + meeting.id);
@@ -94,7 +96,7 @@ meetling.EditSettingsPage = document.registerElement("meetling-edit-settings-pag
         var form = this.querySelector(".meetling-edit-settings-edit");
         if (event.currentTarget === form) {
             event.preventDefault();
-            fetch("/api/settings", {method: "POST", body: JSON.stringify({
+            fetch("/api/settings", {method: "POST", credentials: "include", body: JSON.stringify({
                 title: form.elements["title"].value,
                 icon: form.elements["icon"].value,
                 favicon: form.elements["favicon"].value
@@ -167,7 +169,7 @@ meetling.EditMeetingPage = document.registerElement("meetling-edit-meeting-page"
                 url = "/api/meetings/" + this.meeting.id;
             }
 
-            fetch(url, {method: "POST", body: JSON.stringify({
+            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
                 title: form.elements["title"].value,
                 description: form.elements["description"].value
             })}).then(function(response) {
@@ -277,7 +279,7 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
                 url = "/api/meetings/" + document.body.meeting.id + "/items/" + this._item.id;
             }
 
-            fetch(url, {method: "POST", body: JSON.stringify({
+            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
                 title: form.elements["title"].value,
                 description: form.elements["description"].value
             })}).then(function(response) {

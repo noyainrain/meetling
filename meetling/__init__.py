@@ -22,6 +22,6 @@ communicating with the Redis server.
 """
 
 import os
-from meetling.meetling import Meetling, Object, Meeting, AgendaItem, InputError
+from meetling.meetling import Meetling, Object, Editable, Meeting, AgendaItem, InputError
 
 _RES_PATH = os.path.join(os.path.dirname(__file__), 'res')

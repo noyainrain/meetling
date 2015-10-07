@@ -65,11 +65,12 @@ class SettingsTest(MeetlingTestCase):
 class MeetingTest(MeetlingTestCase):
     def setUp(self):
         super().setUp()
-        self.meeting = self.app.create_meeting('Cat Hangout')
+        self.meeting = self.app.create_meeting('Cat hangout')
 
     def test_edit(self):
-        self.meeting.edit(description='Bring food!')
-        self.assertEqual(self.meeting.description, 'Bring food!')
+        self.meeting.edit(title='Awesome cat hangout')
+        self.assertEqual(self.meeting.title, 'Awesome cat hangout')
+        self.assertIsNone(self.meeting.description)
 
     def test_create_agenda_item(self):
         item = self.meeting.create_agenda_item('Purring')
@@ -79,5 +80,6 @@ class AgendaItemTest(MeetlingTestCase):
     def test_edit(self):
         meeting = self.app.create_meeting('Cat Hangout')
         item = meeting.create_agenda_item('Purring')
-        item.edit(description='Good mood!')
-        self.assertEqual(item.description, 'Good mood!')
+        item.edit(title='Intensive purring')
+        self.assertEqual(item.title, 'Intensive purring')
+        self.assertIsNone(item.description)

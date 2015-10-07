@@ -30,12 +30,30 @@ Meetling application.
 
    Useful to illustrate how meetings work.
 
+.. _Editable:
+
+Editable
+--------
+
+Object that can be edited.
+
+The URL that uniquely identifies an object is referred to as *object-url*, e.g. ``meetings/abc`` for
+a :ref:`Meeting` with the *id* ``abc``.
+
+.. http:post:: /api/(object-url)
+
+   ``{attrs...}``
+
+   Edit the attributes given by *attrs* and return the updated object.
+
 .. _Settings:
 
 Settings
 --------
 
 App settings.
+
+Settings is :ref:`Editable`.
 
 .. describe:: id
 
@@ -57,18 +75,14 @@ App settings.
 
    Get the settings.
 
-.. http:post:: /api/settings
-
-   ``{attrs...}``
-
-   Edit the attributes given by *attrs* and return the updated settings.
-
 .. _Meeting:
 
 Meeting
 -------
 
 Meeting.
+
+Meeting is :ref:`Editable`.
 
 .. describe:: id
 
@@ -85,12 +99,6 @@ Meeting.
 .. http:get:: /api/meetings/(id)
 
    Get the meeting given by *id*.
-
-.. http:post:: /api/meetings/(id)
-
-   ``{attrs...}``
-
-   Edit the attributes given by *attrs* and return the updated meeting.
 
 .. http:get:: /api/meetings/(id)/items
 
@@ -109,6 +117,8 @@ AgendaItem
 
 Item on a :ref:`Meeting` 's agenda.
 
+AgendaItem is :ref:`Editable`.
+
 .. describe:: id
 
    Unique ID of the item.
@@ -124,12 +134,6 @@ Item on a :ref:`Meeting` 's agenda.
 .. http:get:: /api/meetings/(meeting-id)/items/(item-id)
 
    Get the item given by *item-id*.
-
-.. http:post:: /api/meetings/(meeting-id)/items/(item-id)
-
-   ``{attrs...}``
-
-   Edit the attributes given by *attrs* and return the updated item.
 
 .. _InputError:
 

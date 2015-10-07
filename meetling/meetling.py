@@ -146,17 +146,33 @@ class Object:
     def __repr__(self):
         return '<{}>'.format(self.id)
 
-class Settings(Object):
+class Editable:
+    """See :ref:`Editable`."""
+
+    def edit(self, **attrs):
+        """See :http:post:`/api/(object-url)`."""
+        self.do_edit(**attrs)
+        self.app.r.oset(self.id, self)
+
+    def do_edit(self, **attrs):
+        """Subclass API: Perform the edit operation.
+
+        More precisely, validate and then set the given *attrs*. Called by :meth:`edit`, which takes
+        care of finally storing the updated object in the database.
+        """
+        raise NotImplementedError()
+
+class Settings(Object, Editable):
     """See :ref:`Settings`."""
 
     def __init__(self, id, app, title, icon, favicon):
         super().__init__(id=id, app=app)
+        Editable.__init__(self)
         self.title = title
         self.icon = icon
         self.favicon = favicon
 
-    def edit(self, **attrs):
-        """See :http:post:`/api/settings`."""
+    def do_edit(self, **attrs):
         e = InputError()
         if 'title' in attrs and not str_or_none(attrs['title']):
             e.errors['title'] = 'empty'
@@ -168,12 +184,11 @@ class Settings(Object):
             self.icon = str_or_none(attrs['icon'])
         if 'favicon' in attrs:
             self.favicon = str_or_none(attrs['favicon'])
-        self.app.r.oset(self.id, self)
 
     def json(self):
         return super().json({'title': self.title, 'icon': self.icon, 'favicon': self.favicon})
 
-class Meeting(Object):
+class Meeting(Object, Editable):
     """See :ref:`Meeting`.
 
     .. attribute:: items
@@ -183,12 +198,12 @@ class Meeting(Object):
 
     def __init__(self, id, app, title, description):
         super().__init__(id=id, app=app)
+        Editable.__init__(self)
         self.title = title
         self.description = description
         self.items = JSONRedisMapping(self.app.r, self.id + '.items')
 
-    def edit(self, **attrs):
-        """See :http:post:`/api/meetings/(id)`."""
+    def do_edit(self, **attrs):
         e = InputError()
         if 'title' in attrs and not str_or_none(attrs['title']):
             e.errors['title'] = 'empty'
@@ -198,7 +213,6 @@ class Meeting(Object):
             self.title = attrs['title']
         if 'description' in attrs:
             self.description = str_or_none(attrs['description'])
-        self.app.r.oset(self.id, self)
 
     def create_agenda_item(self, title, description=None):
         """See :http:post:`/api/meetings/(id)/items`."""
@@ -217,16 +231,16 @@ class Meeting(Object):
     def json(self):
         return super().json({'title': self.title, 'description': self.description})
 
-class AgendaItem(Object):
+class AgendaItem(Object, Editable):
     """See :ref:`AgendaItem`."""
 
     def __init__(self, id, app, title, description):
         super().__init__(id=id, app=app)
+        Editable.__init__(self)
         self.title = title
         self.description = description
 
-    def edit(self, **attrs):
-        """See :http:post:`/api/meetings/(meeting-id)/items/(item-id)`."""
+    def do_edit(self, **attrs):
         e = InputError()
         if 'title' in attrs and not str_or_none(attrs['title']):
             e.errors['title'] = 'empty'
@@ -236,7 +250,6 @@ class AgendaItem(Object):
             self.title = attrs['title']
         if 'description' in attrs:
             self.description = str_or_none(attrs['description'])
-        self.app.r.oset(self.id, self)
 
     def json(self):
         return super().json({'title': self.title, 'description': self.description})

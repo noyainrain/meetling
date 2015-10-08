@@ -61,6 +61,10 @@ Object that can be edited.
 The URL that uniquely identifies an object is referred to as *object-url*, e.g. ``meetings/abc`` for
 a :ref:`Meeting` with the *id* ``abc``.
 
+.. describe:: authors
+
+   :ref:`User` s who edited the object.
+
 .. http:post:: /api/(object-url)
 
    ``{attrs...}``

@@ -16,7 +16,7 @@
 
 from redis import RedisError
 from tornado.testing import AsyncTestCase
-from meetling import Meetling, InputError, PermissionError
+from meetling import Meetling, Object, Editable, InputError, PermissionError
 
 class MeetlingTestCase(AsyncTestCase):
     def setUp(self):
@@ -76,6 +76,15 @@ class MeetlingUpdateTest(MeetlingTestCase):
         # update() is called by setUp()
         self.assertEqual(self.app.settings.title, 'My Meetling')
 
+class EditableTest(MeetlingTestCase):
+    def test_edit(self):
+        cat = Cat(id='Cat', app=self.app, authors=[], name=None)
+        cat.edit(name='Happy')
+        cat.edit(name='Grumpy')
+        user2 = self.app.login()
+        cat.edit(name='Hover')
+        self.assertEqual(cat.authors, [self.user.id, user2.id])
+
 class SettingsTest(MeetlingTestCase):
     def test_edit(self):
         self.app.user = self.staff_member
@@ -106,3 +115,18 @@ class AgendaItemTest(MeetlingTestCase):
         item.edit(title='Intensive purring')
         self.assertEqual(item.title, 'Intensive purring')
         self.assertIsNone(item.description)
+
+class Cat(Object, Editable):
+    def __init__(self, id, app, authors, name):
+        super().__init__(id=id, app=app)
+        Editable.__init__(self, authors=authors)
+        self.name = name
+
+    def do_edit(self, **attrs):
+        if 'name' in attrs:
+            self.name = attrs['name']
+
+    def json(self, include_users=False):
+        json = super().json({'name': self.name})
+        json.update(Editable.json(self, include_users))
+        return json

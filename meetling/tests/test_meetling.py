@@ -16,7 +16,7 @@
 
 from redis import RedisError
 from tornado.testing import AsyncTestCase
-from meetling import Meetling, InputError
+from meetling import Meetling, Object, Editable, InputError, PermissionError
 
 class MeetlingTestCase(AsyncTestCase):
     def setUp(self):
@@ -24,11 +24,28 @@ class MeetlingTestCase(AsyncTestCase):
         self.app = Meetling(redis_url='15')
         self.app.r.flushdb()
         self.app.update()
+        self.staff_member = self.app.login()
+        self.user = self.app.login()
 
 class MeetlingTest(MeetlingTestCase):
     def test_init_redis_url_invalid(self):
         with self.assertRaises(InputError):
             Meetling(redis_url='//localhost:foo')
+
+    def test_authenticate(self):
+        user = self.app.authenticate(self.user.auth_secret)
+        self.assertEqual(user, self.user)
+        self.assertEqual(user, self.app.user)
+
+    def test_authenticate_secret_invalid(self):
+        with self.assertRaisesRegex(ValueError, 'secret_invalid'):
+            self.app.authenticate('foo')
+
+    def test_login(self):
+        # login() is called by setUp()
+        self.assertIn(self.user.id, self.app.users)
+        self.assertEqual(self.user, self.app.user)
+        self.assertIn(self.staff_member.id, self.app.settings.staff)
 
     def test_create_meeting(self):
         meeting = self.app.create_meeting('Cat Hangout', '  ')
@@ -40,10 +57,15 @@ class MeetlingTest(MeetlingTestCase):
         with self.assertRaises(InputError):
             self.app.create_meeting('  ')
 
+    def test_create_meeting_user_anonymous(self):
+        self.app.user = None
+        with self.assertRaises(PermissionError):
+            self.app.create_meeting('Cat hangout')
+
     def test_create_meeting_no_redis(self):
         app = Meetling(redis_url='//localhoax')
         with self.assertRaises(RedisError):
-            app.create_meeting('Cat Hangout')
+            app.login()
 
     def test_create_example_meeting(self):
         meeting = self.app.create_example_meeting()
@@ -54,8 +76,18 @@ class MeetlingUpdateTest(MeetlingTestCase):
         # update() is called by setUp()
         self.assertEqual(self.app.settings.title, 'My Meetling')
 
+class EditableTest(MeetlingTestCase):
+    def test_edit(self):
+        cat = Cat(id='Cat', app=self.app, authors=[], name=None)
+        cat.edit(name='Happy')
+        cat.edit(name='Grumpy')
+        user2 = self.app.login()
+        cat.edit(name='Hover')
+        self.assertEqual(cat.authors, [self.user.id, user2.id])
+
 class SettingsTest(MeetlingTestCase):
     def test_edit(self):
+        self.app.user = self.staff_member
         settings = self.app.settings
         settings.edit(title='Cat Meetling', icon='http://example.org/static/icon.svg')
         self.assertEqual(settings.title, 'Cat Meetling')
@@ -83,3 +115,18 @@ class AgendaItemTest(MeetlingTestCase):
         item.edit(title='Intensive purring')
         self.assertEqual(item.title, 'Intensive purring')
         self.assertIsNone(item.description)
+
+class Cat(Object, Editable):
+    def __init__(self, id, app, authors, name):
+        super().__init__(id=id, app=app)
+        Editable.__init__(self, authors=authors)
+        self.name = name
+
+    def do_edit(self, **attrs):
+        if 'name' in attrs:
+            self.name = attrs['name']
+
+    def json(self, include_users=False):
+        json = super().json({'name': self.name})
+        json.update(Editable.json(self, include_users))
+        return json

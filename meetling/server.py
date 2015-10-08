@@ -22,7 +22,7 @@ from collections import Mapping
 from tornado.httpserver import HTTPServer
 from tornado.web import Application, RequestHandler, HTTPError
 from tornado.ioloop import IOLoop
-from meetling import Meetling, InputError
+from meetling import Meetling, InputError, PermissionError
 
 class MeetlingServer(HTTPServer):
     """Meetling server.
@@ -52,8 +52,10 @@ class MeetlingServer(HTTPServer):
             (r'/meetings/([^/]+)$', MeetingPage),
             (r'/meetings/([^/]+)/edit$', EditMeetingPage),
             # API
+            (r'/api/login$', LoginEndpoint),
             (r'/api/meetings$', MeetingsEndpoint),
             (r'/api/create-example-meeting$', CreateExampleMeetingEndpoint),
+            (r'/api/users/([^/]+)$', UserEndpoint),
             (r'/api/settings$', SettingsEndpoint),
             (r'/api/meetings/([^/]+)$', MeetingEndpoint),
             (r'/api/meetings/([^/]+)/items$', MeetingItemsEndpoint),
@@ -74,10 +76,51 @@ class MeetlingServer(HTTPServer):
         self.listen(self.port)
         IOLoop.instance().start()
 
-class Page(RequestHandler):
+class Resource(RequestHandler):
+    """Web resource.
+
+    .. attribute:: server
+
+       Context :class:`MeetlingServer`.
+
+    .. attribute:: app
+
+       :class:`Meetling` application.
+    """
+
     def initialize(self):
         self.server = self.application.settings['server']
         self.app = self.server.app
+
+    def prepare(self):
+        self.app.user = None
+        auth_secret = self.get_cookie('auth_secret')
+        if auth_secret:
+            try:
+                self.app.authenticate(auth_secret)
+            except ValueError:
+                # Ignore invalid authentication secrets
+                pass
+
+class Page(Resource):
+    def prepare(self):
+        super().prepare()
+
+        # If requested, log in with code
+        login_code = self.get_query_argument('login', None)
+        if login_code:
+            try:
+                user = self.app.authenticate(login_code)
+            except ValueError:
+                # Ignore invalid login codes
+                pass
+            else:
+                self.set_cookie('auth_secret', user.auth_secret, expires_days=360, httponly=True)
+
+        # If not authenticated yet, log in a new user
+        if not self.app.user:
+            user = self.app.login()
+            self.set_cookie('auth_secret', user.auth_secret, expires_days=360, httponly=True)
 
     def get_template_namespace(self):
         return {'settings': self.app.settings}
@@ -106,7 +149,7 @@ class EditMeetingPage(Page):
             raise HTTPError(http.client.NOT_FOUND)
         self.render('edit-meeting.html', meeting=meeting)
 
-class Endpoint(RequestHandler):
+class Endpoint(Resource):
     """JSON REST API endpoint.
 
     .. attribute:: args
@@ -115,11 +158,11 @@ class Endpoint(RequestHandler):
     """
 
     def initialize(self):
-        self.server = self.application.settings['server']
-        self.app = self.server.app
+        super().initialize()
         self.args = {}
 
     def prepare(self):
+        super().prepare()
         if self.request.body:
             try:
                 self.args = json.loads(self.request.body.decode())
@@ -132,6 +175,9 @@ class Endpoint(RequestHandler):
         if issubclass(exc_info[0], InputError):
             self.set_status(http.client.BAD_REQUEST)
             self.write({'__type__': exc_info[0].__name__, 'errors': exc_info[1].errors})
+        elif issubclass(exc_info[0], PermissionError):
+            self.set_status(http.client.FORBIDDEN)
+            self.write({'__type__': exc_info[0].__name__})
         else:
             status_code = {KeyError: http.client.NOT_FOUND}.get(exc_info[0], status_code)
             self.set_status(status_code)
@@ -139,7 +185,7 @@ class Endpoint(RequestHandler):
 
     def log_exception(self, typ, value, tb):
         # These errors are handled specially and there is no need to log them as exceptions
-        if issubclass(typ, (InputError, KeyError)):
+        if issubclass(typ, (InputError, PermissionError, KeyError)):
             return
         super().log_exception(typ, value, tb)
 
@@ -180,6 +226,11 @@ class Endpoint(RequestHandler):
 
         return args
 
+class LoginEndpoint(Endpoint):
+    def post(self):
+        user = self.app.login()
+        self.write(user.json())
+
 class MeetingsEndpoint(Endpoint):
     def post(self):
         args = self.check_args({'title': str, 'description': (str, None, 'opt')})
@@ -191,9 +242,13 @@ class CreateExampleMeetingEndpoint(Endpoint):
         meeting = self.app.create_example_meeting()
         self.write(meeting.json())
 
+class UserEndpoint(Endpoint):
+    def get(self, id):
+        self.write(self.app.users[id].json(exclude_private=True))
+
 class SettingsEndpoint(Endpoint):
     def get(self):
-        self.write(self.app.settings.json())
+        self.write(self.app.settings.json(include_users=True))
 
     def post(self):
         args = self.check_args({
@@ -203,7 +258,7 @@ class SettingsEndpoint(Endpoint):
         })
         settings = self.app.settings
         settings.edit(**args)
-        self.write(settings.json())
+        self.write(settings.json(include_users=True))
 
 class MeetingEndpoint(Endpoint):
     def get(self, id):

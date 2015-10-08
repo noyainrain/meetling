@@ -23,6 +23,14 @@ from meetling.util import randstr, str_or_none
 class Meetling:
     """See :ref:`Meetling`.
 
+    .. attribute:: user
+
+       Current :class:`User`. ``None`` means anonymous access.
+
+    .. attribute:: users
+
+       Map of all :class:`User` s.
+
     .. attribute:: settings
 
        App :class:`Settings`.
@@ -58,7 +66,9 @@ class Meetling:
         self.r = StrictRedis(components.hostname, components.port, components.path.lstrip('/'))
         self.r = JSONRedis(self.r, self._encode, self._decode)
 
+        self.user = None
         self.meetings = JSONRedisMapping(self.r, 'meetings')
+        self.users = JSONRedisMapping(self.r, 'users')
 
     @property
     def settings(self):
@@ -73,26 +83,63 @@ class Meetling:
         """
         db_version = self.r.get('version')
         if not db_version:
-            settings = Settings(id='Settings', app=self, title='My Meetling', icon=None,
-                                favicon=None)
+            settings = Settings(id='Settings', app=self, authors=[], title='My Meetling', icon=None,
+                                favicon=None, staff=[])
             self.r.oset(settings.id, settings)
             self.r.set('version', 1)
 
+    def authenticate(self, secret):
+        """Authenticate an :class:`User` (device) with *secret*.
+
+        The identified user is set as current *user* and returned. If the authentication fails, a
+        :exc:`ValueError` (``secret_invalid``) is raised.
+        """
+        id = self.r.hget('auth_secret_map', secret)
+        if not id:
+            raise ValueError('secret_invalid')
+        self.user = self.users[id.decode()]
+        return self.user
+
+    def login(self):
+        """See :http:post:`/api/login`.
+
+        The new user is set as current *user*.
+        """
+        user = User(id='User:' + randstr(), app=self, auth_secret=randstr())
+        self.r.oset(user.id, user)
+        self.r.rpush('users', user.id)
+        self.r.hset('auth_secret_map', user.auth_secret, user.id)
+
+        # Promote first user to staff
+        if len(self.users) == 1:
+            settings = self.settings
+            settings.staff = [user.id]
+            self.r.oset(settings.id, settings)
+
+        return self.authenticate(user.auth_secret)
+
     def create_meeting(self, title, description=None):
         """See :http:post:`/api/meetings`."""
+        if not self.user:
+            raise PermissionError()
+
         e = InputError()
         if not str_or_none(title):
             e.errors['title'] = 'empty'
         description = str_or_none(description)
         e.trigger()
 
-        meeting = Meeting(id='Meeting:' + randstr(), app=self, title=title, description=description)
+        meeting = Meeting(id='Meeting:' + randstr(), app=self, authors=[self.user.id], title=title,
+                          description=description)
         self.r.oset(meeting.id, meeting)
         self.r.rpush('meetings', meeting.id)
         return meeting
 
     def create_example_meeting(self):
         """See :http:post:`/api/create-example-meeting`."""
+        if not self.user:
+            raise PermissionError()
+
         time = (datetime.utcnow() + timedelta(days=7)).replace(hour=12, minute=0, second=0,
                                                                microsecond=0)
         meeting = self.create_meeting(
@@ -111,7 +158,7 @@ class Meetling:
             raise TypeError()
 
     def _decode(self, json):
-        types = {'Settings': Settings, 'Meeting': Meeting, 'AgendaItem': AgendaItem}
+        types = {'User': User, 'Settings': Settings, 'Meeting': Meeting, 'AgendaItem': AgendaItem}
         try:
             type = json.pop('__type__')
         except KeyError:
@@ -147,32 +194,74 @@ class Object:
         return '<{}>'.format(self.id)
 
 class Editable:
-    """See :ref:`Editable`."""
+    """See :ref:`Editable`.
+
+    The :meth:`Object.json` method of editable objects accepts an additional argument
+    *include_users*. If it is ``True``, :class:`User` s are included as JSON objects (instead of
+    IDs).
+    """
+
+    def __init__(self, authors):
+        self.authors = authors
 
     def edit(self, **attrs):
         """See :http:post:`/api/(object-url)`."""
+        if not self.app.user:
+            raise PermissionError()
+
         self.do_edit(**attrs)
+        if not self.app.user.id in self.authors:
+            self.authors.append(self.app.user.id)
         self.app.r.oset(self.id, self)
 
     def do_edit(self, **attrs):
         """Subclass API: Perform the edit operation.
 
         More precisely, validate and then set the given *attrs*. Called by :meth:`edit`, which takes
-        care of finally storing the updated object in the database.
+        care of basic permission checking, managing *authors* and storing the updated object in the
+        database.
         """
         raise NotImplementedError()
+
+    def json(self, include_users=False):
+        """Subclass API: Return a JSON object representation of the editable part of the object."""
+        json = {'authors': self.authors}
+        if include_users:
+            json['authors'] = [self.app.users[a].json(exclude_private=True) for a in self.authors]
+        return json
+
+class User(Object):
+    """See :ref:`User`."""
+
+    def __init__(self, id, app, auth_secret):
+        super().__init__(id=id, app=app)
+        self.auth_secret = auth_secret
+
+    def json(self, exclude_private=False):
+        """See :meth:`Object.json`.
+
+        If *exclude_private* is ``True``, private attributes (*auth_secret*) are excluded.
+        """
+        json = super().json({'auth_secret': self.auth_secret})
+        if exclude_private:
+            del json['auth_secret']
+        return json
 
 class Settings(Object, Editable):
     """See :ref:`Settings`."""
 
-    def __init__(self, id, app, title, icon, favicon):
+    def __init__(self, id, app, authors, title, icon, favicon, staff):
         super().__init__(id=id, app=app)
-        Editable.__init__(self)
+        Editable.__init__(self, authors=authors)
         self.title = title
         self.icon = icon
         self.favicon = favicon
+        self.staff = staff
 
     def do_edit(self, **attrs):
+        if not self.app.user.id in self.staff:
+            raise PermissionError()
+
         e = InputError()
         if 'title' in attrs and not str_or_none(attrs['title']):
             e.errors['title'] = 'empty'
@@ -185,8 +274,17 @@ class Settings(Object, Editable):
         if 'favicon' in attrs:
             self.favicon = str_or_none(attrs['favicon'])
 
-    def json(self):
-        return super().json({'title': self.title, 'icon': self.icon, 'favicon': self.favicon})
+    def json(self, include_users=False):
+        json = super().json({
+            'title': self.title,
+            'icon': self.icon,
+            'favicon': self.favicon,
+            'staff': self.staff
+        })
+        json.update(Editable.json(self, include_users))
+        if include_users:
+            json['staff'] = [self.app.users[i].json(exclude_private=True) for i in self.staff]
+        return json
 
 class Meeting(Object, Editable):
     """See :ref:`Meeting`.
@@ -196,9 +294,9 @@ class Meeting(Object, Editable):
        Ordered map of :class:`AgendaItem` s on the meeting's agenda.
     """
 
-    def __init__(self, id, app, title, description):
+    def __init__(self, id, app, authors, title, description):
         super().__init__(id=id, app=app)
-        Editable.__init__(self)
+        Editable.__init__(self, authors=authors)
         self.title = title
         self.description = description
         self.items = JSONRedisMapping(self.app.r, self.id + '.items')
@@ -216,27 +314,32 @@ class Meeting(Object, Editable):
 
     def create_agenda_item(self, title, description=None):
         """See :http:post:`/api/meetings/(id)/items`."""
+        if not self.app.user:
+            raise PermissionError()
+
         e = InputError()
         if not str_or_none(title):
             e.errors['title'] = 'empty'
         description = str_or_none(description)
         e.trigger()
 
-        item = AgendaItem(id='AgendaItem:' + randstr(), app=self.app, title=title,
-                          description=description)
+        item = AgendaItem(id='AgendaItem:' + randstr(), app=self.app, authors=[self.app.user.id],
+                          title=title, description=description)
         self.app.r.oset(item.id, item)
         self.app.r.rpush(self.id + '.items', item.id)
         return item
 
-    def json(self):
-        return super().json({'title': self.title, 'description': self.description})
+    def json(self, include_users=False):
+        json = super().json({'title': self.title, 'description': self.description})
+        json.update(Editable.json(self, include_users))
+        return json
 
 class AgendaItem(Object, Editable):
     """See :ref:`AgendaItem`."""
 
-    def __init__(self, id, app, title, description):
+    def __init__(self, id, app, authors, title, description):
         super().__init__(id=id, app=app)
-        Editable.__init__(self)
+        Editable.__init__(self, authors=authors)
         self.title = title
         self.description = description
 
@@ -251,8 +354,10 @@ class AgendaItem(Object, Editable):
         if 'description' in attrs:
             self.description = str_or_none(attrs['description'])
 
-    def json(self):
-        return super().json({'title': self.title, 'description': self.description})
+    def json(self, include_users=False):
+        json = super().json({'title': self.title, 'description': self.description})
+        json.update(Editable.json(self, include_users))
+        return json
 
 class InputError(ValueError):
     """See :ref:`InputError`.
@@ -278,3 +383,7 @@ class InputError(ValueError):
         """
         if self.errors:
             raise self
+
+class PermissionError(Exception):
+    """See :ref:`PermissionError`."""
+    pass

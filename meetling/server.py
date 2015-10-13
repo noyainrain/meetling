@@ -35,6 +35,10 @@ class MeetlingServer(HTTPServer):
 
        See ``--port`` command line option.
 
+    .. attribute:: host
+
+       See ``--host`` command line option.
+
     .. attribute:: debug
 
        See ``--debug`` command line option.
@@ -43,7 +47,7 @@ class MeetlingServer(HTTPServer):
     by it are passed through.
     """
 
-    def __init__(self, port=8080, debug=False, **args):
+    def __init__(self, port=8080, host='0.0.0.0', debug=False, **args):
         handlers = [
             # UI
             (r'/$', StartPage),
@@ -67,13 +71,21 @@ class MeetlingServer(HTTPServer):
         super().__init__(application)
 
         self.port = port
+        self.host = host
         self.debug = debug
         self.app = Meetling(**args)
 
     def run(self):
         """Run the server."""
         self.app.update()
-        self.listen(self.port)
+        # TODO oq: what to validate beforehand, what not?
+        # TODO oq: IOError or more specific errors here???
+        # (port valid range = 0 to 2**16 - 1)
+        # port err: Servname not supported ----- = out of range
+        # port err: permission denied
+        # host err: name or service not known
+        # host err: cannot assign req addr
+        self.listen(self.port, self.host)
         IOLoop.instance().start()
 
 class Resource(RequestHandler):

@@ -28,6 +28,9 @@ def main(args):
     parser.add_argument(
         '--port',
         help='Port number the server listens on for incoming connections. Defaults to 8080.')
+    parser.add_argument(
+        '--host',
+        help='TODO host name the server listens on for incoming connections. Defaults to 0.0.0.0, which is special for listening to any host name')
     parser.add_argument('--debug', action='store_true', help='Debug mode.')
     parser.add_argument(
         '--redis-url',

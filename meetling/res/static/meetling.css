@@ -193,6 +193,28 @@ label > small + small {
     color: #888;
 }
 
+/* ---- Logo ---- */
+
+.meetling-logo {
+    border-bottom: none;
+    font-size: 2rem;
+    font-weight: 300;
+    text-align: center;
+}
+
+.meetling-logo .link {
+    color: inherit;
+}
+
+.meetling-logo .link:hover {
+    text-decoration: none;
+}
+
+.meetling-logo img {
+    height: 2em;
+    vertical-align: text-bottom;
+}
+
 /* ---- Page ---- */
 
 .meetling-page-inside {
@@ -232,6 +254,11 @@ label > small + small {
     vertical-align: middle;
 }
 
+.meetling-page-header-fill {
+    flex: auto;
+    min-width: calc(0.25 * 1.5rem);
+}
+
 .meetling-page-notification {
     display: none;
     padding: calc(0.5 * 1.5rem) 0;
@@ -250,6 +277,68 @@ main {
     padding-top: calc(1.5 * 1.5rem);
 }
 
+/* ---- PageMenu ---- */
+
+.meetling-page-menu {
+    position: relative;
+    border-left: 1px solid #ddd;
+}
+
+.meetling-page-menu:last-child {
+    border-right: 1px solid #ddd;
+}
+
+.meetling-page-menu .link,
+.meetling-page-menu .action {
+    display: block;
+    padding: calc(0.25 * 1.5em);
+    border: none;
+    border-radius: 0;
+    background: none;
+    line-height: 1.5;
+}
+
+.meetling-page-menu .link:hover,
+.meetling-page-menu .action:hover {
+    background: #ddd;
+    text-decoration: none;
+}
+
+.meetling-page-menu .action {
+    color: #4d8dd9;
+}
+
+.meetling-page-menu > .link {
+    color: inherit;
+}
+
+.meetling-page-menu:hover > .link {
+    background: #ddd;
+}
+
+.meetling-page-menu > .link i {
+    color: #888;
+}
+
+.meetling-page-menu ul {
+    display: none;
+    position: absolute;
+    right: 0;
+    padding: 0;
+    margin: 0;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.33);
+    background: #fff;
+    list-style: none;
+}
+
+.meetling-page-menu:hover ul {
+    display: block;
+}
+
+.meetling-page-menu li {
+    border-top: 1px solid #ddd;
+}
+
 /* ---- StartPage ---- */
 
 .meetling-start-intro {
@@ -257,15 +346,8 @@ main {
     text-align: center;
 }
 
-.meetling-start-logo {
-    border-bottom: none;
+.meetling-start-intro .meetling-logo {
     font-size: 3rem;
-    font-weight: 300;
-}
-
-.meetling-start-logo img {
-    height: 6rem;
-    vertical-align: text-bottom;
 }
 
 .meetling-start-slogan {

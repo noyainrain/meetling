@@ -193,6 +193,28 @@ label > small + small {
     color: #888;
 }
 
+/* ---- Logo ---- */
+
+.meetling-logo {
+    border-bottom: none;
+    font-size: 2rem;
+    font-weight: 300;
+    text-align: center;
+}
+
+.meetling-logo .link {
+    color: inherit;
+}
+
+.meetling-logo .link:hover {
+    text-decoration: none;
+}
+
+.meetling-logo img {
+    height: 2em;
+    vertical-align: text-bottom;
+}
+
 /* ---- Page ---- */
 
 .meetling-page-inside {
@@ -257,15 +279,8 @@ main {
     text-align: center;
 }
 
-.meetling-start-logo {
-    border-bottom: none;
+.meetling-start-intro .meetling-logo {
     font-size: 3rem;
-    font-weight: 300;
-}
-
-.meetling-start-logo img {
-    height: 6rem;
-    vertical-align: text-bottom;
 }
 
 .meetling-start-slogan {

@@ -47,6 +47,7 @@ class MeetlingServer(HTTPServer):
         handlers = [
             # UI
             (r'/$', StartPage),
+            (r'/about$', AboutPage),
             (r'/create-meeting$', EditMeetingPage),
             (r'/settings/edit$', EditSettingsPage),
             (r'/meetings/([^/]+)$', MeetingPage),
@@ -128,6 +129,10 @@ class Page(Resource):
 class StartPage(Page):
     def get(self):
         self.render('start.html')
+
+class AboutPage(Page):
+    def get(self):
+        self.render('about.html')
 
 class EditSettingsPage(Page):
     def get(self):

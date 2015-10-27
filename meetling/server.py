@@ -124,7 +124,7 @@ class Page(Resource):
             self.set_cookie('auth_secret', user.auth_secret, expires_days=360, httponly=True)
 
     def get_template_namespace(self):
-        return {'settings': self.app.settings}
+        return {'user': self.app.user, 'settings': self.app.settings}
 
 class StartPage(Page):
     def get(self):

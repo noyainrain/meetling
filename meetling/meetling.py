@@ -113,7 +113,7 @@ class Meetling:
         # Promote first user to staff
         if len(self.users) == 1:
             settings = self.settings
-            settings.staff = [user.id]
+            settings._staff = [user.id]
             self.r.oset(settings.id, settings)
 
         return self.authenticate(user.auth_secret)
@@ -202,7 +202,11 @@ class Editable:
     """
 
     def __init__(self, authors):
-        self.authors = authors
+        self._authors = authors
+
+    @property
+    def authors(self):
+        return self.app.r.omget(self._authors)
 
     def edit(self, **attrs):
         """See :http:post:`/api/(object-url)`."""
@@ -210,8 +214,8 @@ class Editable:
             raise PermissionError()
 
         self.do_edit(**attrs)
-        if not self.app.user.id in self.authors:
-            self.authors.append(self.app.user.id)
+        if not self.app.user.id in self._authors:
+            self._authors.append(self.app.user.id)
         self.app.r.oset(self.id, self)
 
     def do_edit(self, **attrs):
@@ -225,9 +229,9 @@ class Editable:
 
     def json(self, include_users=False):
         """Subclass API: Return a JSON object representation of the editable part of the object."""
-        json = {'authors': self.authors}
+        json = {'authors': self._authors}
         if include_users:
-            json['authors'] = [self.app.users[a].json(exclude_private=True) for a in self.authors]
+            json['authors'] = [a.json(exclude_private=True) for a in self.authors]
         return json
 
 class User(Object):
@@ -256,10 +260,14 @@ class Settings(Object, Editable):
         self.title = title
         self.icon = icon
         self.favicon = favicon
-        self.staff = staff
+        self._staff = staff
+
+    @property
+    def staff(self):
+        return self.app.r.omget(self._staff)
 
     def do_edit(self, **attrs):
-        if not self.app.user.id in self.staff:
+        if not self.app.user.id in self._staff:
             raise PermissionError()
 
         e = InputError()
@@ -279,11 +287,11 @@ class Settings(Object, Editable):
             'title': self.title,
             'icon': self.icon,
             'favicon': self.favicon,
-            'staff': self.staff
+            'staff': self._staff
         })
         json.update(Editable.json(self, include_users))
         if include_users:
-            json['staff'] = [self.app.users[i].json(exclude_private=True) for i in self.staff]
+            json['staff'] = [u.json(exclude_private=True) for u in self.staff]
         return json
 
 class Meeting(Object, Editable):

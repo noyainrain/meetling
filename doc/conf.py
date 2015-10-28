@@ -5,7 +5,7 @@ extensions = ['sphinx.ext.autodoc', 'sphinxcontrib.httpdomain']
 
 project = 'Meetling'
 copyright = '2015 Meetling contributors'
-version = release = '0.5.1'
+version = release = '0.6.0'
 
 html_logo = '../meetling/res/static/images/icon.svg'
 html_favicon = '../meetling/res/static/images/favicon.png'

@@ -240,12 +240,12 @@ class MeetingsEndpoint(Endpoint):
     def post(self):
         args = self.check_args({'title': str, 'description': (str, None, 'opt')})
         meeting = self.app.create_meeting(**args)
-        self.write(meeting.json())
+        self.write(meeting.json(include_users=True))
 
 class CreateExampleMeetingEndpoint(Endpoint):
     def post(self):
         meeting = self.app.create_example_meeting()
-        self.write(meeting.json())
+        self.write(meeting.json(include_users=True))
 
 class UserEndpoint(Endpoint):
     def get(self, id):
@@ -268,34 +268,34 @@ class SettingsEndpoint(Endpoint):
 class MeetingEndpoint(Endpoint):
     def get(self, id):
         meeting = self.app.meetings[id]
-        self.write(meeting.json())
+        self.write(meeting.json(include_users=True))
 
     def post(self, id):
         args = self.check_args({'title': (str, 'opt'), 'description': (str, None, 'opt')})
         meeting = self.app.meetings[id]
         meeting.edit(**args)
-        self.write(meeting.json())
+        self.write(meeting.json(include_users=True))
 
 class MeetingItemsEndpoint(Endpoint):
     def get(self, id):
         meeting = self.app.meetings[id]
-        self.write(json.dumps([i.json() for i in meeting.items.values()]))
+        self.write(json.dumps([i.json(include_users=True) for i in meeting.items.values()]))
 
     def post(self, id):
         args = self.check_args({'title': str, 'description': (str, None, 'opt')})
         meeting = self.app.meetings[id]
         item = meeting.create_agenda_item(**args)
-        self.write(item.json())
+        self.write(item.json(include_users=True))
 
 class AgendaItemEndpoint(Endpoint):
     def get(self, meeting_id, item_id):
         meeting = self.app.meetings[meeting_id]
         item = meeting.items[item_id]
-        self.write(item.json())
+        self.write(item.json(include_users=True))
 
     def post(self, meeting_id, item_id):
         args = self.check_args({'title': (str, 'opt'), 'description': (str, None, 'opt')})
         meeting = self.app.meetings[meeting_id]
         item = meeting.items[item_id]
         item.edit(**args)
-        self.write(item.json())
+        self.write(item.json(include_users=True))

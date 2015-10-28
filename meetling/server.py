@@ -49,6 +49,7 @@ class MeetlingServer(HTTPServer):
             (r'/$', StartPage),
             (r'/about$', AboutPage),
             (r'/create-meeting$', EditMeetingPage),
+            (r'/users/([^/]+)/edit$', EditUserPage),
             (r'/settings/edit$', EditSettingsPage),
             (r'/meetings/([^/]+)$', MeetingPage),
             (r'/meetings/([^/]+)/edit$', EditMeetingPage),
@@ -133,6 +134,16 @@ class StartPage(Page):
 class AboutPage(Page):
     def get(self):
         self.render('about.html')
+
+class EditUserPage(Page):
+    def get(self, id):
+        try:
+            user_object = self.app.users[id]
+        except KeyError:
+            raise HTTPError(http.client.NOT_FOUND)
+        if self.app.user != user_object:
+            raise HTTPError(http.client.FORBIDDEN)
+        self.render('edit-user.html', user_object=user_object)
 
 class EditSettingsPage(Page):
     def get(self):

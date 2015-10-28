@@ -23,12 +23,82 @@
 var meetling = {};
 
 /**
+ * User element.
+ *
+ * .. attribute:: user
+ *
+ *    Represented :ref:`User`. Initialized from the JSON value of the corresponding HTML attribute,
+ *    if present.
+ */
+meetling.UserElement = document.registerElement("meetling-user",
+        {prototype: Object.create(HTMLElement.prototype, {
+    createdCallback: {value: function() {
+        meetling.loadTemplate(this, ".meetling-user-template");
+        this.classList.add("meetling-user");
+        this.user = JSON.parse(this.getAttribute("user"));
+    }},
+
+    user: {
+        get: function() {
+            return this._user;
+        },
+        set: function(value) {
+            this._user = value;
+            if (this._user) {
+                this.querySelector("span").textContent = this._user.name;
+                this.setAttribute("title", this._user.name);
+            }
+        }
+    }
+})});
+
+/**
+ * Compact listing of users.
+ *
+ * .. attribute:: users
+ *
+ *    List of :ref:`User` s to display. Initialized from the JSON value of the corresponding HTML
+ *    attribute, if present.
+ */
+meetling.UserListingElement = document.registerElement("meetling-user-listing",
+        {prototype: Object.create(HTMLElement.prototype, {
+    createdCallback: {value: function() {
+        this.classList.add("meetling-user-listing");
+        this.users = JSON.parse(this.getAttribute("users")) || [];
+    }},
+
+    users: {
+        get: function() {
+            return this._users;
+        },
+        set: function(value) {
+            this._users = value;
+            this.innerHTML = "";
+            for (var i = 0; i < this._users.length; i++) {
+                var user = this._users[i];
+                if (i > 0) {
+                    this.appendChild(document.createTextNode(", "));
+                }
+                var elem = document.createElement("meetling-user");
+                elem.user = user;
+                this.appendChild(elem);
+            }
+        }
+    }
+})});
+
+/**
  * Meetling page.
+ *
+ * .. attribute:: user
+ *
+ *    Current :ref:`User`. Initialized from the JSON value of the corresponding HTML attribute.
  */
 meetling.Page = document.registerElement("meetling-page",
         {extends: "body", prototype: Object.create(HTMLBodyElement.prototype, {
     createdCallback: {value: function() {
         this.querySelector(".meetling-page-notification-dismiss").addEventListener("click", this);
+        this.user = JSON.parse(this.getAttribute("user"));
     }},
 
     /**
@@ -77,6 +147,42 @@ meetling.StartPage = document.registerElement("meetling-start-page",
             }).then(function(meeting) {
                 location.assign("/meetings/" + meeting.id);
             });
+        }
+    }}
+})});
+
+/**
+ * Edit user page, built on ``edit-user.html``.
+ *
+ * .. attribute:: userObject
+ *
+ *    :ref:`User` to edit. Initialized from the JSON value of the corresponding HTML attribute.
+ */
+meetling.EditUserPage = document.registerElement("meetling-edit-user-page",
+        {extends: "body", prototype: Object.create(meetling.Page.prototype, {
+    createdCallback: {value: function() {
+        meetling.Page.prototype.createdCallback.call(this);
+        this.querySelector(".meetling-edit-user-edit").addEventListener("submit", this);
+        this.userObject = JSON.parse(this.getAttribute("user-object"));
+    }},
+
+    handleEvent: {value: function(event) {
+        meetling.Page.prototype.handleEvent.call(this, event);
+        var form = this.querySelector(".meetling-edit-user-edit");
+        if (event.currentTarget === form) {
+            event.preventDefault();
+            var url = "/api/users/" + this.userObject.id;
+            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
+                name: form.elements["name"].value
+            })}).then(function(response) {
+                return response.json();
+            }).then(function(user) {
+                if (user.__type__ === "InputError") {
+                    this.notify("The name is missing.");
+                    return;
+                }
+                location.assign("/");
+            }.bind(this));
         }
     }}
 })});
@@ -212,6 +318,7 @@ meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
                 this.querySelector("h1").textContent = this._item.title;
                 this.querySelector(".meetling-agenda-item-description").textContent =
                     this._item.description;
+                this.querySelector("meetling-user-listing").users = this._item.authors;
             }
         }
     },

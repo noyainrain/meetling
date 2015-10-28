@@ -1,0 +1,21 @@
+{% extends 'page.html' %}
+
+{% block page-attrs %}
+    is="meetling-edit-user-page"
+    user-object="{{ json_encode(user_object.json(exclude_private=True)) }}"
+{% end %}
+
+{% block page-content %}
+    <h1>Edit user settings</h1>
+    <form class="meetling-edit-user-edit">
+        <label>
+            <input name="name" value="{{ user_object.name }}" autofocus="autofocus" />
+            <small>Name</small>
+            <small>Your name or nick name.</small>
+        </label>
+        <p class="actions">
+            <button class="action"><i class="fa fa-check-circle"></i> Done</button>
+            <a class="action action-cancel" href="/">Cancel</a>
+        </p>
+    </form>
+{% end %}

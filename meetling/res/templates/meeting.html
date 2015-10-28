@@ -8,12 +8,20 @@
 {% block page-content %}
     <h1>{{ meeting.title }}</h1>
     <p>{{ meeting.description or '' }}</p>
+    <p class="meetling-detail">
+        edited by
+        <meetling-user-listing
+            users="{{ json_encode([a.json(exclude_private=True) for a in meeting.authors]) }}">
+        </meetling-user-listing>
+    </p>
 
     <section>
         <h1>Agenda</h1>
         <ul class="meetling-meeting-items">
             {% for item in meeting.items.values() %}
-                <li is="meetling-agenda-item" item="{{ json_encode(item.json()) }}"></li>
+                <li is="meetling-agenda-item"
+                    item="{{ json_encode(item.json(include_users=True)) }}">
+                </li>
             {% end %}
             <li class="meetling-meeting-create-agenda-item">
                 <button class="action">
@@ -40,6 +48,9 @@
                 </header>
                 <div class="meetling-agenda-item-content">
                     <p class="meetling-agenda-item-description"></p>
+                    <p class="meetling-detail">
+                        edited by <meetling-user-listing></meetling-user-listing>
+                    </p>
                     <p class="actions">
                         <button class="action action-subtle meetling-agenda-item-edit">
                             <i class="fa fa-pencil"></i> Edit

@@ -80,9 +80,15 @@ User
 
 Meetling user.
 
+User is :ref:`Editable` by the user oneself.
+
 .. describe:: id
 
    Unique ID of the user.
+
+.. describe:: name
+
+   Name or nick name.
 
 .. describe:: auth_secret
 

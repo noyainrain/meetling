@@ -85,6 +85,11 @@ class EditableTest(MeetlingTestCase):
         cat.edit(name='Hover')
         self.assertEqual(cat.authors, [self.user, user2])
 
+class UserTest(MeetlingTestCase):
+    def test_edit(self):
+        self.user.edit(name='Happy')
+        self.assertEqual(self.user.name, 'Happy')
+
 class SettingsTest(MeetlingTestCase):
     def test_edit(self):
         self.app.user = self.staff_member

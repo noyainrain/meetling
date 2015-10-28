@@ -251,6 +251,12 @@ class UserEndpoint(Endpoint):
     def get(self, id):
         self.write(self.app.users[id].json(exclude_private=True))
 
+    def post(self, id):
+        args = self.check_args({'name': (str, 'opt')})
+        user = self.app.users[id]
+        user.edit(**args)
+        self.write(user.json(exclude_private=True))
+
 class SettingsEndpoint(Endpoint):
     def get(self):
         self.write(self.app.settings.json(include_users=True))

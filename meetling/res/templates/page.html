@@ -35,7 +35,7 @@
                                 <i class="fa fa-fw fa-question-circle"></i> About
                             </a>
                         </li>
-                        {% if user.id in settings.staff %}
+                        {% if user in settings.staff %}
                             <li>
                                 <a class="action" href="/settings/edit">
                                     <i class="fa fa-fw fa-wrench"></i> Edit site settings

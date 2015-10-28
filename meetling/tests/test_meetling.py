@@ -45,7 +45,7 @@ class MeetlingTest(MeetlingTestCase):
         # login() is called by setUp()
         self.assertIn(self.user.id, self.app.users)
         self.assertEqual(self.user, self.app.user)
-        self.assertIn(self.staff_member.id, self.app.settings.staff)
+        self.assertIn(self.staff_member, self.app.settings.staff)
 
     def test_create_meeting(self):
         meeting = self.app.create_meeting('Cat Hangout', '  ')
@@ -83,7 +83,7 @@ class EditableTest(MeetlingTestCase):
         cat.edit(name='Grumpy')
         user2 = self.app.login()
         cat.edit(name='Hover')
-        self.assertEqual(cat.authors, [self.user.id, user2.id])
+        self.assertEqual(cat.authors, [self.user, user2])
 
 class SettingsTest(MeetlingTestCase):
     def test_edit(self):

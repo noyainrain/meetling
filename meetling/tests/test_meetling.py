@@ -14,6 +14,9 @@
 
 # pylint: disable=missing-docstring
 
+import subprocess
+from subprocess import check_output
+from tempfile import mkdtemp
 from redis import RedisError
 from tornado.testing import AsyncTestCase
 from meetling import Meetling, Object, Editable, InputError, PermissionError
@@ -71,10 +74,34 @@ class MeetlingTest(MeetlingTestCase):
         meeting = self.app.create_example_meeting()
         self.assertTrue(len(meeting.items))
 
-class MeetlingUpdateTest(MeetlingTestCase):
-    def test_update(self):
-        # update() is called by setUp()
-        self.assertEqual(self.app.settings.title, 'My Meetling')
+class MeetlingUpdateTest(AsyncTestCase):
+    def test_update_db_fresh(self):
+        app = Meetling(redis_url='15')
+        app.r.flushdb()
+        app.update()
+        self.assertEqual(app.settings.title, 'My Meetling')
+
+    def test_update_db_version_previous(self):
+        self.setup_db('0.6.0')
+        app = Meetling(redis_url='15')
+        app.update()
+        user = app.settings.staff[0]
+        self.assertEqual(user.name, 'Guest')
+        self.assertEqual(user.authors, [user])
+
+    def test_update_db_version_first(self):
+        self.setup_db('0.5.0')
+        app = Meetling(redis_url='15')
+        app.update()
+        # update to version 2
+        user = app.settings.staff[0]
+        self.assertEqual(user.name, 'Guest')
+        self.assertEqual(user.authors, [user])
+
+    def setup_db(self, tag):
+        d = mkdtemp()
+        check_output(['git', 'clone', '--branch', tag, '.', d], stderr=subprocess.DEVNULL)
+        check_output(['./misc/sample.py', '--redis-url=15'], stderr=subprocess.DEVNULL, cwd=d)
 
 class EditableTest(MeetlingTestCase):
     def test_edit(self):

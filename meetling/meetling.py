@@ -86,7 +86,21 @@ class Meetling:
             settings = Settings(id='Settings', app=self, authors=[], title='My Meetling', icon=None,
                                 favicon=None, staff=[])
             self.r.oset(settings.id, settings)
-            self.r.set('version', 1)
+            self.r.set('version', 2)
+            return
+
+        db_version = int(db_version)
+        # JSONRedis without en-/decoding and caching
+        r = JSONRedis(self.r.r)
+        r.caching = False
+
+        if db_version < 2:
+            users = r.omget(r.lrange('users', 0, -1))
+            for user in users:
+                user['name'] = 'Guest'
+                user['authors'] = [user['id']]
+            r.omset({u['id']: u for u in users})
+            r.set('version', 2)
 
     def authenticate(self, secret):
         """Authenticate an :class:`User` (device) with *secret*.

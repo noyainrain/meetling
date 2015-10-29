@@ -48,7 +48,9 @@ class MeetlingServerTest(AsyncTestCase):
     def test_availability(self):
         # UI
         yield self.request('/')
+        yield self.request('/about')
         yield self.request('/create-meeting')
+        yield self.request('/users/{}/edit'.format(self.user.id))
         yield self.request('/settings/edit')
         yield self.request('/meetings/' + self.meeting.id)
         yield self.request('/meetings/{}/edit'.format(self.meeting.id))
@@ -58,6 +60,7 @@ class MeetlingServerTest(AsyncTestCase):
         yield self.request('/api/meetings', method='POST', body='{"title": "Cat hangout"}')
         yield self.request('/api/create-example-meeting', method='POST', body='')
         yield self.request('/api/users/' + self.user.id)
+        yield self.request('/api/users/' + self.user.id, method='POST', body='{"name": "Happy"}')
         yield self.request('/api/settings')
         yield self.request('/api/meetings/' + self.meeting.id)
         yield self.request('/api/meetings/' + self.meeting.id, method='POST',

@@ -129,7 +129,7 @@ h1 .link:hover {
     border-radius: 0;
     color: #4d8dd9;
     background: none;
-    font-size: 0.9rem;
+    font-size: 0.9em;
     line-height: 1.5;
 }
 
@@ -186,11 +186,19 @@ label > textarea {
 
 label > small {
     display: block;
-    font-size: 0.9rem;
+    font-size: 0.9em;
 }
 
 label > small + small {
     color: #888;
+}
+
+/* ---- Detail ---- */
+
+.meetling-detail {
+    color: #888;
+    font-size: 0.9em;
+    text-align: right;
 }
 
 /* ---- Logo ---- */
@@ -213,6 +221,21 @@ label > small + small {
 .meetling-logo img {
     height: 2em;
     vertical-align: text-bottom;
+}
+
+/* ---- UserElement ---- */
+
+.meetling-user {
+    display: inline-block;
+    vertical-align: bottom;
+    max-width: 20ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.meetling-user i {
+    color: #888;
 }
 
 /* ---- Page ---- */
@@ -418,6 +441,7 @@ main {
 
 .meetling-agenda-item .actions {
     margin-bottom: 0;
+    justify-content: flex-end;
 }
 
 /* ---- AgendaItemEditor ---- */

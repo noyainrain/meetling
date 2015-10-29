@@ -49,6 +49,7 @@ class MeetlingServer(HTTPServer):
             (r'/$', StartPage),
             (r'/about$', AboutPage),
             (r'/create-meeting$', EditMeetingPage),
+            (r'/users/([^/]+)/edit$', EditUserPage),
             (r'/settings/edit$', EditSettingsPage),
             (r'/meetings/([^/]+)$', MeetingPage),
             (r'/meetings/([^/]+)/edit$', EditMeetingPage),
@@ -133,6 +134,16 @@ class StartPage(Page):
 class AboutPage(Page):
     def get(self):
         self.render('about.html')
+
+class EditUserPage(Page):
+    def get(self, id):
+        try:
+            user_object = self.app.users[id]
+        except KeyError:
+            raise HTTPError(http.client.NOT_FOUND)
+        if self.app.user != user_object:
+            raise HTTPError(http.client.FORBIDDEN)
+        self.render('edit-user.html', user_object=user_object)
 
 class EditSettingsPage(Page):
     def get(self):
@@ -250,6 +261,12 @@ class CreateExampleMeetingEndpoint(Endpoint):
 class UserEndpoint(Endpoint):
     def get(self, id):
         self.write(self.app.users[id].json(exclude_private=True))
+
+    def post(self, id):
+        args = self.check_args({'name': (str, 'opt')})
+        user = self.app.users[id]
+        user.edit(**args)
+        self.write(user.json(exclude_private=True))
 
 class SettingsEndpoint(Endpoint):
     def get(self):

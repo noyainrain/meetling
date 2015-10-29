@@ -15,7 +15,8 @@
         <script src="/static/meetling.js"></script>
     </head>
 
-    <body {% block page-attrs %}is="meetling-page"{% end %}>
+    <body {% block page-attrs %}is="meetling-page"{% end %}
+          user="{{ json_encode(user.json(exclude_private=True)) }}">
         <header class="meetling-page-header">
             <nav class="meetling-page-inside">
                 <h1 class="meetling-page-logo">
@@ -26,6 +27,20 @@
                 </h1>
 
                 <div class="meetling-page-header-fill"></div>
+
+                <div class="meetling-page-menu">
+                    <button class="link">
+                        <meetling-user user="{{ json_encode(user.json(exclude_private=True)) }}">
+                        </meetling-user>
+                    </button>
+                    <ul>
+                        <li>
+                            <a class="action" href="/users/{{ user.id }}/edit">
+                                <i class="fa fa-fw fa-wrench"></i> Edit user settings
+                            </a>
+                        </li>
+                    </ul>
+                </div>
 
                 <div class="meetling-page-menu">
                     <button class="link"><i class="fa fa-fw fa-bars"></i></button>
@@ -63,5 +78,11 @@
                 {% block page-content %}{% end %}
             </div>
         </main>
+
+        <div class="templates">
+            <div class="meetling-user-template">
+                <i class="fa fa-user"></i><span></span>
+            </div>
+        </div>
     </body>
 </html>

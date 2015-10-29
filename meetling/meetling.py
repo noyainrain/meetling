@@ -86,7 +86,21 @@ class Meetling:
             settings = Settings(id='Settings', app=self, authors=[], title='My Meetling', icon=None,
                                 favicon=None, staff=[])
             self.r.oset(settings.id, settings)
-            self.r.set('version', 1)
+            self.r.set('version', 2)
+            return
+
+        db_version = int(db_version)
+        # JSONRedis without en-/decoding and caching
+        r = JSONRedis(self.r.r)
+        r.caching = False
+
+        if db_version < 2:
+            users = r.omget(r.lrange('users', 0, -1))
+            for user in users:
+                user['name'] = 'Guest'
+                user['authors'] = [user['id']]
+            r.omset({u['id']: u for u in users})
+            r.set('version', 2)
 
     def authenticate(self, secret):
         """Authenticate an :class:`User` (device) with *secret*.
@@ -105,7 +119,8 @@ class Meetling:
 
         The new user is set as current *user*.
         """
-        user = User(id='User:' + randstr(), app=self, auth_secret=randstr())
+        id = 'User:' + randstr()
+        user = User(id=id, app=self, authors=[id], name='Guest', auth_secret=randstr())
         self.r.oset(user.id, user)
         self.r.rpush('users', user.id)
         self.r.hset('auth_secret_map', user.auth_secret, user.id)
@@ -234,19 +249,34 @@ class Editable:
             json['authors'] = [a.json(exclude_private=True) for a in self.authors]
         return json
 
-class User(Object):
+class User(Object, Editable):
     """See :ref:`User`."""
 
-    def __init__(self, id, app, auth_secret):
+    def __init__(self, id, app, authors, name, auth_secret):
         super().__init__(id=id, app=app)
+        Editable.__init__(self, authors=authors)
+        self.name = name
         self.auth_secret = auth_secret
 
-    def json(self, exclude_private=False):
+    def do_edit(self, **attrs):
+        if self.app.user != self:
+            raise PermissionError()
+
+        e = InputError()
+        if 'name' in attrs and not str_or_none(attrs['name']):
+            e.errors['name'] = 'empty'
+        e.trigger()
+
+        if 'name' in attrs:
+            self.name = attrs['name']
+
+    def json(self, include_users=False, exclude_private=False):
         """See :meth:`Object.json`.
 
         If *exclude_private* is ``True``, private attributes (*auth_secret*) are excluded.
         """
-        json = super().json({'auth_secret': self.auth_secret})
+        json = super().json({'name': self.name, 'auth_secret': self.auth_secret})
+        json.update(Editable.json(self, include_users))
         if exclude_private:
             del json['auth_secret']
         return json

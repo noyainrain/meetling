@@ -77,6 +77,13 @@ li h1 {
     border-bottom: none;
 }
 
+.compact h1,
+.compact p,
+.compact ul,
+.compact ol {
+    margin: calc(0.25 * 1.5rem) 0;
+}
+
 .templates {
     display: none;
 }
@@ -429,10 +436,6 @@ main {
     flex: auto;
     margin: 0;
     font-size: 1rem;
-}
-
-.meetling-agenda-item-content > * {
-    margin: calc(0.25 * 1.5rem) 0;
 }
 
 .meetling-agenda-item-description {

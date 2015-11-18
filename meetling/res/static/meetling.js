@@ -97,31 +97,76 @@ meetling.UserListingElement = document.registerElement("meetling-user-listing",
 meetling.Page = document.registerElement("meetling-page",
         {extends: "body", prototype: Object.create(HTMLBodyElement.prototype, {
     createdCallback: {value: function() {
-        this.querySelector(".meetling-page-notification-dismiss").addEventListener("click", this);
+        window.addEventListener("error", this);
         this.user = JSON.parse(this.getAttribute("user"));
     }},
 
     /**
-     * Show a notification to the user.
+     * Show a *notification* to the user.
      *
-     * The notification can hold arbitrary *content* given as :class:`Node`. Alternatively,
-     * *content* can be a simple message string to display.
+     * *notification* is a :class:`HTMLElement`, like for example :class:`SimpleNotification`.
+     * Alternatively, *notification* can be a simple message string to display.
      */
-    notify: {value: function(content) {
-        if (typeof content === "string") {
+    notify: {value: function(notification) {
+        if (typeof notification === "string") {
+            var elem = document.createElement("meetling-simple-notification");
             var p = document.createElement("p");
-            p.textContent = content;
-            content = p;
+            p.textContent = notification;
+            elem.content.appendChild(p);
+            notification = elem;
         }
-        var div = this.querySelector(".meetling-page-notification-content");
-        div.innerHTML = "";
-        div.appendChild(content);
-        this.querySelector(".meetling-page-notification").style.display = "block";
+        this.querySelector(".meetling-page-notification-space").appendChild(notification);
     }},
 
     handleEvent: {value: function(event) {
-        if (event.currentTarget === this.querySelector(".meetling-page-notification-dismiss")) {
-            this.querySelector(".meetling-page-notification").style.display = "none";
+        if (event.currentTarget === window && event.type === "error") {
+            this.notify(document.createElement("meetling-error-notification"));
+            var url = "/log-client-error";
+            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
+                type: event.error.name,
+                stack: event.error.stack,
+                url: location.pathname,
+                message: event.error.message
+            })});
+        }
+    }}
+})});
+
+/**
+ * Simple notification.
+ */
+meetling.SimpleNotification = document.registerElement("meetling-simple-notification",
+        {prototype: Object.create(HTMLElement.prototype, {
+    createdCallback: {value: function() {
+        meetling.loadTemplate(this, ".meetling-simple-notification-template");
+        this.classList.add("meetling-notification", "meetling-simple-notification");
+        this.querySelector(".meetling-simple-notification-dismiss").addEventListener("click", this);
+        this.content = this.querySelector(".meetling-simple-notification-content");
+    }},
+
+    handleEvent: {value: function(event) {
+        if (event.currentTarget === this.querySelector(".meetling-simple-notification-dismiss") &&
+                event.type === "click") {
+            this.parentNode.removeChild(this);
+        }
+    }}
+})});
+
+/**
+ * Notification that informs the user about app errors.
+ */
+meetling.ErrorNotification = document.registerElement("meetling-error-notification",
+        {prototype: Object.create(HTMLElement.prototype, {
+    createdCallback: {value: function() {
+        meetling.loadTemplate(this, ".meetling-error-notification-template");
+        this.classList.add("meetling-notification", "meetling-error-notification");
+        this.querySelector(".meetling-error-notification-reload").addEventListener("click", this);
+    }},
+
+    handleEvent: {value: function(event) {
+        if (event.currentTarget === this.querySelector(".meetling-error-notification-reload") &&
+                event.type === "click") {
+            location.reload();
         }
     }}
 })});

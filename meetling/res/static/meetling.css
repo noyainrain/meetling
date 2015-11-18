@@ -77,6 +77,13 @@ li h1 {
     border-bottom: none;
 }
 
+.compact h1,
+.compact p,
+.compact ul,
+.compact ol {
+    margin: calc(0.25 * 1.5rem) 0;
+}
+
 .templates {
     display: none;
 }
@@ -282,22 +289,36 @@ label > small + small {
     min-width: calc(0.25 * 1.5rem);
 }
 
-.meetling-page-notification {
-    display: none;
-    padding: calc(0.5 * 1.5rem) 0;
+main {
+    padding-top: calc(1.5 * 1.5rem);
+}
+
+/* ---- Notification ---- */
+
+.meetling-notification {
+    display: block;
+    padding: calc(0.5 * 1.5em) 0;
     border-top: 1px solid #ddd;
 }
 
-.meetling-page-notification-content > :first-child {
+.meetling-notification .meetling-page-inside > :first-child {
     margin-top: 0;
 }
 
-.meetling-page-notification .actions {
+.meetling-notification .meetling-page-inside > :last-child {
     margin-bottom: 0;
 }
 
-main {
-    padding-top: calc(1.5 * 1.5rem);
+/* ---- SimpleNotification ---- */
+
+.meetling-simple-notification-content > :first-child {
+    margin-top: 0;
+}
+
+/* ---- ErrorNotification ---- */
+
+.meetling-error-notification i {
+    color: red;
 }
 
 /* ---- PageMenu ---- */
@@ -429,10 +450,6 @@ main {
     flex: auto;
     margin: 0;
     font-size: 1rem;
-}
-
-.meetling-agenda-item-content > * {
-    margin: calc(0.25 * 1.5rem) 0;
 }
 
 .meetling-agenda-item-description {

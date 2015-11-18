@@ -15,6 +15,7 @@
 """Meetling server."""
 
 import os
+import logging
 import json
 import http.client
 import meetling
@@ -23,6 +24,17 @@ from tornado.httpserver import HTTPServer
 from tornado.web import Application, RequestHandler, HTTPError
 from tornado.ioloop import IOLoop
 from meetling import Meetling, InputError, PermissionError
+from meetling.util import str_or_none
+
+_CLIENT_ERROR_LOG_TEMPLATE = """\
+Client error occurred
+{type}{message_part}
+Stack:
+{stack}
+URL: {url}
+User: {user_name} ({user_id})"""
+
+_logger = logging.getLogger(__name__)
 
 class MeetlingServer(HTTPServer):
     """Meetling server.
@@ -53,6 +65,7 @@ class MeetlingServer(HTTPServer):
             (r'/settings/edit$', EditSettingsPage),
             (r'/meetings/([^/]+)$', MeetingPage),
             (r'/meetings/([^/]+)/edit$', EditMeetingPage),
+            (r'/log-client-error$', LogClientErrorEndpoint),
             # API
             (r'/api/login$', LoginEndpoint),
             (r'/api/meetings$', MeetingsEndpoint),
@@ -241,6 +254,32 @@ class Endpoint(Resource):
         e.trigger()
 
         return args
+
+class LogClientErrorEndpoint(Endpoint):
+    def post(self):
+        if not self.app.user:
+            raise PermissionError()
+
+        args = self.check_args({
+            'type': str,
+            'stack': str,
+            'url': str,
+            'message': (str, None, 'opt')
+        })
+        e = InputError()
+        if str_or_none(args['type']) is None:
+            e.errors['type'] = 'empty'
+        if str_or_none(args['stack']) is None:
+            e.errors['stack'] = 'empty'
+        if str_or_none(args['url']) is None:
+            e.errors['url'] = 'empty'
+        e.trigger()
+
+        message = str_or_none(args.get('message'))
+        message_part = ': ' + message if message else ''
+        _logger.error(_CLIENT_ERROR_LOG_TEMPLATE.format(
+            type=args['type'], message_part=message_part, stack=args['stack'].strip(),
+            url=args['url'], user_name=self.app.user.name, user_id=self.app.user.id))
 
 class LoginEndpoint(Endpoint):
     def post(self):

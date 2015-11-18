@@ -54,6 +54,8 @@ class MeetlingServerTest(AsyncTestCase):
         yield self.request('/settings/edit')
         yield self.request('/meetings/' + self.meeting.id)
         yield self.request('/meetings/{}/edit'.format(self.meeting.id))
+        yield self.request('/log-client-error', method='POST',
+            body='{"type": "Error", "stack": "meetling.Page.prototype.createdCallback", "url": "/"}')
 
         # API
         yield self.request('/api/login', method='POST', body='')

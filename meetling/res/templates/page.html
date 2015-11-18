@@ -61,16 +61,7 @@
                 </div>
             </nav>
 
-            <div class="meetling-page-notification">
-                <div class="meetling-page-inside">
-                    <div class="meetling-page-notification-content"></div>
-                    <p class="actions">
-                        <button class="action action-subtle meetling-page-notification-dismiss">
-                            Dismiss
-                        </button>
-                    </p>
-                </div>
-            </div>
+            <div class="meetling-page-notification-space"></div>
         </header>
 
         <main>
@@ -82,6 +73,33 @@
         <div class="templates">
             <div class="meetling-user-template">
                 <i class="fa fa-user"></i><span></span>
+            </div>
+
+            <div class="meetling-simple-notification-template">
+                <div class="meetling-page-inside compact">
+                    <div class="meetling-simple-notification-content"></div>
+                    <p class="group">
+                        <button class="meetling-simple-notification-dismiss action action-subtle">
+                            Dismiss
+                        </button>
+                    </p>
+                </div>
+            </div>
+
+            <div class="meetling-error-notification-template">
+                <div class="meetling-page-inside compact">
+                    <p>
+                        <i class="fa fa-exclamation-triangle"></i> Oops, something went very wrong!
+                        We have been notified and will do our best to fix the problem as soon as
+                        possible. We are sorry for the inconvenience!
+                    </p>
+                    <p>In the meantime, you may reload the page and give it another try.</p>
+                    <p class="group">
+                        <button class="meetling-error-notification-reload action">
+                            Reload the page
+                        </button>
+                    </p>
+                </div>
             </div>
         </div>
     </body>

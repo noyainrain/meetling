@@ -18,7 +18,7 @@ from urllib.parse import ParseResult, urlparse, urljoin
 from datetime import datetime, timedelta
 from redis import StrictRedis
 from meetling.lib.jsonredis import JSONRedis, JSONRedisMapping
-from meetling.util import randstr, str_or_none
+from meetling.util import randstr, str_or_none, parse_isotime
 
 class Meetling:
     """See :ref:`Meetling`.
@@ -133,7 +133,7 @@ class Meetling:
 
         return self.authenticate(user.auth_secret)
 
-    def create_meeting(self, title, description=None):
+    def create_meeting(self, title, time=None, location=None, description=None):
         """See :http:post:`/api/meetings`."""
         if not self.user:
             raise PermissionError()
@@ -141,11 +141,11 @@ class Meetling:
         e = InputError()
         if not str_or_none(title):
             e.errors['title'] = 'empty'
-        description = str_or_none(description)
         e.trigger()
 
-        meeting = Meeting(id='Meeting:' + randstr(), app=self, authors=[self.user.id], title=title,
-                          description=description)
+        meeting = Meeting(
+            id='Meeting:' + randstr(), app=self, authors=[self.user.id], title=title, time=time,
+            location=str_or_none(location), description=str_or_none(description))
         self.r.oset(meeting.id, meeting)
         self.r.rpush('meetings', meeting.id)
         return meeting
@@ -157,9 +157,8 @@ class Meetling:
 
         time = (datetime.utcnow() + timedelta(days=7)).replace(hour=12, minute=0, second=0,
                                                                microsecond=0)
-        meeting = self.create_meeting(
-            'Working group meeting',
-            'We meet on {} at the office and discuss important issues.'.format(time.ctime()))
+        meeting = self.create_meeting('Working group meeting', time, 'At the office',
+                                      'We meet and discuss important issues.')
         meeting.create_agenda_item('Round of introductions')
         meeting.create_agenda_item('Lunch poll', 'What will we have for lunch today?')
         meeting.create_agenda_item('Next meeting', 'When and where will our next meeting be?')
@@ -178,7 +177,12 @@ class Meetling:
             type = json.pop('__type__')
         except KeyError:
             return json
-        return types[type](app=self, **json)
+        type = types[type]
+
+        if type is Meeting and json['time']:
+            json['time'] = parse_isotime(json['time'])
+
+        return type(app=self, **json)
 
 class Object:
     """Object in the Meetling universe.
@@ -332,10 +336,12 @@ class Meeting(Object, Editable):
        Ordered map of :class:`AgendaItem` s on the meeting's agenda.
     """
 
-    def __init__(self, id, app, authors, title, description):
+    def __init__(self, id, app, authors, title, time, location, description):
         super().__init__(id=id, app=app)
         Editable.__init__(self, authors=authors)
         self.title = title
+        self.time = time
+        self.location = location
         self.description = description
         self.items = JSONRedisMapping(self.app.r, self.id + '.items')
 
@@ -347,6 +353,10 @@ class Meeting(Object, Editable):
 
         if 'title' in attrs:
             self.title = attrs['title']
+        if 'time' in attrs:
+            self.time = attrs['time']
+        if 'location' in attrs:
+            self.location = str_or_none(attrs['location'])
         if 'description' in attrs:
             self.description = str_or_none(attrs['description'])
 
@@ -368,7 +378,12 @@ class Meeting(Object, Editable):
         return item
 
     def json(self, include_users=False):
-        json = super().json({'title': self.title, 'description': self.description})
+        json = super().json({
+            'title': self.title,
+            'time': self.time.isoformat() + 'Z' if self.time else None,
+            'location': self.location,
+            'description': self.description
+        })
         json.update(Editable.json(self, include_users))
         return json
 
@@ -410,9 +425,9 @@ class InputError(ValueError):
            # ...
     """
 
-    def __init__(self):
+    def __init__(self, errors={}):
         super().__init__('input_invalid')
-        self.errors = {}
+        self.errors = dict(errors)
 
     def trigger(self):
         """Trigger the error, i.e. raise it if any *errors* are present.

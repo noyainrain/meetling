@@ -37,9 +37,9 @@ Meetling application.
 
 .. http:post:: /api/meetings
 
-   ``{"title", "description": null}``
+   ``{"title", "time": null, "location": null, "description": null}``
 
-   Create a :ref:`Meeting` with the given *title* and optional *description* and return it.
+   Create a :ref:`Meeting` and return it.
 
    Permission: Authenticated users.
 
@@ -147,6 +147,14 @@ Meeting is :ref:`Editable`.
 .. describe:: title
 
    Title of the meeting.
+
+.. describe:: time
+
+   Date and time the meeting begins. May be ``null``.
+
+.. describe:: location
+
+   Location where the meeting takes place. May be ``null``.
 
 .. describe:: description
 

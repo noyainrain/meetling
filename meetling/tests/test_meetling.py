@@ -15,6 +15,7 @@
 # pylint: disable=missing-docstring
 
 import subprocess
+from datetime import datetime
 from subprocess import check_output
 from tempfile import mkdtemp
 from redis import RedisError
@@ -51,7 +52,7 @@ class MeetlingTest(MeetlingTestCase):
         self.assertIn(self.staff_member, self.app.settings.staff)
 
     def test_create_meeting(self):
-        meeting = self.app.create_meeting('Cat Hangout', '  ')
+        meeting = self.app.create_meeting('Cat Hangout', description='  ')
         self.assertIn(meeting.id, self.app.meetings)
         # Whitespace-only strings should be converted to None
         self.assertIsNone(meeting.description)
@@ -132,8 +133,10 @@ class MeetingTest(MeetlingTestCase):
         self.meeting = self.app.create_meeting('Cat hangout')
 
     def test_edit(self):
-        self.meeting.edit(title='Awesome cat hangout')
+        time = datetime.utcnow()
+        self.meeting.edit(title='Awesome cat hangout', time=time)
         self.assertEqual(self.meeting.title, 'Awesome cat hangout')
+        self.assertEqual(self.meeting.time, time)
         self.assertIsNone(self.meeting.description)
 
     def test_create_agenda_item(self):

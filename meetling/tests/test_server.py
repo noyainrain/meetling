@@ -17,6 +17,7 @@
 import http.client
 import json
 from urllib.parse import urljoin
+from datetime import datetime
 from tornado.httpclient import AsyncHTTPClient, HTTPError
 from tornado.testing import AsyncTestCase, gen_test
 from meetling.server import MeetlingServer
@@ -58,15 +59,18 @@ class MeetlingServerTest(AsyncTestCase):
             body='{"type": "Error", "stack": "meetling.Page.prototype.createdCallback", "url": "/"}')
 
         # API
+        now = datetime.utcnow()
         yield self.request('/api/login', method='POST', body='')
-        yield self.request('/api/meetings', method='POST', body='{"title": "Cat hangout"}')
+        yield self.request('/api/meetings', method='POST',
+                           body='{"title": "Cat hangout", "description": "  "}')
         yield self.request('/api/create-example-meeting', method='POST', body='')
         yield self.request('/api/users/' + self.user.id)
         yield self.request('/api/users/' + self.user.id, method='POST', body='{"name": "Happy"}')
         yield self.request('/api/settings')
         yield self.request('/api/meetings/' + self.meeting.id)
-        yield self.request('/api/meetings/' + self.meeting.id, method='POST',
-                           body='{"description": "Good mood!"}')
+        yield self.request(
+            '/api/meetings/' + self.meeting.id, method='POST',
+            body='{{"title": "Awesome cat hangout", "time": "{}Z"}}'.format(now.isoformat()))
         yield self.request('/api/meetings/{}/items'.format(self.meeting.id))
         yield self.request('/api/meetings/{}/items'.format(self.meeting.id), method='POST',
                            body='{"title": "Purring"}')

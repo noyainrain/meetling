@@ -7,7 +7,21 @@
 
 {% block page-content %}
     <h1>{{ meeting.title }}</h1>
+
+    <ul class="meetling-meeting-meta">
+        {% if meeting.time %}
+            <li title="Time">
+                <i class="fa fa-fw fa-calendar"></i>
+                <time datetime="{{ meeting.time.isoformat() + 'Z' }}"></time>
+            </li>
+        {% end %}
+        {% if meeting.location %}
+            <li title="Location"><i class="fa fa-fw fa-map-marker"></i> {{ meeting.location }}</li>
+        {% end %}
+    </ul>
+
     <p>{{ meeting.description or '' }}</p>
+
     <p class="meetling-detail">
         edited by
         <meetling-user-listing

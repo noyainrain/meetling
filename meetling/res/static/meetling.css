@@ -77,6 +77,18 @@ li h1 {
     border-bottom: none;
 }
 
+.group {
+    display: flex;
+}
+
+.group > * {
+    margin: 0;
+}
+
+.group > *:nth-child(+2) {
+    margin-left: calc(0.25 * 1.5rem);
+}
+
 .compact h1,
 .compact p,
 .compact ul,
@@ -173,18 +185,28 @@ h1 .link:hover {
 
 /* ---- Forms ---- */
 
+input,
+textarea,
+select {
+    padding: calc(0.25 * 1.5em);
+    border: 1px solid #bbb;
+    font: inherit;
+}
+
+input:focus {
+    outline: none;
+}
+
 label {
     display: block;
     margin: 1.5rem 0;
 }
 
 label > input,
-label > textarea {
+label > textarea,
+label > select {
     display: block;
     width: 100%;
-    padding: calc(0.25 * 1.5em);
-    border: 1px solid #bbb;
-    font: inherit;
 }
 
 label > textarea {
@@ -198,6 +220,105 @@ label > small {
 
 label > small + small {
     color: #888;
+}
+
+/* ---- Pikaday ---- */
+
+.pika-single {
+    border: 1px solid #bbb;
+    font: inherit;
+}
+
+.pika-single.is-bound {
+    box-shadow: none;
+}
+
+.pika-lendar {
+    width: auto;
+    margin: calc(0.25 * 1.5rem);
+}
+
+.pika-label {
+    vertical-align: bottom;
+    padding: calc(0.25 * 1.5em);
+    font-size: inherit;
+    line-height: inherit;
+}
+
+.pika-title select {
+    font-weight: normal;
+}
+
+.pika-table td {
+    width: auto;
+    border: 1px solid #ddd;
+}
+
+.pika-table th {
+    color: #888;
+    font-size: 0.9em;
+    line-height: inherit;
+    font-weight: normal;
+}
+
+.pika-button {
+    box-sizing: content-box;
+    width: 2em;
+    padding: calc(0.25 * 1.5em);
+    color: #333;
+    font-size: inherit;
+    line-height: 1;
+    background: none;
+}
+
+.is-today .pika-button {
+    color: #333;
+}
+
+.is-selected .pika-button {
+    border-radius: 0;
+    box-shadow: none;
+    color: #d94b1f;
+    background: #ddd;
+    font-weight: normal;
+}
+
+.is-selected.is-today .pika-button {
+    font-weight: bold;
+}
+
+.pika-button:hover {
+    color: #d94b1f;
+    background: #ddd;
+    border-radius: 0;
+}
+
+.pika-table abbr {
+    text-decoration: none;
+}
+
+.pika-clear {
+    display: block;
+    clear: both;
+    padding: 0;
+    border: none;
+    margin: calc(0.25 * 1.5rem);
+    color: #4d8dd9;
+    background: none;
+    font: inherit;
+    line-height: inherit;
+    cursor: pointer;
+}
+
+.pika-clear:hover {
+    text-decoration: underline;
+}
+
+/* ---- DateInput ---- */
+
+.meetling-date-input {
+    box-sizing: content-box;
+    max-width: calc(4em + 9em + 2em); /* year + longest month name + day */
 }
 
 /* ---- Detail ---- */
@@ -407,6 +528,15 @@ main {
 }
 
 /* ---- MeetingPage ---- */
+
+.meetling-meeting-meta {
+    padding: 0;
+    list-style: none;
+}
+
+.meetling-meeting-meta i {
+    color: #888;
+}
 
 .meetling-meeting-items {
     padding-left: calc(1.5 * 1.5rem);

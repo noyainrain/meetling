@@ -22,6 +22,77 @@
 
 var meetling = {};
 
+meetling._DATE_TIME_FORMAT = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+    hour: "numeric",
+    minute: "numeric"
+};
+
+meetling._DATE_FORMAT = {year: "numeric", month: "long", day: "numeric"};
+
+/**
+ * Input for entering a time of day.
+ *
+ * The element implements the core functionality of a
+ * `HTML time input <https://html.spec.whatwg.org/multipage/forms.html#time-state-%28type=time%29>`
+ * and can thus be used as a polyfill.
+ */
+meetling.TimeInput = document.registerElement("meetling-time-input",
+        {extends: "input", prototype: Object.create(HTMLInputElement.prototype, {
+    createdCallback: {value: function() {
+        this.classList.add("meetling-time-input");
+        this.setAttribute("size", "5");
+        this.addEventListener("change", this);
+        this._value = null;
+        this._superValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+        this._evaluate();
+    }},
+
+    value: {
+        get: function() {
+            return this._value;
+        },
+        set: function(value) {
+            this._value = this._parseInput(value);
+            this._superValue.set.call(this, this._value);
+            this.setCustomValidity("");
+        }
+    },
+
+    handleEvent: {value: function(event) {
+        if (event.currentTarget === this && event.type === "change") {
+            this._evaluate();
+        }
+    }},
+
+    _evaluate: {value: function() {
+        var input = this._superValue.get.call(this);
+        this._value = this._parseInput(input);
+        if (this._value || !input) {
+            this.setCustomValidity("");
+        } else {
+            this.setCustomValidity("input_bad_format");
+        }
+    }},
+
+    _parseInput: {value: function(input) {
+        var tokens = input.match(/^([0-1]?\d|2[0-3])(\D?([0-5]\d))?$/);
+        if (!tokens) {
+            return "";
+        }
+
+        var hour = tokens[1];
+        if (hour.length == 1) {
+            hour = "0" + hour;
+        }
+        var minute = tokens[3] || "00";
+        return hour + ":" + minute;
+    }}
+})});
+
 /**
  * User element.
  *
@@ -276,9 +347,13 @@ meetling.MeetingPage = document.registerElement("meetling-meeting-page",
         {extends: "body", prototype: Object.create(meetling.Page.prototype, {
     createdCallback: {value: function() {
         meetling.Page.prototype.createdCallback.call(this);
+        this.meeting = JSON.parse(this.getAttribute("meeting"));
         this.querySelector(".meetling-meeting-create-agenda-item .action").addEventListener("click",
                                                                                             this);
-        this.meeting = JSON.parse(this.getAttribute("meeting"));
+        if (this.meeting.time) {
+            this.querySelector(".meetling-meeting-meta time").textContent =
+                new Date(this.meeting.time).toLocaleString("en", meetling._DATE_TIME_FORMAT);
+        }
     }},
 
     handleEvent: {value: function(event) {
@@ -306,15 +381,66 @@ meetling.EditMeetingPage = document.registerElement("meetling-edit-meeting-page"
         {extends: "body", prototype: Object.create(meetling.Page.prototype, {
     createdCallback: {value: function() {
         meetling.Page.prototype.createdCallback.call(this);
-        this.querySelector(".meetling-edit-meeting-edit").addEventListener("submit", this);
         this.meeting = JSON.parse(this.getAttribute("meeting"));
+        this.querySelector(".meetling-edit-meeting-example-date").textContent =
+            new Date().toLocaleDateString("en", meetling._DATE_FORMAT);
+        this.querySelector(".meetling-edit-meeting-edit").addEventListener("submit", this);
+        document.addEventListener("WebComponentsReady", this);
+
+        this._pikaday = new Pikaday({
+            field: this.querySelector('.meetling-edit-meeting-edit [name="date"]'),
+            firstDay: 1,
+            numberOfMonths: 1,
+            onDraw: this._onDrawPikaday.bind(this)
+        });
+        this._pikaday.toString = this._formatDate.bind(this);
+        this._clearButton = document.createElement("button");
+        this._clearButton.classList.add("pika-clear");
+        this._clearButton.textContent = "Clear";
+        this._clearButton.addEventListener("click", this);
+        // Pikaday prevents click events on touch-enabled devices
+        this._clearButton.addEventListener("touchend", this);
+    }},
+
+    _formatDate: {value: function() {
+        return this._pikaday.getDate().toLocaleDateString("en", meetling._DATE_FORMAT);
+    }},
+
+    _onDrawPikaday: {value: function() {
+        this._pikaday.el.appendChild(this._clearButton);
     }},
 
     handleEvent: {value: function(event) {
         meetling.Page.prototype.handleEvent.call(this, event);
         var form = this.querySelector(".meetling-edit-meeting-edit");
-        if (event.currentTarget === form) {
+
+        if (event.target === document && event.type === "WebComponentsReady") {
+            if (this.meeting && this.meeting.time) {
+                var time = new Date(this.meeting.time);
+                this._pikaday.setDate(time);
+                var hour = time.getHours();
+                var minute = time.getMinutes();
+                form.elements["time"].value =
+                    (hour < 10 ? "0" + hour : hour) + ":" + (minute < 10 ? "0" + minute : minute);
+            }
+
+        } else if (event.currentTarget === form && event.type === "submit") {
             event.preventDefault();
+
+            var dateTime = null;
+            var date = this._pikaday.getDate();
+            var time = form.elements["time"].value;
+            if (date || time || !form.elements["time"].checkValidity()) {
+                if (!(date && time)) {
+                    document.body.notify("Date and time are incomplete.");
+                    return;
+                }
+                dateTime = date;
+                var tokens = time.split(":");
+                dateTime.setHours(parseInt(tokens[0]), parseInt(tokens[1]));
+                dateTime = dateTime.toISOString();
+            }
+
             var url = "/api/meetings";
             if (this.meeting) {
                 url = "/api/meetings/" + this.meeting.id;
@@ -322,6 +448,8 @@ meetling.EditMeetingPage = document.registerElement("meetling-edit-meeting-page"
 
             fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
                 title: form.elements["title"].value,
+                time: dateTime,
+                location: form.elements["location"].value,
                 description: form.elements["description"].value
             })}).then(function(response) {
                 return response.json();
@@ -332,6 +460,11 @@ meetling.EditMeetingPage = document.registerElement("meetling-edit-meeting-page"
                 }
                 location.assign("/meetings/" + meeting.id);
             }.bind(this));
+
+        } else if (event.currentTarget === this._clearButton && (event.type === "click" ||
+                                                                 event.type === "touchend")) {
+            this._pikaday.setDate(null);
+            this._pikaday.hide();
         }
     }}
 })});

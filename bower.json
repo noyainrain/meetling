@@ -3,6 +3,7 @@
     "dependencies": {
         "fetch": "^0.9",
         "webcomponentsjs": "^0.7",
+        "pikaday": "^1.4",
         "font-awesome": "^4.4",
         "open-sans": "http://www.opensans.com/download/open-sans.zip"
     }

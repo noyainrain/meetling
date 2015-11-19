@@ -14,8 +14,10 @@
 
 """Various utilities."""
 
+import re
 import string
 import random
+from datetime import datetime
 
 def str_or_none(str):
     """Return *str* unmodified if it has content, otherwise return ``None``.
@@ -30,3 +32,15 @@ def randstr(length=16, charset=string.ascii_lowercase):
     The string will have the given *length* and consist of characters from *charset*.
     """
     return ''.join(random.choice(charset) for i in range(length))
+
+def parse_isotime(isotime):
+    """Parse an ISO 8601 time string into a naive :class:`datetime.datetime`.
+
+    Note that this rudimentary parser makes bold assumptions about the format: The first six
+    components are always interpreted as year, month, day and optionally hour, minute and second.
+    Everything else, i.e. microsecond and time zone information, is ignored.
+    """
+    try:
+        return datetime(*(int(t) for t in re.split(r'\D', isotime)[:6]))
+    except (TypeError, ValueError):
+        raise ValueError('isotime_bad_format')

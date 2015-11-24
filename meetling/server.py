@@ -360,7 +360,11 @@ class MeetingItemsEndpoint(Endpoint):
         self.write(json.dumps([i.json(include_users=True) for i in meeting.items.values()]))
 
     def post(self, id):
-        args = self.check_args({'title': str, 'description': (str, None, 'opt')})
+        args = self.check_args({
+            'title': str,
+            'duration': (int, None, 'opt'),
+            'description': (str, None, 'opt')
+        })
         meeting = self.app.meetings[id]
         item = meeting.create_agenda_item(**args)
         self.write(item.json(include_users=True))
@@ -372,7 +376,11 @@ class AgendaItemEndpoint(Endpoint):
         self.write(item.json(include_users=True))
 
     def post(self, meeting_id, item_id):
-        args = self.check_args({'title': (str, 'opt'), 'description': (str, None, 'opt')})
+        args = self.check_args({
+            'title': (str, 'opt'),
+            'duration': (int, None, 'opt'),
+            'description': (str, None, 'opt')
+        })
         meeting = self.app.meetings[meeting_id]
         item = meeting.items[item_id]
         item.edit(**args)

@@ -170,9 +170,9 @@ Meeting is :ref:`Editable`.
 
 .. http:post:: /api/meetings/(id)/items
 
-   ``{"title", "description": null}``
+   ``{"title", "duration": null, "description": null}``
 
-   Create an :ref:`AgendaItem` with the given *title* and optional *description* and return it.
+   Create an :ref:`AgendaItem` and return it.
 
    Permission: Authenticated users.
 
@@ -192,6 +192,10 @@ AgendaItem is :ref:`Editable`.
 .. describe:: title
 
    Title of the item.
+
+.. describe:: duration
+
+   Time the agenda item takes in minutes. May be ``null``.
 
 .. describe:: description
 

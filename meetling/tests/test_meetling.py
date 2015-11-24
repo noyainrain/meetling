@@ -147,8 +147,9 @@ class AgendaItemTest(MeetlingTestCase):
     def test_edit(self):
         meeting = self.app.create_meeting('Cat Hangout')
         item = meeting.create_agenda_item('Purring')
-        item.edit(title='Intensive purring')
+        item.edit(title='Intensive purring', duration=10)
         self.assertEqual(item.title, 'Intensive purring')
+        self.assertEqual(item.duration, 10)
         self.assertIsNone(item.description)
 
 class Cat(Object, Editable):

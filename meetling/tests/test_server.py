@@ -76,7 +76,7 @@ class MeetlingServerTest(AsyncTestCase):
                            body='{"title": "Purring"}')
         yield self.request('/api/meetings/{}/items/{}'.format(self.meeting.id, self.item.id))
         yield self.request('/api/meetings/{}/items/{}'.format(self.meeting.id, self.item.id),
-                           method='POST', body='{"description": "Bring food!"}')
+                           method='POST', body='{"title": "Intensive purring", "duration": 10}')
 
         # API (as staff member)
         self.client_user = self.staff_member

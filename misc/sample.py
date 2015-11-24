@@ -45,7 +45,7 @@ def main(args):
     meeting1 = app.create_example_meeting()
     meeting2 = app.create_meeting('Cat hangout')
     meeting2.create_agenda_item('Eating')
-    meeting2.create_agenda_item('Purring', 'No snooping!')
+    meeting2.create_agenda_item('Purring', duration=10, description='No snooping!')
 
     text = [
         'To log in as staff member, visit:',

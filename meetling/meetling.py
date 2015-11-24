@@ -160,8 +160,10 @@ class Meetling:
         meeting = self.create_meeting('Working group meeting', time, 'At the office',
                                       'We meet and discuss important issues.')
         meeting.create_agenda_item('Round of introductions')
-        meeting.create_agenda_item('Lunch poll', 'What will we have for lunch today?')
-        meeting.create_agenda_item('Next meeting', 'When and where will our next meeting be?')
+        meeting.create_agenda_item('Lunch poll', duration=30,
+                                   description='What will we have for lunch today?')
+        meeting.create_agenda_item('Next meeting', duration=5,
+                                   description='When and where will our next meeting be?')
         return meeting
 
     @staticmethod
@@ -360,19 +362,21 @@ class Meeting(Object, Editable):
         if 'description' in attrs:
             self.description = str_or_none(attrs['description'])
 
-    def create_agenda_item(self, title, description=None):
+    def create_agenda_item(self, title, duration=None, description=None):
         """See :http:post:`/api/meetings/(id)/items`."""
         if not self.app.user:
             raise PermissionError()
 
         e = InputError()
-        if not str_or_none(title):
+        if str_or_none(title) is None:
             e.errors['title'] = 'empty'
+        if duration is not None and duration <= 0:
+            e.errors['duration'] = 'not_positive'
         description = str_or_none(description)
         e.trigger()
 
         item = AgendaItem(id='AgendaItem:' + randstr(), app=self.app, authors=[self.app.user.id],
-                          title=title, description=description)
+                          title=title, duration=duration, description=description)
         self.app.r.oset(item.id, item)
         self.app.r.rpush(self.id + '.items', item.id)
         return item
@@ -390,25 +394,34 @@ class Meeting(Object, Editable):
 class AgendaItem(Object, Editable):
     """See :ref:`AgendaItem`."""
 
-    def __init__(self, id, app, authors, title, description):
+    def __init__(self, id, app, authors, title, duration, description):
         super().__init__(id=id, app=app)
         Editable.__init__(self, authors=authors)
         self.title = title
+        self.duration = duration
         self.description = description
 
     def do_edit(self, **attrs):
         e = InputError()
-        if 'title' in attrs and not str_or_none(attrs['title']):
+        if 'title' in attrs and str_or_none(attrs['title']) is None:
             e.errors['title'] = 'empty'
+        if attrs.get('duration') is not None and attrs['duration'] <= 0:
+            e.errors['duration'] = 'not_positive'
         e.trigger()
 
         if 'title' in attrs:
             self.title = attrs['title']
+        if 'duration' in attrs:
+            self.duration = attrs['duration']
         if 'description' in attrs:
             self.description = str_or_none(attrs['description'])
 
     def json(self, include_users=False):
-        json = super().json({'title': self.title, 'description': self.description})
+        json = super().json({
+            'title': self.title,
+            'duration': self.duration,
+            'description': self.description
+        })
         json.update(Editable.json(self, include_users))
         return json
 

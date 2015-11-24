@@ -572,21 +572,24 @@ main {
 
 /* ---- AgendaItemElement ---- */
 
-.meetling-agenda-item header {
-    display: flex;
-}
-
 .meetling-agenda-item header h1 {
     flex: auto;
-    margin: 0;
     font-size: 1rem;
+}
+
+.meetling-agenda-item header i {
+    color: #888;
+}
+
+.meetling-agenda-item-duration {
+    white-space: nowrap;
 }
 
 .meetling-agenda-item-description {
     color: #888;
 }
 
-.meetling-agenda-item .actions {
+.meetling-agenda-item .group {
     margin-bottom: 0;
     justify-content: flex-end;
 }
@@ -598,6 +601,6 @@ main {
     font-size: 1rem;
 }
 
-.meetling-agenda-item-editor .actions {
+.meetling-agenda-item-editor .group {
     margin-bottom: 0;
 }

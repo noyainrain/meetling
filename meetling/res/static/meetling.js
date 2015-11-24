@@ -494,8 +494,15 @@ meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
             this._item = value;
             if (this._item) {
                 this.querySelector("h1").textContent = this._item.title;
+                var p = this.querySelector(".meetling-agenda-item-duration");
+                if (this._item.duration) {
+                    p.querySelector("span").textContent = this._item.duration + "m";
+                    p.style.display = "";
+                } else {
+                    p.style.display = "none";
+                }
                 this.querySelector(".meetling-agenda-item-description").textContent =
-                    this._item.description;
+                    this._item.description || "";
                 this.querySelector("meetling-user-listing").users = this._item.authors;
             }
         }
@@ -548,7 +555,8 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
                 this.querySelector('h1').textContent = "Edit " + this._item.title;
                 var form = this.querySelector("form");
                 form.elements["title"].value = this._item.title;
-                form.elements["description"].value = this._item.description;
+                form.elements["duration"].value = this._item.duration || "";
+                form.elements["description"].value = this._item.description || "";
             }
         }
     },
@@ -559,6 +567,12 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
 
         if (event.currentTarget === form) {
             event.preventDefault();
+
+            if (!form.elements["duration"].checkValidity()) {
+                document.body.notify("Duration is not a number.");
+                return;
+            }
+
             var url = "/api/meetings/" + document.body.meeting.id + "/items";
             if (this._item) {
                 url = "/api/meetings/" + document.body.meeting.id + "/items/" + this._item.id;
@@ -566,12 +580,19 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
 
             fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
                 title: form.elements["title"].value,
+                duration: form.elements["duration"].value ?
+                    parseInt(form.elements["duration"].value) : null,
                 description: form.elements["description"].value
             })}).then(function(response) {
                 return response.json();
             }).then(function(item) {
                 if (item.__type__ === "InputError") {
-                    document.body.notify("The title is missing.");
+                    for (var arg in item.errors) {
+                        document.body.notify({
+                            title: {empty: "Title is missing."},
+                            duration: {not_positive: "Duration is not positive."},
+                        }[arg][item.errors[arg]]);
+                    }
                     return;
                 }
                 if (this._item) {

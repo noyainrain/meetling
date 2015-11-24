@@ -57,15 +57,18 @@
     <div class="templates">
         <div class="meetling-agenda-item-template">
             <section>
-                <header>
+                <header class="group">
                     <h1></h1>
+                    <p class="meetling-agenda-item-duration" title="Duration">
+                        <i class="fa fa-clock-o"></i> <span></span>
+                    </p>
                 </header>
                 <div class="meetling-agenda-item-content compact">
                     <p class="meetling-agenda-item-description"></p>
                     <p class="meetling-detail">
                         edited by <meetling-user-listing></meetling-user-listing>
                     </p>
-                    <p class="actions">
+                    <p class="group">
                         <button class="action action-subtle meetling-agenda-item-edit">
                             <i class="fa fa-pencil"></i> Edit
                         </button>
@@ -77,16 +80,26 @@
         <div class="meetling-agenda-item-editor-template">
             <section>
                 <h1>New Agenda Item</h1>
-                <form>
+                <form novalidate="novalidate">
                     <label>
                         <input name="title"></input>
                         <small>Title</small>
                     </label>
                     <label>
+                        <input type="number" name="duration" min="-9007199254740991"
+                               max="9007199254740991">
+                        </input>
+                        <small>Duration (optional)</small>
+                        <small>
+                            How long does this agenda item take in minutes? An estimate is fine
+                            here.
+                        </small>
+                    </label>
+                    <label>
                         <textarea name="description"></textarea>
                         <small>Description (optional)</small>
                     </label>
-                    <p class="actions">
+                    <p class="group">
                         <button class="action"><i class="fa fa-check-circle"></i> Done</button>
                         <button class="action action-cancel">Cancel</button>
                     </p>

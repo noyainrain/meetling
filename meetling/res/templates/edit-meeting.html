@@ -9,11 +9,27 @@
 
 {% block page-content %}
     <h1>{{ 'Edit ' + meeting.title if meeting else 'New Meeting' }}</h1>
-    <form class="meetling-edit-meeting-edit">
+    <form class="meetling-edit-meeting-edit" novalidate="novalidate">
         <label>
             <input name="title" value="{{ meeting.title if meeting else '' }}"
                    autofocus="autofocus" />
             <small>Title</small>
+        </label>
+        <label>
+            <div class="group">
+                <input class="meetling-date-input" name="date" readonly="readonly" />
+                <input is="meetling-time-input" name="time" />
+            </div>
+            <small>Date and time (optional)</small>
+            <small>
+                When does the meeting begin? For example
+                <em><span class="meetling-edit-meeting-example-date"></span> | 13:30</em>.
+            </small>
+        </label>
+        <label>
+            <input name="location" value="{{ meeting.location or '' if meeting else ''}}" />
+            <small>Location (optional)</small>
+            <small>Where does the meeting take place?</small>
         </label>
         <label>
             <textarea name="description">{{ meeting.description or '' if meeting else '' }}</textarea>

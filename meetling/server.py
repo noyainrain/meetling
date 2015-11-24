@@ -24,7 +24,7 @@ from tornado.httpserver import HTTPServer
 from tornado.web import Application, RequestHandler, HTTPError
 from tornado.ioloop import IOLoop
 from meetling import Meetling, InputError, PermissionError
-from meetling.util import str_or_none
+from meetling.util import str_or_none, parse_isotime
 
 _CLIENT_ERROR_LOG_TEMPLATE = """\
 Client error occurred
@@ -288,7 +288,18 @@ class LoginEndpoint(Endpoint):
 
 class MeetingsEndpoint(Endpoint):
     def post(self):
-        args = self.check_args({'title': str, 'description': (str, None, 'opt')})
+        args = self.check_args({
+            'title': str,
+            'time': (str, None, 'opt'),
+            'location': (str, None, 'opt'),
+            'description': (str, None, 'opt')
+        })
+        if 'time' in args and args['time']:
+            try:
+                args['time'] = parse_isotime(args['time'])
+            except ValueError:
+                raise InputError({'time': 'bad_type'})
+
         meeting = self.app.create_meeting(**args)
         self.write(meeting.json(include_users=True))
 
@@ -327,7 +338,18 @@ class MeetingEndpoint(Endpoint):
         self.write(meeting.json(include_users=True))
 
     def post(self, id):
-        args = self.check_args({'title': (str, 'opt'), 'description': (str, None, 'opt')})
+        args = self.check_args({
+            'title': (str, 'opt'),
+            'time': (str, None, 'opt'),
+            'location': (str, None, 'opt'),
+            'description': (str, None, 'opt')
+        })
+        if 'time' in args and args['time']:
+            try:
+                args['time'] = parse_isotime(args['time'])
+            except ValueError:
+                raise InputError({'time': 'bad_type'})
+
         meeting = self.app.meetings[id]
         meeting.edit(**args)
         self.write(meeting.json(include_users=True))
@@ -338,7 +360,11 @@ class MeetingItemsEndpoint(Endpoint):
         self.write(json.dumps([i.json(include_users=True) for i in meeting.items.values()]))
 
     def post(self, id):
-        args = self.check_args({'title': str, 'description': (str, None, 'opt')})
+        args = self.check_args({
+            'title': str,
+            'duration': (int, None, 'opt'),
+            'description': (str, None, 'opt')
+        })
         meeting = self.app.meetings[id]
         item = meeting.create_agenda_item(**args)
         self.write(item.json(include_users=True))
@@ -350,7 +376,11 @@ class AgendaItemEndpoint(Endpoint):
         self.write(item.json(include_users=True))
 
     def post(self, meeting_id, item_id):
-        args = self.check_args({'title': (str, 'opt'), 'description': (str, None, 'opt')})
+        args = self.check_args({
+            'title': (str, 'opt'),
+            'duration': (int, None, 'opt'),
+            'description': (str, None, 'opt')
+        })
         meeting = self.app.meetings[meeting_id]
         item = meeting.items[item_id]
         item.edit(**args)

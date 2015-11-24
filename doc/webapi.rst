@@ -37,9 +37,9 @@ Meetling application.
 
 .. http:post:: /api/meetings
 
-   ``{"title", "description": null}``
+   ``{"title", "time": null, "location": null, "description": null}``
 
-   Create a :ref:`Meeting` with the given *title* and optional *description* and return it.
+   Create a :ref:`Meeting` and return it.
 
    Permission: Authenticated users.
 
@@ -148,6 +148,14 @@ Meeting is :ref:`Editable`.
 
    Title of the meeting.
 
+.. describe:: time
+
+   Date and time the meeting begins. May be ``null``.
+
+.. describe:: location
+
+   Location where the meeting takes place. May be ``null``.
+
 .. describe:: description
 
    Description of the meeting. May be ``null``.
@@ -162,9 +170,9 @@ Meeting is :ref:`Editable`.
 
 .. http:post:: /api/meetings/(id)/items
 
-   ``{"title", "description": null}``
+   ``{"title", "duration": null, "description": null}``
 
-   Create an :ref:`AgendaItem` with the given *title* and optional *description* and return it.
+   Create an :ref:`AgendaItem` and return it.
 
    Permission: Authenticated users.
 
@@ -184,6 +192,10 @@ AgendaItem is :ref:`Editable`.
 .. describe:: title
 
    Title of the item.
+
+.. describe:: duration
+
+   Time the agenda item takes in minutes. May be ``null``.
 
 .. describe:: description
 

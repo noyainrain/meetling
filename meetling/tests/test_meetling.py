@@ -15,6 +15,7 @@
 # pylint: disable=missing-docstring
 
 import subprocess
+from datetime import datetime
 from subprocess import check_output
 from tempfile import mkdtemp
 from redis import RedisError
@@ -51,7 +52,7 @@ class MeetlingTest(MeetlingTestCase):
         self.assertIn(self.staff_member, self.app.settings.staff)
 
     def test_create_meeting(self):
-        meeting = self.app.create_meeting('Cat Hangout', '  ')
+        meeting = self.app.create_meeting('Cat Hangout', description='  ')
         self.assertIn(meeting.id, self.app.meetings)
         # Whitespace-only strings should be converted to None
         self.assertIsNone(meeting.description)
@@ -82,12 +83,13 @@ class MeetlingUpdateTest(AsyncTestCase):
         self.assertEqual(app.settings.title, 'My Meetling')
 
     def test_update_db_version_previous(self):
-        self.setup_db('0.6.0')
+        self.setup_db('0.7.1')
         app = Meetling(redis_url='15')
         app.update()
-        user = app.settings.staff[0]
-        self.assertEqual(user.name, 'Guest')
-        self.assertEqual(user.authors, [user])
+        meeting = next(m for m in app.meetings.values() if m.title == 'Cat hangout')
+        self.assertIsNone(meeting.time)
+        self.assertIsNone(meeting.location)
+        self.assertIsNone(list(meeting.items.values())[0].duration)
 
     def test_update_db_version_first(self):
         self.setup_db('0.5.0')
@@ -97,6 +99,11 @@ class MeetlingUpdateTest(AsyncTestCase):
         user = app.settings.staff[0]
         self.assertEqual(user.name, 'Guest')
         self.assertEqual(user.authors, [user])
+        # update to version 3
+        meeting = next(m for m in app.meetings.values() if m.title == 'Cat hangout')
+        self.assertIsNone(meeting.time)
+        self.assertIsNone(meeting.location)
+        self.assertIsNone(list(meeting.items.values())[0].duration)
 
     def setup_db(self, tag):
         d = mkdtemp()
@@ -132,8 +139,10 @@ class MeetingTest(MeetlingTestCase):
         self.meeting = self.app.create_meeting('Cat hangout')
 
     def test_edit(self):
-        self.meeting.edit(title='Awesome cat hangout')
+        time = datetime.utcnow()
+        self.meeting.edit(title='Awesome cat hangout', time=time)
         self.assertEqual(self.meeting.title, 'Awesome cat hangout')
+        self.assertEqual(self.meeting.time, time)
         self.assertIsNone(self.meeting.description)
 
     def test_create_agenda_item(self):
@@ -144,8 +153,9 @@ class AgendaItemTest(MeetlingTestCase):
     def test_edit(self):
         meeting = self.app.create_meeting('Cat Hangout')
         item = meeting.create_agenda_item('Purring')
-        item.edit(title='Intensive purring')
+        item.edit(title='Intensive purring', duration=10)
         self.assertEqual(item.title, 'Intensive purring')
+        self.assertEqual(item.duration, 10)
         self.assertIsNone(item.description)
 
 class Cat(Object, Editable):

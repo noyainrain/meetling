@@ -86,7 +86,7 @@ class Meetling:
             settings = Settings(id='Settings', app=self, authors=[], title='My Meetling', icon=None,
                                 favicon=None, staff=[])
             self.r.oset(settings.id, settings)
-            self.r.set('version', 2)
+            self.r.set('version', 3)
             return
 
         db_version = int(db_version)
@@ -101,6 +101,19 @@ class Meetling:
                 user['authors'] = [user['id']]
             r.omset({u['id']: u for u in users})
             r.set('version', 2)
+
+        if db_version < 3:
+            meetings = r.omget(r.lrange('meetings', 0, -1))
+            for meeting in meetings:
+                meeting['time'] = None
+                meeting['location'] = None
+
+                items = r.omget(r.lrange(meeting['id'] + '.items', 0, -1))
+                for item in items:
+                    item['duration'] = None
+                r.omset({i['id']: i for i in items})
+            r.omset({m['id']: m for m in meetings})
+            r.set('version', 3)
 
     def authenticate(self, secret):
         """Authenticate an :class:`User` (device) with *secret*.

@@ -192,12 +192,23 @@ meetling.Page = document.registerElement("meetling-page",
     handleEvent: {value: function(event) {
         if (event.currentTarget === window && event.type === "error") {
             this.notify(document.createElement("meetling-error-notification"));
+
+            var type = "Error";
+            var stack = `${event.filename}:${event.lineno}`;
+            var message = event.message;
+            // Get more detail out of ErrorEvent.error, if the browser supports it
+            if (event.error) {
+                type = event.error.name;
+                stack = event.error.stack;
+                message = event.error.message;
+            }
+
             var url = "/log-client-error";
             fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
-                type: event.error.name,
-                stack: event.error.stack,
+                type: type,
+                stack: stack,
                 url: location.pathname,
-                message: event.error.message
+                message: message
             })});
         }
     }}

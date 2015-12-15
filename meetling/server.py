@@ -32,7 +32,8 @@ Client error occurred
 Stack:
 {stack}
 URL: {url}
-User: {user_name} ({user_id})"""
+User: {user_name} ({user_id})
+Device info: {device_info}"""
 
 _logger = logging.getLogger(__name__)
 
@@ -278,8 +279,14 @@ class LogClientErrorEndpoint(Endpoint):
         message = str_or_none(args.get('message'))
         message_part = ': ' + message if message else ''
         _logger.error(_CLIENT_ERROR_LOG_TEMPLATE.format(
-            type=args['type'], message_part=message_part, stack=args['stack'].strip(),
-            url=args['url'], user_name=self.app.user.name, user_id=self.app.user.id))
+            type=args['type'],
+            message_part=message_part,
+            stack=args['stack'].strip(),
+            url=args['url'],
+            user_name=self.app.user.name,
+            user_id=self.app.user.id,
+            device_info=self.request.headers.get('user-agent', '-')
+        ))
 
 class LoginEndpoint(Endpoint):
     def post(self):

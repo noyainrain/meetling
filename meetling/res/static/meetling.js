@@ -38,26 +38,37 @@ meetling._DATE_FORMAT = {year: "numeric", month: "long", day: "numeric"};
  *
  * The element implements the core functionality of a
  * `HTML time input <https://html.spec.whatwg.org/multipage/forms.html#time-state-%28type=time%29>`
- * and can thus be used as a polyfill.
+ * . Be aware that *value* holds the user input, while *timeValue* holds the value as time string.
+ *
+ * .. attribute:: timeValue
+ *
+ *    Value as time string. Empty if the user input is invalid or empty.
  */
 meetling.TimeInput = document.registerElement("meetling-time-input",
         {extends: "input", prototype: Object.create(HTMLInputElement.prototype, {
+    // NOTE: Instead of introducing a new property *timeValue*, a better approach would be to
+    // override *value*. We should refactor according to the comments below, as soon as current
+    // browsers expose getters and setters of :class:`Node` s.
+
     createdCallback: {value: function() {
         this.classList.add("meetling-time-input");
         this.setAttribute("size", "5");
         this.addEventListener("change", this);
         this._value = null;
-        this._superValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+        // Better:
+        //this._superValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
         this._evaluate();
     }},
 
-    value: {
+    // Better: value: {
+    timeValue: {
         get: function() {
             return this._value;
         },
         set: function(value) {
             this._value = this._parseInput(value);
-            this._superValue.set.call(this, this._value);
+            this.value = this._value;
+            // Better: this._superValue.set.call(this, this._value);
             this.setCustomValidity("");
         }
     },
@@ -69,7 +80,8 @@ meetling.TimeInput = document.registerElement("meetling-time-input",
     }},
 
     _evaluate: {value: function() {
-        var input = this._superValue.get.call(this);
+        var input = this.value;
+        // Better: var input = this._superValue.get.call(this);
         this._value = this._parseInput(input);
         if (this._value || !input) {
             this.setCustomValidity("");
@@ -431,7 +443,7 @@ meetling.EditMeetingPage = document.registerElement("meetling-edit-meeting-page"
                 this._pikaday.setDate(time);
                 var hour = time.getHours();
                 var minute = time.getMinutes();
-                form.elements["time"].value =
+                form.elements["time"].timeValue =
                     (hour < 10 ? "0" + hour : hour) + ":" + (minute < 10 ? "0" + minute : minute);
             }
 
@@ -440,7 +452,7 @@ meetling.EditMeetingPage = document.registerElement("meetling-edit-meeting-page"
 
             var dateTime = null;
             var date = this._pikaday.getDate();
-            var time = form.elements["time"].value;
+            var time = form.elements["time"].timeValue;
             if (date || time || !form.elements["time"].checkValidity()) {
                 if (!(date && time)) {
                     document.body.notify("Date and time are incomplete.");

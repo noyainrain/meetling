@@ -84,27 +84,40 @@ class MeetlingUpdateTest(AsyncTestCase):
         self.assertEqual(app.settings.title, 'My Meetling')
 
     def test_update_db_version_previous(self):
-        self.setup_db('0.7.1')
+        self.setup_db('0.8.2')
         app = Meetling(redis_url='15')
         app.update()
+
+        settings = app.settings
+        user = settings.staff[0]
         meeting = next(m for m in app.meetings.values() if m.title == 'Cat hangout')
-        self.assertIsNone(meeting.time)
-        self.assertIsNone(meeting.location)
-        self.assertIsNone(list(meeting.items.values())[0].duration)
+        item = list(meeting.items.values())[0]
+        self.assertFalse(settings.trashed)
+        self.assertFalse(user.trashed)
+        self.assertFalse(meeting.trashed)
+        self.assertFalse(item.trashed)
 
     def test_update_db_version_first(self):
         self.setup_db('0.5.0')
         app = Meetling(redis_url='15')
         app.update()
+
+        settings = app.settings
+        user = settings.staff[0]
+        meeting = next(m for m in app.meetings.values() if m.title == 'Cat hangout')
+        item = list(meeting.items.values())[0]
         # update to version 2
-        user = app.settings.staff[0]
         self.assertEqual(user.name, 'Guest')
         self.assertEqual(user.authors, [user])
         # update to version 3
-        meeting = next(m for m in app.meetings.values() if m.title == 'Cat hangout')
         self.assertIsNone(meeting.time)
         self.assertIsNone(meeting.location)
-        self.assertIsNone(list(meeting.items.values())[0].duration)
+        self.assertIsNone(item.duration)
+        # update to version 4
+        self.assertFalse(settings.trashed)
+        self.assertFalse(user.trashed)
+        self.assertFalse(meeting.trashed)
+        self.assertFalse(item.trashed)
 
     def setup_db(self, tag):
         d = mkdtemp()

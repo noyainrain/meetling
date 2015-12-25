@@ -15,6 +15,7 @@
 """Core parts of Meetling."""
 
 import builtins
+from itertools import chain
 from urllib.parse import ParseResult, urlparse, urljoin
 from datetime import datetime, timedelta
 from redis import StrictRedis
@@ -87,7 +88,7 @@ class Meetling:
             settings = Settings(id='Settings', trashed=False, app=self, authors=[],
                                 title='My Meetling', icon=None, favicon=None, staff=[])
             self.r.oset(settings.id, settings)
-            self.r.set('version', 3)
+            self.r.set('version', 4)
             return
 
         db_version = int(db_version)
@@ -115,6 +116,19 @@ class Meetling:
                 r.omset({i['id']: i for i in items})
             r.omset({m['id']: m for m in meetings})
             r.set('version', 3)
+
+        if db_version < 4:
+            meeting_ids = r.lrange('meetings', 0, -1)
+            objects = r.omget(chain(
+                ['Settings'],
+                r.lrange('users', 0, -1),
+                meeting_ids,
+                chain.from_iterable(r.lrange(i + b'.items', 0, -1) for i in meeting_ids)
+            ))
+            for object in objects:
+                object['trashed'] = False
+            r.omset({o['id']: o for o in objects})
+            r.set('version', 4)
 
     def authenticate(self, secret):
         """Authenticate an :class:`User` (device) with *secret*.

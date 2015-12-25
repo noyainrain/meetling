@@ -371,24 +371,85 @@ meetling.MeetingPage = document.registerElement("meetling-meeting-page",
     createdCallback: {value: function() {
         meetling.Page.prototype.createdCallback.call(this);
         this.meeting = JSON.parse(this.getAttribute("meeting"));
-        this.querySelector(".meetling-meeting-create-agenda-item .action").addEventListener("click",
-                                                                                            this);
+
+        this._agendaUl = this.querySelector(".meetling-meeting-agenda > ul");
+        this._itemsUl = this.querySelector(".meetling-meeting-items > ul");
+        this._trashedItemsUl = this.querySelector(".meetling-meeting-trashed-items > ul");
+        this._showTrashedItemsAction = this.querySelector(".meetling-meeting-show-trashed-items");
+        this._hideTrashedItemsAction = this.querySelector(".meetling-meeting-hide-trashed-items");
+        this._createAgendaItemAction =
+            this.querySelector(".meetling-meeting-create-agenda-item .action");
+
         if (this.meeting.time) {
             this.querySelector(".meetling-meeting-meta time").textContent =
                 new Date(this.meeting.time).toLocaleString("en", meetling._DATE_TIME_FORMAT);
         }
+
+        document.addEventListener("WebComponentsReady", this);
+        this.addEventListener("trash-agenda-item", this);
+        this.addEventListener("restore-agenda-item", this);
+        this._showTrashedItemsAction.addEventListener("click", this);
+        this._hideTrashedItemsAction.addEventListener("click", this);
+        this._createAgendaItemAction.addEventListener("click", this);
+    }},
+
+    _update: {value: function() {
+        var trashedItemsCoverLi = this.querySelector(".meetling-meeting-trashed-items-cover");
+        var trashedItemsLi = this.querySelector(".meetling-meeting-trashed-items");
+        var trashedItemElems = trashedItemsLi.querySelectorAll(".meetling-agenda-item");
+        var span = trashedItemsCoverLi.querySelector("span");
+        span.textContent =
+            span.dataset.text.split("|")[trashedItemElems.length === 1 ? 0 : 1].replace("{n}",
+                trashedItemElems.length);
+        trashedItemsCoverLi.style.display = trashedItemElems.length ? "" : "none";
+        trashedItemsLi.style.display = trashedItemElems.length ? "" : "none";
+    }},
+
+    _getAgendaItemElement: {value: function(id) {
+        var elems = this.querySelectorAll(".meetling-meeting-agenda .meetling-agenda-item");
+        for (var i = 0; i < elems.length; i++) {
+            var li = elems[i];
+            if (li.item.id === id) {
+                return li;
+            }
+        }
+        return null;
     }},
 
     handleEvent: {value: function(event) {
         meetling.Page.prototype.handleEvent.call(this, event);
-        if (event.currentTarget ===
-                this.querySelector(".meetling-meeting-create-agenda-item .action")) {
-            var ul = this.querySelector(".meetling-meeting-items");
+
+        if (event.target === document && event.type === "WebComponentsReady") {
+            for (var item of this.meeting.trashed_items) {
+                var li = document.createElement("li", "meetling-agenda-item");
+                li.item = item;
+                this._trashedItemsUl.appendChild(li);
+            }
+            this._update();
+
+        } else if (event.target === this && event.type === "trash-agenda-item") {
+            var li = this._getAgendaItemElement(event.detail.item.id);
+            li.item = event.detail.item;
+            this._trashedItemsUl.appendChild(li);
+            this._update();
+
+        } else if (event.target === this && event.type === "restore-agenda-item") {
+            var li = this._getAgendaItemElement(event.detail.item.id);
+            li.item = event.detail.item;
+            this._itemsUl.appendChild(li);
+            this._update();
+
+        } else if ((event.currentTarget === this._showTrashedItemsAction ||
+                    event.currentTarget === this._hideTrashedItemsAction) &&
+                event.type === "click") {
+            this._agendaUl.classList.toggle("meetling-meeting-agenda-trashed-items-visible");
+
+        } else if (event.currentTarget === this._createAgendaItemAction && event.type === "click") {
             var li = this.querySelector(".meetling-meeting-create-agenda-item");
             var editor = new meetling.AgendaItemEditor();
             editor.replaced = li;
-            ul.insertBefore(editor, li);
-            ul.removeChild(li);
+            this._agendaUl.insertBefore(editor, li);
+            this._agendaUl.removeChild(li);
         }
     }}
 })});
@@ -505,8 +566,12 @@ meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
     createdCallback: {value: function() {
         meetling.loadTemplate(this, ".meetling-agenda-item-template");
         this.classList.add("meetling-agenda-item");
-        this.querySelector(".meetling-agenda-item-edit").addEventListener("click", this);
         this.item = JSON.parse(this.getAttribute("item"));
+        this._trashAction = this.querySelector(".meetling-agenda-item-trash");
+        this._restoreAction = this.querySelector(".meetling-agenda-item-restore");
+        this._trashAction.addEventListener("click", this);
+        this._restoreAction.addEventListener("click", this);
+        this.querySelector(".meetling-agenda-item-edit").addEventListener("click", this);
     }},
 
     item: {
@@ -516,6 +581,7 @@ meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
         set: function(value) {
             this._item = value;
             if (this._item) {
+                this.classList.toggle("meetling-agenda-item-trashed", this._item.trashed);
                 this.querySelector("h1").textContent = this._item.title;
                 var p = this.querySelector(".meetling-agenda-item-duration");
                 if (this._item.duration) {
@@ -538,6 +604,34 @@ meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
             editor.replaced = this;
             this.parentNode.insertBefore(editor, this);
             this.parentNode.removeChild(this);
+
+        } else if (event.currentTarget === this._trashAction && event.type === "click") {
+            var url = `/api/meetings/${document.body.meeting.id}/trash-agenda-item`;
+            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
+                item_id: this._item.id
+            })}).then(function(response) {
+                return response.json();
+            }).then(function(error) {
+                // If there is an item_not_found ValueError, the item has already been trashed and
+                // we continue as normal to update the UI
+                this._item.trashed = true;
+                document.body.dispatchEvent(
+                    new CustomEvent("trash-agenda-item", {detail: {item: this._item}}));
+            }.bind(this));
+
+        } else if (event.currentTarget === this._restoreAction && event.type === "click") {
+            var url = `/api/meetings/${document.body.meeting.id}/restore-agenda-item`;
+            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
+                item_id: this._item.id
+            })}).then(function(response) {
+                return response.json();
+            }).then(function(error) {
+                // If there is an item_not_found ValueError, the item has already been restored and
+                // we continue as normal to update the UI
+                this._item.trashed = false;
+                document.body.dispatchEvent(
+                    new CustomEvent("restore-agenda-item", {detail: {item: this._item}}));
+            }.bind(this));
         }
     }}
 })});
@@ -625,7 +719,7 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
                     // In create mode, append a new meetling-agenda-item to the list
                     var li = new meetling.AgendaItemElement();
                     li.item = item;
-                    this.parentNode.insertBefore(li, this);
+                    this.parentNode.querySelector(".meetling-meeting-items > ul").appendChild(li);
                 }
                 this._close();
             }.bind(this));

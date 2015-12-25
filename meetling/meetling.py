@@ -14,6 +14,8 @@
 
 """Core parts of Meetling."""
 
+import builtins
+from itertools import chain
 from urllib.parse import ParseResult, urlparse, urljoin
 from datetime import datetime, timedelta
 from redis import StrictRedis
@@ -54,7 +56,7 @@ class Meetling:
             components = urlparse(redis_url)
             # Port errors are only triggered on access
             components.port
-        except ValueError:
+        except builtins.ValueError:
             e.errors['redis_url'] = 'invalid'
         if e.errors:
             raise e
@@ -83,10 +85,10 @@ class Meetling:
         """
         db_version = self.r.get('version')
         if not db_version:
-            settings = Settings(id='Settings', app=self, authors=[], title='My Meetling', icon=None,
-                                favicon=None, staff=[])
+            settings = Settings(id='Settings', trashed=False, app=self, authors=[],
+                                title='My Meetling', icon=None, favicon=None, staff=[])
             self.r.oset(settings.id, settings)
-            self.r.set('version', 3)
+            self.r.set('version', 4)
             return
 
         db_version = int(db_version)
@@ -115,6 +117,19 @@ class Meetling:
             r.omset({m['id']: m for m in meetings})
             r.set('version', 3)
 
+        if db_version < 4:
+            meeting_ids = r.lrange('meetings', 0, -1)
+            objects = r.omget(chain(
+                ['Settings'],
+                r.lrange('users', 0, -1),
+                meeting_ids,
+                chain.from_iterable(r.lrange(i + b'.items', 0, -1) for i in meeting_ids)
+            ))
+            for object in objects:
+                object['trashed'] = False
+            r.omset({o['id']: o for o in objects})
+            r.set('version', 4)
+
     def authenticate(self, secret):
         """Authenticate an :class:`User` (device) with *secret*.
 
@@ -133,7 +148,8 @@ class Meetling:
         The new user is set as current *user*.
         """
         id = 'User:' + randstr()
-        user = User(id=id, app=self, authors=[id], name='Guest', auth_secret=randstr())
+        user = User(id=id, trashed=False, app=self, authors=[id], name='Guest',
+                    auth_secret=randstr())
         self.r.oset(user.id, user)
         self.r.rpush('users', user.id)
         self.r.hset('auth_secret_map', user.auth_secret, user.id)
@@ -157,8 +173,8 @@ class Meetling:
         e.trigger()
 
         meeting = Meeting(
-            id='Meeting:' + randstr(), app=self, authors=[self.user.id], title=title, time=time,
-            location=str_or_none(location), description=str_or_none(description))
+            id='Meeting:' + randstr(), trashed=False, app=self, authors=[self.user.id], title=title,
+            time=time, location=str_or_none(location), description=str_or_none(description))
         self.r.oset(meeting.id, meeting)
         self.r.rpush('meetings', meeting.id)
         return meeting
@@ -200,19 +216,16 @@ class Meetling:
         return type(app=self, **json)
 
 class Object:
-    """Object in the Meetling universe.
-
-    .. attribute:: id
-
-       Unique ID of the object.
+    """See :ref:`Object`.
 
     .. attribute:: app
 
        Context :class:`Meetling` application.
     """
 
-    def __init__(self, id, app):
+    def __init__(self, id, trashed, app):
         self.id = id
+        self.trashed = trashed
         self.app = app
 
     def json(self, attrs={}):
@@ -220,7 +233,7 @@ class Object:
 
         The name of the object type is included as ``__type__``.
         """
-        json = {'__type__': type(self).__name__, 'id': self.id}
+        json = {'__type__': type(self).__name__, 'id': self.id, 'trashed': self.trashed}
         json.update(attrs)
         return json
 
@@ -247,6 +260,9 @@ class Editable:
         if not self.app.user:
             raise PermissionError()
 
+        if self.trashed:
+            raise ValueError('object_trashed')
+
         self.do_edit(**attrs)
         if not self.app.user.id in self._authors:
             self._authors.append(self.app.user.id)
@@ -271,8 +287,8 @@ class Editable:
 class User(Object, Editable):
     """See :ref:`User`."""
 
-    def __init__(self, id, app, authors, name, auth_secret):
-        super().__init__(id=id, app=app)
+    def __init__(self, id, trashed, app, authors, name, auth_secret):
+        super().__init__(id=id, trashed=trashed, app=app)
         Editable.__init__(self, authors=authors)
         self.name = name
         self.auth_secret = auth_secret
@@ -303,8 +319,8 @@ class User(Object, Editable):
 class Settings(Object, Editable):
     """See :ref:`Settings`."""
 
-    def __init__(self, id, app, authors, title, icon, favicon, staff):
-        super().__init__(id=id, app=app)
+    def __init__(self, id, trashed, app, authors, title, icon, favicon, staff):
+        super().__init__(id=id, trashed=trashed, app=app)
         Editable.__init__(self, authors=authors)
         self.title = title
         self.icon = icon
@@ -349,16 +365,24 @@ class Meeting(Object, Editable):
     .. attribute:: items
 
        Ordered map of :class:`AgendaItem` s on the meeting's agenda.
+
+    .. attribute:: trashed_items
+
+       Ordered map of trashed (deleted) :class:`AgendaItem` s.
     """
 
-    def __init__(self, id, app, authors, title, time, location, description):
-        super().__init__(id=id, app=app)
+    def __init__(self, id, trashed, app, authors, title, time, location, description):
+        super().__init__(id=id, trashed=trashed, app=app)
         Editable.__init__(self, authors=authors)
         self.title = title
         self.time = time
         self.location = location
         self.description = description
-        self.items = JSONRedisMapping(self.app.r, self.id + '.items')
+
+        self._items_key = self.id + '.items'
+        self._trashed_items_key = self.id + '.trashed_items'
+        self.items = JSONRedisMapping(self.app.r, self._items_key)
+        self.trashed_items = JSONRedisMapping(self.app.r, self._trashed_items_key)
 
     def do_edit(self, **attrs):
         e = InputError()
@@ -388,13 +412,34 @@ class Meeting(Object, Editable):
         description = str_or_none(description)
         e.trigger()
 
-        item = AgendaItem(id='AgendaItem:' + randstr(), app=self.app, authors=[self.app.user.id],
-                          title=title, duration=duration, description=description)
+        item = AgendaItem(
+            id='AgendaItem:' + randstr(), trashed=False, app=self.app, authors=[self.app.user.id],
+            title=title, duration=duration, description=description)
         self.app.r.oset(item.id, item)
-        self.app.r.rpush(self.id + '.items', item.id)
+        self.app.r.rpush(self._items_key, item.id)
         return item
 
-    def json(self, include_users=False):
+    def trash_agenda_item(self, item):
+        """See :http:post:`/api/meetings/(id)/trash-agenda-item`."""
+        if not self.app.r.lrem(self._items_key, 1, item.id):
+            raise ValueError('item_not_found')
+        self.app.r.rpush(self._trashed_items_key, item.id)
+        item.trashed = True
+        self.app.r.oset(item.id, item)
+
+    def restore_agenda_item(self, item):
+        """See :http:post:`/api/meetings/(id)/restore-agenda-item`."""
+        if not self.app.r.lrem(self._trashed_items_key, 1, item.id):
+            raise ValueError('item_not_found')
+        self.app.r.rpush(self._items_key, item.id)
+        item.trashed = False
+        self.app.r.oset(item.id, item)
+
+    def json(self, include_users=False, include_items=False):
+        """See :meth:`Object.json`.
+
+        If *include_items* is ``True``, *items* and *trashed_items* are included.
+        """
         json = super().json({
             'title': self.title,
             'time': self.time.isoformat() + 'Z' if self.time else None,
@@ -402,13 +447,17 @@ class Meeting(Object, Editable):
             'description': self.description
         })
         json.update(Editable.json(self, include_users))
+        if include_items:
+            json['items'] = [i.json(include_users=include_users) for i in self.items.values()]
+            json['trashed_items'] = [
+                i.json(include_users=include_users) for i in self.trashed_items.values()]
         return json
 
 class AgendaItem(Object, Editable):
     """See :ref:`AgendaItem`."""
 
-    def __init__(self, id, app, authors, title, duration, description):
-        super().__init__(id=id, app=app)
+    def __init__(self, id, trashed, app, authors, title, duration, description):
+        super().__init__(id=id, trashed=trashed, app=app)
         Editable.__init__(self, authors=authors)
         self.title = title
         self.duration = duration
@@ -437,6 +486,16 @@ class AgendaItem(Object, Editable):
         })
         json.update(Editable.json(self, include_users))
         return json
+
+class ValueError(builtins.ValueError):
+    """See :ref:`ValueError`.
+
+    The first item of *args* is also available as *code*.
+    """
+
+    @property
+    def code(self):
+        return self.args[0] if self.args else None
 
 class InputError(ValueError):
     """See :ref:`InputError`.

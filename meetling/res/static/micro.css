@@ -1,0 +1,28 @@
+/* ---- General ---- */
+
+.micro-lgroup {
+    list-style: none;
+}
+
+.micro-lgroup > ul {
+    padding: 0;
+    margin: 0;
+}
+
+/* ---- Menu ---- */
+
+.micro-menu {
+    display: flex;
+}
+
+.micro-menu > * {
+    margin: 0 calc(0.125 * 1.5rem);
+}
+
+.micro-menu:not(.micro-menu-secondary-visible) > .micro-menu-secondary {
+    display: none;
+}
+
+.micro-menu > :not(.micro-menu-secondary) + .micro-menu-toggle-secondary {
+    display: none;
+}

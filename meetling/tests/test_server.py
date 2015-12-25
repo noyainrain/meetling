@@ -74,6 +74,11 @@ class MeetlingServerTest(AsyncTestCase):
         yield self.request('/api/meetings/{}/items'.format(self.meeting.id))
         yield self.request('/api/meetings/{}/items'.format(self.meeting.id), method='POST',
                            body='{"title": "Purring"}')
+        yield self.request('/api/meetings/{}/items/trashed'.format(self.meeting.id))
+        yield self.request('/api/meetings/{}/trash-agenda-item'.format(self.meeting.id),
+                           method='POST', body='{{"item_id": "{}"}}'.format(self.item.id))
+        yield self.request('/api/meetings/{}/restore-agenda-item'.format(self.meeting.id),
+                           method='POST', body='{{"item_id": "{}"}}'.format(self.item.id))
         yield self.request('/api/meetings/{}/items/{}'.format(self.meeting.id, self.item.id))
         yield self.request('/api/meetings/{}/items/{}'.format(self.meeting.id, self.item.id),
                            method='POST', body='{"title": "Intensive purring", "duration": 10}')
@@ -104,3 +109,12 @@ class MeetlingServerTest(AsyncTestCase):
         self.assertEqual(cm.exception.code, http.client.BAD_REQUEST)
         error = json.loads(cm.exception.response.body.decode())
         self.assertEqual(error.get('__type__'), 'InputError')
+
+    @gen_test
+    def test_post_meeting_trash_agenda_item_item_id_nonexistent(self):
+        with self.assertRaises(HTTPError) as cm:
+            yield self.request('/api/meetings/{}/trash-agenda-item'.format(self.meeting.id),
+                               method='POST', body='{"item_id": "foo"}')
+        self.assertEqual(cm.exception.code, http.client.BAD_REQUEST)
+        error = json.loads(cm.exception.response.body.decode())
+        self.assertEqual(error.get('__type__'), 'ValueError')

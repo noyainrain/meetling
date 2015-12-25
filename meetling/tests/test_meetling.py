@@ -15,12 +15,13 @@
 # pylint: disable=missing-docstring
 
 import subprocess
+import meetling
 from datetime import datetime
 from subprocess import check_output
 from tempfile import mkdtemp
 from redis import RedisError
 from tornado.testing import AsyncTestCase
-from meetling import Meetling, Object, Editable, InputError, PermissionError
+from meetling import Meetling, Object, Editable
 
 class MeetlingTestCase(AsyncTestCase):
     def setUp(self):
@@ -33,7 +34,7 @@ class MeetlingTestCase(AsyncTestCase):
 
 class MeetlingTest(MeetlingTestCase):
     def test_init_redis_url_invalid(self):
-        with self.assertRaises(InputError):
+        with self.assertRaises(meetling.InputError):
             Meetling(redis_url='//localhost:foo')
 
     def test_authenticate(self):
@@ -42,7 +43,7 @@ class MeetlingTest(MeetlingTestCase):
         self.assertEqual(user, self.app.user)
 
     def test_authenticate_secret_invalid(self):
-        with self.assertRaisesRegex(ValueError, 'secret_invalid'):
+        with self.assertRaisesRegex(meetling.ValueError, 'secret_invalid'):
             self.app.authenticate('foo')
 
     def test_login(self):
@@ -58,12 +59,12 @@ class MeetlingTest(MeetlingTestCase):
         self.assertIsNone(meeting.description)
 
     def test_create_meeting_title_empty(self):
-        with self.assertRaises(InputError):
+        with self.assertRaises(meetling.InputError):
             self.app.create_meeting('  ')
 
     def test_create_meeting_user_anonymous(self):
         self.app.user = None
-        with self.assertRaises(PermissionError):
+        with self.assertRaises(meetling.PermissionError):
             self.app.create_meeting('Cat hangout')
 
     def test_create_meeting_no_redis(self):
@@ -83,27 +84,40 @@ class MeetlingUpdateTest(AsyncTestCase):
         self.assertEqual(app.settings.title, 'My Meetling')
 
     def test_update_db_version_previous(self):
-        self.setup_db('0.7.1')
+        self.setup_db('0.8.2')
         app = Meetling(redis_url='15')
         app.update()
+
+        settings = app.settings
+        user = settings.staff[0]
         meeting = next(m for m in app.meetings.values() if m.title == 'Cat hangout')
-        self.assertIsNone(meeting.time)
-        self.assertIsNone(meeting.location)
-        self.assertIsNone(list(meeting.items.values())[0].duration)
+        item = list(meeting.items.values())[0]
+        self.assertFalse(settings.trashed)
+        self.assertFalse(user.trashed)
+        self.assertFalse(meeting.trashed)
+        self.assertFalse(item.trashed)
 
     def test_update_db_version_first(self):
         self.setup_db('0.5.0')
         app = Meetling(redis_url='15')
         app.update()
+
+        settings = app.settings
+        user = settings.staff[0]
+        meeting = next(m for m in app.meetings.values() if m.title == 'Cat hangout')
+        item = list(meeting.items.values())[0]
         # update to version 2
-        user = app.settings.staff[0]
         self.assertEqual(user.name, 'Guest')
         self.assertEqual(user.authors, [user])
         # update to version 3
-        meeting = next(m for m in app.meetings.values() if m.title == 'Cat hangout')
         self.assertIsNone(meeting.time)
         self.assertIsNone(meeting.location)
-        self.assertIsNone(list(meeting.items.values())[0].duration)
+        self.assertIsNone(item.duration)
+        # update to version 4
+        self.assertFalse(settings.trashed)
+        self.assertFalse(user.trashed)
+        self.assertFalse(meeting.trashed)
+        self.assertFalse(item.trashed)
 
     def setup_db(self, tag):
         d = mkdtemp()
@@ -112,12 +126,17 @@ class MeetlingUpdateTest(AsyncTestCase):
 
 class EditableTest(MeetlingTestCase):
     def test_edit(self):
-        cat = Cat(id='Cat', app=self.app, authors=[], name=None)
+        cat = Cat(id='Cat', trashed=False, app=self.app, authors=[], name=None)
         cat.edit(name='Happy')
         cat.edit(name='Grumpy')
         user2 = self.app.login()
         cat.edit(name='Hover')
         self.assertEqual(cat.authors, [self.user, user2])
+
+    def test_edit_cat_trashed(self):
+        cat = Cat(id='Cat', trashed=True, app=self.app, authors=[], name=None)
+        with self.assertRaisesRegex(meetling.ValueError, 'object_trashed'):
+            cat.edit(name='Happy')
 
 class UserTest(MeetlingTestCase):
     def test_edit(self):
@@ -137,6 +156,10 @@ class MeetingTest(MeetlingTestCase):
     def setUp(self):
         super().setUp()
         self.meeting = self.app.create_meeting('Cat hangout')
+        self.items = [
+            self.meeting.create_agenda_item('Eating'),
+            self.meeting.create_agenda_item('Purring')
+        ]
 
     def test_edit(self):
         time = datetime.utcnow()
@@ -146,8 +169,28 @@ class MeetingTest(MeetlingTestCase):
         self.assertIsNone(self.meeting.description)
 
     def test_create_agenda_item(self):
-        item = self.meeting.create_agenda_item('Purring')
-        self.assertIn(item.id, self.meeting.items)
+        # create_agenda_item() called by setUp()
+        self.assertEqual(list(self.meeting.items.values()), self.items)
+
+    def test_trash_agenda_item(self):
+        self.meeting.trash_agenda_item(self.items[0])
+        self.assertEqual(list(self.meeting.items.values()), [self.items[1]])
+        self.assertEqual(list(self.meeting.trashed_items.values()), [self.items[0]])
+
+    def test_trash_agenda_item_item_trashed(self):
+        self.meeting.trash_agenda_item(self.items[0])
+        with self.assertRaisesRegex(meetling.ValueError, 'item_not_found'):
+            self.meeting.trash_agenda_item(self.items[0])
+
+    def test_restore_agenda_item(self):
+        self.meeting.trash_agenda_item(self.items[0])
+        self.meeting.restore_agenda_item(self.items[0])
+        self.assertEqual(list(self.meeting.items.values()), [self.items[1], self.items[0]])
+        self.assertFalse(list(self.meeting.trashed_items.values()))
+
+    def test_restore_agenda_item_item_not_trashed(self):
+        with self.assertRaisesRegex(meetling.ValueError, 'item_not_found'):
+            self.meeting.restore_agenda_item(self.items[0])
 
 class AgendaItemTest(MeetlingTestCase):
     def test_edit(self):
@@ -159,8 +202,8 @@ class AgendaItemTest(MeetlingTestCase):
         self.assertIsNone(item.description)
 
 class Cat(Object, Editable):
-    def __init__(self, id, app, authors, name):
-        super().__init__(id=id, app=app)
+    def __init__(self, id, trashed, app, authors, name):
+        super().__init__(id=id, trashed=trashed, app=app)
         Editable.__init__(self, authors=authors)
         self.name = name
 

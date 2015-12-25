@@ -51,12 +51,27 @@ Meetling application.
 
    Permission: Authenticated users.
 
+.. _Object:
+
+Object
+------
+
+Object in the Meetling universe.
+
+.. attribute:: id
+
+   Unique ID of the object.
+
+.. attribute:: trashed
+
+   Indicates if the object has been trashed (deleted).
+
 .. _Editable:
 
 Editable
 --------
 
-Object that can be edited.
+:ref:`Object` that can be edited.
 
 The URL that uniquely identifies an object is referred to as *object-url*, e.g. ``meetings/abc`` for
 a :ref:`Meeting` with the *id* ``abc``.
@@ -71,6 +86,9 @@ a :ref:`Meeting` with the *id* ``abc``.
 
    Edit the attributes given by *attrs* and return the updated object.
 
+   A *trashed* (deleted) object cannot be edited. In this case a :ref:`ValueError`
+   (`object_trashed`) is returned.
+
    Permission: Authenticated users.
 
 .. _User:
@@ -80,11 +98,7 @@ User
 
 Meetling user.
 
-User is :ref:`Editable` by the user oneself.
-
-.. describe:: id
-
-   Unique ID of the user.
+User is an :ref:`Object` and :ref:`Editable` by the user oneself.
 
 .. describe:: name
 
@@ -105,11 +119,7 @@ Settings
 
 App settings.
 
-Settings is :ref:`Editable` by staff members.
-
-.. describe:: id
-
-   Unique ID ``Settings``.
+Settings is an :ref:`Object` and :ref:`Editable` by staff members.
 
 .. describe:: title
 
@@ -138,11 +148,7 @@ Meeting
 
 Meeting.
 
-Meeting is :ref:`Editable`.
-
-.. describe:: id
-
-   Unique ID of the meeting.
+Meeting is an :ref:`Object` and :ref:`Editable`.
 
 .. describe:: title
 
@@ -168,11 +174,35 @@ Meeting is :ref:`Editable`.
 
    Get the list of :ref:`AgendaItem` s on the meeting's agenda.
 
+   If ``/trashed`` is appended to the URL, only trashed (deleted) items are returned.
+
 .. http:post:: /api/meetings/(id)/items
 
    ``{"title", "duration": null, "description": null}``
 
    Create an :ref:`AgendaItem` and return it.
+
+   Permission: Authenticated users.
+
+.. http:post:: /api/meetings/(id)/trash-agenda-item
+
+   ``{"item_id"}``
+
+   Trash (delete) the :ref:`AgendaItem` with *item_id*.
+
+   If there is no item with *item_id* for the meeting, a :ref:`ValueError` (``item_not_found``) is
+   returned.
+
+   Permission: Authenticated users.
+
+.. http:post:: /api/meetings/(id)/restore-agenda-item
+
+   ``{"item_id"}``
+
+   Restore the previously trashed (deleted) :ref:`AgendaItem` with *item_id*.
+
+   If there is no trashed item with *item_id* for the meeting, a :ref:`ValueError`
+   (``item_not_found``) is returned.
 
    Permission: Authenticated users.
 
@@ -183,11 +213,7 @@ AgendaItem
 
 Item on a :ref:`Meeting` 's agenda.
 
-AgendaItem is :ref:`Editable`.
-
-.. describe:: id
-
-   Unique ID of the item.
+AgendaItem is an :ref:`Object` and :ref:`Editable`.
 
 .. describe:: title
 
@@ -205,12 +231,25 @@ AgendaItem is :ref:`Editable`.
 
    Get the item given by *item-id*.
 
+.. _ValueError:
+
+ValueError
+----------
+
+Returned for value-related errors.
+
+.. attribute:: code
+
+   Error string providing more information about the problem.
+
 .. _InputError:
 
 InputError
 ----------
 
 Returned if the input to an endpoint contains one or more arguments with an invalid value.
+
+InputError is a :ref:`ValueError` with *code* set to ``input_invalid``.
 
 .. attribute:: errors
 

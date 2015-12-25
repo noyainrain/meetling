@@ -23,7 +23,7 @@ from collections import Mapping
 from tornado.httpserver import HTTPServer
 from tornado.web import Application, RequestHandler, HTTPError
 from tornado.ioloop import IOLoop
-from meetling import Meetling, InputError, PermissionError
+from meetling import Meetling
 from meetling.util import str_or_none, parse_isotime
 
 _CLIENT_ERROR_LOG_TEMPLATE = """\
@@ -74,7 +74,9 @@ class MeetlingServer(HTTPServer):
             (r'/api/users/([^/]+)$', UserEndpoint),
             (r'/api/settings$', SettingsEndpoint),
             (r'/api/meetings/([^/]+)$', MeetingEndpoint),
-            (r'/api/meetings/([^/]+)/items$', MeetingItemsEndpoint),
+            (r'/api/meetings/([^/]+)/items(/trashed)?$', MeetingItemsEndpoint),
+            (r'/api/meetings/([^/]+)/trash-agenda-item$', MeetingTrashAgendaItemEndpoint),
+            (r'/api/meetings/([^/]+)/restore-agenda-item$', MeetingRestoreAgendaItemEndpoint),
             (r'/api/meetings/([^/]+)/items/([^/]+)$', AgendaItemEndpoint)
         ]
         application = Application(
@@ -114,7 +116,7 @@ class Resource(RequestHandler):
         if auth_secret:
             try:
                 self.app.authenticate(auth_secret)
-            except ValueError:
+            except meetling.ValueError:
                 # Ignore invalid authentication secrets
                 pass
 
@@ -127,7 +129,7 @@ class Page(Resource):
         if login_code:
             try:
                 user = self.app.authenticate(login_code)
-            except ValueError:
+            except meetling.ValueError:
                 # Ignore invalid login codes
                 pass
             else:
@@ -202,10 +204,17 @@ class Endpoint(Resource):
                 raise HTTPError(http.client.BAD_REQUEST)
 
     def write_error(self, status_code, exc_info):
-        if issubclass(exc_info[0], InputError):
+        if issubclass(exc_info[0], meetling.InputError):
             self.set_status(http.client.BAD_REQUEST)
-            self.write({'__type__': exc_info[0].__name__, 'errors': exc_info[1].errors})
-        elif issubclass(exc_info[0], PermissionError):
+            self.write({
+                '__type__': exc_info[0].__name__,
+                'code': exc_info[1].code,
+                'errors': exc_info[1].errors
+            })
+        elif issubclass(exc_info[0], meetling.ValueError):
+            self.set_status(http.client.BAD_REQUEST)
+            self.write({'__type__': exc_info[0].__name__, 'code': exc_info[1].code})
+        elif issubclass(exc_info[0], meetling.PermissionError):
             self.set_status(http.client.FORBIDDEN)
             self.write({'__type__': exc_info[0].__name__})
         else:
@@ -215,7 +224,7 @@ class Endpoint(Resource):
 
     def log_exception(self, typ, value, tb):
         # These errors are handled specially and there is no need to log them as exceptions
-        if issubclass(typ, (InputError, PermissionError, KeyError)):
+        if issubclass(typ, (meetling.ValueError, meetling.PermissionError, KeyError)):
             return
         super().log_exception(typ, value, tb)
 
@@ -236,7 +245,7 @@ class Endpoint(Resource):
         """
         args = {k: v for k, v in self.args.items() if k in type_info.keys()}
 
-        e = InputError()
+        e = meetling.InputError()
         for arg, types in type_info.items():
             # Normalize
             if not isinstance(types, tuple):
@@ -259,7 +268,7 @@ class Endpoint(Resource):
 class LogClientErrorEndpoint(Endpoint):
     def post(self):
         if not self.app.user:
-            raise PermissionError()
+            raise meetling.PermissionError()
 
         args = self.check_args({
             'type': str,
@@ -267,7 +276,7 @@ class LogClientErrorEndpoint(Endpoint):
             'url': str,
             'message': (str, None, 'opt')
         })
-        e = InputError()
+        e = meetling.InputError()
         if str_or_none(args['type']) is None:
             e.errors['type'] = 'empty'
         if str_or_none(args['stack']) is None:
@@ -305,7 +314,7 @@ class MeetingsEndpoint(Endpoint):
             try:
                 args['time'] = parse_isotime(args['time'])
             except ValueError:
-                raise InputError({'time': 'bad_type'})
+                raise meetling.InputError({'time': 'bad_type'})
 
         meeting = self.app.create_meeting(**args)
         self.write(meeting.json(include_users=True))
@@ -355,18 +364,19 @@ class MeetingEndpoint(Endpoint):
             try:
                 args['time'] = parse_isotime(args['time'])
             except ValueError:
-                raise InputError({'time': 'bad_type'})
+                raise meetling.InputError({'time': 'bad_type'})
 
         meeting = self.app.meetings[id]
         meeting.edit(**args)
         self.write(meeting.json(include_users=True))
 
 class MeetingItemsEndpoint(Endpoint):
-    def get(self, id):
+    def get(self, id, set):
         meeting = self.app.meetings[id]
-        self.write(json.dumps([i.json(include_users=True) for i in meeting.items.values()]))
+        items = meeting.trashed_items.values() if set else meeting.items.values()
+        self.write(json.dumps([i.json(include_users=True) for i in items]))
 
-    def post(self, id):
+    def post(self, id, set):
         args = self.check_args({
             'title': str,
             'duration': (int, None, 'opt'),
@@ -375,6 +385,30 @@ class MeetingItemsEndpoint(Endpoint):
         meeting = self.app.meetings[id]
         item = meeting.create_agenda_item(**args)
         self.write(item.json(include_users=True))
+
+class MeetingTrashAgendaItemEndpoint(Endpoint):
+    def post(self, id):
+        args = self.check_args({'item_id': str})
+        meeting = self.app.meetings[id]
+        try:
+            args['item'] = meeting.items[args.pop('item_id')]
+        except KeyError as e:
+            raise meetling.ValueError('item_not_found')
+
+        meeting.trash_agenda_item(**args)
+        self.write(json.dumps(None))
+
+class MeetingRestoreAgendaItemEndpoint(Endpoint):
+    def post(self, id):
+        args = self.check_args({'item_id': str})
+        meeting = self.app.meetings[id]
+        try:
+            args['item'] = meeting.trashed_items[args.pop('item_id')]
+        except KeyError:
+            raise meetling.ValueError('item_not_found')
+
+        meeting.restore_agenda_item(**args)
+        self.write(json.dumps(None))
 
 class AgendaItemEndpoint(Endpoint):
     def get(self, meeting_id, item_id):

@@ -390,19 +390,24 @@ label > small + small {
     white-space: nowrap;
 }
 
-.meetling-page-logo {
-    flex: none;
+.meetling-page-header nav h1 {
     margin: 0;
     font-size: 1rem;
 }
 
-.meetling-page-logo .link {
+.meetling-page-header nav h1 .link {
     display: block;
     padding: calc(0.25 * 1.5em) 0;
 }
 
-.meetling-page-logo img {
+.meetling-page-header nav h1 img {
     vertical-align: middle;
+}
+
+.meetling-page-beta {
+    color: #888;
+    font-size: 0.875rem;
+    text-transform: uppercase;
 }
 
 .meetling-page-header-fill {

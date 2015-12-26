@@ -5,7 +5,7 @@ Meetling
 
 Web app for collaboratively preparing meetings.
 
-You can give it a try at [meetling.org](http://meetling.org/).
+You can give it a try at [meetling.org](https://meetling.org/).
 
 ## Dependencies
 

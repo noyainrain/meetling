@@ -22,11 +22,11 @@
     <body {% block page-attrs %}is="meetling-page"{% end %}
           user="{{ json_encode(user.json(exclude_private=True)) }}">
         <header class="meetling-page-header">
-            <nav class="meetling-page-inside">
+            <nav class="meetling-page-inside group">
                 <h1 class="meetling-page-logo">
                     <a class="link" href="/">
                         {% if settings.favicon %}<img src="{{ settings.favicon }}" />{% end %}
-                        {{ settings.title }}
+                        {{ settings.title }} <span class="prio3">Beta</span>
                     </a>
                 </h1>
 

@@ -96,6 +96,15 @@ li h1 {
     margin: calc(0.25 * 1.5rem) 0;
 }
 
+.prio2 {
+    color: #888;
+}
+
+.prio3 {
+    color: #888;
+    font-size: 0.75rem;
+}
+
 .templates {
     display: none;
 }
@@ -385,8 +394,7 @@ label > small + small {
     background: #fff;
 }
 
-.meetling-page-header nav {
-    display: flex;
+.meetling-page-header > nav {
     white-space: nowrap;
 }
 
@@ -396,13 +404,17 @@ label > small + small {
     font-size: 1rem;
 }
 
-.meetling-page-logo .link {
+.meetling-page-logo > .link {
     display: block;
     padding: calc(0.25 * 1.5em) 0;
 }
 
 .meetling-page-logo img {
     vertical-align: middle;
+}
+
+.meetling-page-logo span {
+    text-transform: uppercase;
 }
 
 .meetling-page-header-fill {

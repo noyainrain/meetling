@@ -70,6 +70,28 @@
 
         <main>
             <div class="meetling-page-inside">
+                <script>
+                    // Use ES3 here, because there still are browsers out there that support no
+                    // more recent version
+                    var elem = document.createElement("input");
+                    var features = {};
+                    features.es6TemplateLiterals = true;
+                    try {
+                        eval("var foo = `${42}`;");
+                    } catch (e) {
+                        features.es6TemplateLiterals = false;
+                    }
+                    features.es6Promise = "Promise" in window;
+                    features.html5Constraints = "validity" in elem;
+                    features.dom4ClassList = "classList" in elem;
+                    features.dom4Selectors = "querySelector" in document;
+
+                    if (!(features.es6TemplateLiterals && features.es6Promise &&
+                          features.html5Constraints && features.dom4ClassList &&
+                          features.dom4Selectors)) {
+                        document.write('<p style="color: red;">Oops, your device/browser seems to be outdated and not able to run this web app. Please update your device/browser.</p>');
+                    }
+                </script>
                 {% block page-content %}{% end %}
             </div>
         </main>

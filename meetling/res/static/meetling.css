@@ -77,6 +77,10 @@ li h1 {
     border-bottom: none;
 }
 
+small {
+    font-size: 0.875rem;
+}
+
 .group {
     display: flex;
 }
@@ -220,6 +224,10 @@ label > small {
 
 label > small + small {
     color: #888;
+}
+
+.compact label {
+    margin: calc(0.25 * 1.5rem) 0;
 }
 
 /* ---- Pikaday ---- */

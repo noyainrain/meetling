@@ -67,11 +67,14 @@
 
     <section class="meetling-meeting-actions">
         <h1>Actions</h1>
-        <p class="actions">
+        <micro-menu>
+            <button class="meetling-meeting-share action">
+                <i class="fa fa-envelope"></i> Share
+            </button>
             <a class="action" href="/meetings/{{ meeting.id }}/edit">
                 <i class="fa fa-pencil"></i> Edit
             </a>
-        </p>
+        </micro-menu>
     <section>
 
     <div class="templates">
@@ -103,6 +106,21 @@
                     </micro-menu>
                 </div>
             </section>
+        </div>
+
+        <div class="meetling-share-notification-template">
+            <p>
+                You can copy the following link and share it - for example via email - with the
+                participants of the meeting:
+            </p>
+            <label>
+                <input></input>
+                <small>Sharable link</small>
+            </label>
+            <p>
+                Anyone who has the link can propose and edit agenda items and change the meeting
+                details.
+            </p>
         </div>
 
         <div class="meetling-agenda-item-editor-template">

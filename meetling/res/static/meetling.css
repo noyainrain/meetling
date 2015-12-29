@@ -211,6 +211,10 @@ label {
     margin: 1.5rem 0;
 }
 
+.compact label {
+    margin: calc(0.25 * 1.5rem) 0;
+}
+
 label > input,
 label > textarea,
 label > select {

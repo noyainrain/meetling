@@ -182,6 +182,14 @@ meetling.Page = document.registerElement("meetling-page",
     createdCallback: {value: function() {
         window.addEventListener("error", this);
         this.user = JSON.parse(this.getAttribute("user"));
+
+        if (!navigator.cookieEnabled) {
+            var p = document.createElement("p");
+            p.style.color = "red";
+            p.textContent = "Oops, your device/browser has cookies disabled. Please enable cookies for this web app and reload the page.";
+            var div = this.querySelector("main > .meetling-page-inside");
+            div.insertBefore(p, div.firstElementChild);
+        }
     }},
 
     /**

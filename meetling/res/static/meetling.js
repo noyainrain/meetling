@@ -379,6 +379,7 @@ meetling.MeetingPage = document.registerElement("meetling-meeting-page",
         this._hideTrashedItemsAction = this.querySelector(".meetling-meeting-hide-trashed-items");
         this._createAgendaItemAction =
             this.querySelector(".meetling-meeting-create-agenda-item .action");
+        this._shareAction = this.querySelector(".meetling-meeting-share");
 
         if (this.meeting.time) {
             this.querySelector(".meetling-meeting-meta time").textContent =
@@ -391,6 +392,7 @@ meetling.MeetingPage = document.registerElement("meetling-meeting-page",
         this._showTrashedItemsAction.addEventListener("click", this);
         this._hideTrashedItemsAction.addEventListener("click", this);
         this._createAgendaItemAction.addEventListener("click", this);
+        this._shareAction.addEventListener("click", this);
     }},
 
     _update: {value: function() {
@@ -450,6 +452,13 @@ meetling.MeetingPage = document.registerElement("meetling-meeting-page",
             editor.replaced = li;
             this._agendaUl.insertBefore(editor, li);
             this._agendaUl.removeChild(li);
+
+        } else if (event.currentTarget === this._shareAction && event.type === "click") {
+            var notification = document.createElement("meetling-simple-notification");
+            meetling.loadTemplate(notification.content, ".meetling-share-notification-template");
+            notification.content.querySelector("input").value =
+                `${location.protocol}//${location.host}/meetings/${this.meeting.id}`;
+            this.notify(notification);
         }
     }}
 })});

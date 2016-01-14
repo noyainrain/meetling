@@ -20,7 +20,7 @@
         {% end %}
     </ul>
 
-    <p>{{ meeting.description or '' }}</p>
+    <p class="micro-multiline">{{ meeting.description or '' }}</p>
 
     <p class="meetling-detail">
         edited by
@@ -84,7 +84,7 @@
                     </p>
                 </header>
                 <div class="meetling-agenda-item-content compact">
-                    <p class="meetling-agenda-item-description"></p>
+                    <p class="meetling-agenda-item-description micro-multiline"></p>
                     <p class="meetling-detail">
                         edited by <meetling-user-listing></meetling-user-listing>
                     </p>

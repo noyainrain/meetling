@@ -1,5 +1,9 @@
 /* ---- General ---- */
 
+.micro-multiline {
+    white-space: pre-line;
+}
+
 .micro-lgroup {
     list-style: none;
 }

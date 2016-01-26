@@ -368,6 +368,61 @@ micro.OL = document.registerElement('micro-ol',
 })});
 
 /**
+ * TODO ELEM.
+ *
+ * .. attribute:: run
+ *
+ *    TODO.
+ */
+micro.Button = document.registerElement('micro-button',
+        {extends: 'button', prototype: Object.create(HTMLButtonElement.prototype, {
+    createdCallback: {value: function() {
+        this.addEventListener('click', this);
+        this.run = null;
+    }},
+
+    /**
+     * TODO.
+     */
+    trigger: {value: function() {
+        if (!this.run) {
+            return Promise.resolve();
+        }
+
+        var i = this.querySelector('i');
+        var classes = i ? i.className : null;
+
+        var suspend = function() {
+            this.disabled = true;
+            if (i) {
+                i.className = 'fa fa-spin fa-spinner';
+            }
+        }.bind(this);
+
+        var resume = function() {
+            this.disabled = false;
+            if (i) {
+                i.className = classes;
+            }
+        }.bind(this);
+
+        suspend();
+        return Promise.resolve(this.run()).then(resume, function(e) {
+            resume();
+            throw e;
+        });
+    }},
+
+    handleEvent: {value: function(event) {
+        if (event.currentTarget === this && event.type === 'click') {
+            // If this button is part of a form, prevent submitting the form
+            event.preventDefault();
+            this.trigger();
+        }
+    }}
+})});
+
+/**
  * Simple menu for (typically) actions and/or links.
  *
  * Secondary items, marked with the ``micro-menu-secondary`` class, are hidden by default and can be

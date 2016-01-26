@@ -883,11 +883,9 @@ meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-agenda-item-template').content, true));
         this.classList.add("meetling-agenda-item");
-        this._trashAction = this.querySelector(".meetling-agenda-item-trash");
-        this._restoreAction = this.querySelector(".meetling-agenda-item-restore");
-        this._trashAction.addEventListener("click", this);
-        this._restoreAction.addEventListener("click", this);
-        this.querySelector(".meetling-agenda-item-edit").addEventListener("click", this);
+        this.querySelector('.meetling-agenda-item-edit').run = this._startEdit.bind(this);
+        this.querySelector('.meetling-agenda-item-trash').run = this._trash.bind(this);
+        this.querySelector('.meetling-agenda-item-restore').run = this._restore.bind(this);
     }},
 
     item: {
@@ -913,42 +911,41 @@ meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
         }
     },
 
-    handleEvent: {value: function(event) {
-        if (event.currentTarget === this.querySelector(".meetling-agenda-item-edit")) {
-            var editor = new meetling.AgendaItemEditor();
-            editor.item = this._item;
-            editor.replaced = this;
-            this.parentNode.insertBefore(editor, this);
-            this.parentNode.removeChild(this);
+    _startEdit: {value: function() {
+        var editor = new meetling.AgendaItemEditor();
+        editor.item = this._item;
+        editor.replaced = this;
+        this.parentNode.insertBefore(editor, this);
+        this.parentNode.removeChild(this);
+    }},
 
-        } else if (event.currentTarget === this._trashAction && event.type === "click") {
-            micro.call('POST', `/api/meetings/${ui.page.meeting.id}/trash-agenda-item`, {
-                item_id: this._item.id
-            }).catch(function(e) {
-                // If the item has already been trashed, we continue as normal to update the UI
-                if (!(e instanceof micro.APIError && e.error.__type__ === 'ValueError' &&
-                      e.error.code === 'item_not_found')) {
-                    throw e;
-                }
-            }).then(function() {
-                ui.synthesizeMeetingTrashAgendaItemEvent(this._item);
-            }.bind(this));
+    _trash: {value: function() {
+        return micro.call('POST', `/api/meetings/${ui.page.meeting.id}/trash-agenda-item`, {
+            item_id: this._item.id
+        }).catch(function(e) {
+            // If the item has already been trashed, we continue as normal to update the UI
+            if (!(e instanceof micro.APIError && e.error.__type__ === 'ValueError' &&
+                  e.error.code === 'item_not_found')) {
+                throw e;
+            }
+        }).then(function() {
+            ui.synthesizeMeetingTrashAgendaItemEvent(this._item);
+        }.bind(this));
+    }},
 
-        } else if (event.currentTarget === this._restoreAction && event.type === "click") {
-            micro.call('POST', `/api/meetings/${ui.page.meeting.id}/restore-agenda-item`, {
-                item_id: this._item.id
-            }).catch(function(e) {
-                // If the item has already been restored, we continue as normal to update the UI
-                if (!(e instanceof micro.APIError && e.error.__type__ === 'ValueError' &&
-                      e.error.code === 'item_not_found')) {
-                    throw e;
-                }
-            }).then(function() {
-                this._item.trashed = false;
-                ui.dispatchEvent(
-                    new CustomEvent('restore-agenda-item', {detail: {item: this._item}}));
-            }.bind(this));
-        }
+    _restore: {value: function() {
+        return micro.call('POST', `/api/meetings/${ui.page.meeting.id}/restore-agenda-item`, {
+            item_id: this._item.id
+        }).catch(function(e) {
+            // If the item has already been restored, we continue as normal to update the UI
+            if (!(e instanceof micro.APIError && e.error.__type__ === 'ValueError' &&
+                  e.error.code === 'item_not_found')) {
+                throw e;
+            }
+        }).then(function() {
+            this._item.trashed = false;
+            ui.dispatchEvent(new CustomEvent('restore-agenda-item', {detail: {item: this._item}}));
+        }.bind(this));
     }}
 })});
 

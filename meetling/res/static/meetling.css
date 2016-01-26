@@ -120,6 +120,10 @@ h1 .link:hover {
     cursor: pointer;
 }
 
+.action:disabled {
+    cursor: default;
+}
+
 .action-subtle {
     display: inline;
     padding: 0;

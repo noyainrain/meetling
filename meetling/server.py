@@ -146,6 +146,10 @@ class Endpoint(RequestHandler):
         if self.request.method in {'GET', 'HEAD'}:
             self.set_header('Cache-Control', 'no-cache')
 
+        # TODO: Remove
+        from time import sleep
+        sleep(1)
+
     def write_error(self, status_code, exc_info):
         if issubclass(exc_info[0], KeyError):
             self.set_status(http.client.NOT_FOUND)

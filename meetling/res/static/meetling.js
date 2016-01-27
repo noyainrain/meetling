@@ -198,7 +198,10 @@ meetling.Page = document.registerElement("meetling-page",
             elem.content.appendChild(p);
             notification = elem;
         }
-        this.querySelector(".meetling-page-notification-space").appendChild(notification);
+
+        var space = this.querySelector(".meetling-page-notification-space");
+        space.textContent = "";
+        space.appendChild(notification);
     }},
 
     handleEvent: {value: function(event) {
@@ -713,12 +716,11 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
                 return response.json();
             }).then(function(item) {
                 if (item.__type__ === "InputError") {
-                    for (var arg in item.errors) {
-                        document.body.notify({
-                            title: {empty: "Title is missing."},
-                            duration: {not_positive: "Duration is not positive."},
-                        }[arg][item.errors[arg]]);
-                    }
+                    var arg = Object.keys(item.errors)[0];
+                    document.body.notify({
+                        title: {empty: "Title is missing."},
+                        duration: {not_positive: "Duration is not positive."}
+                    }[arg][item.errors[arg]]);
                     return;
                 }
                 if (this._item) {

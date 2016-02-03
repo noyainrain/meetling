@@ -1,19 +1,19 @@
-Contributing to Meetling
-========================
+# Contributing to Meetling
 
-## Development Dependencies
+## Installing development dependencies
 
-For development, the following additional requirements must be set up on your system:
+To install the development dependencies for Meetling, type:
 
-* Pylint >= 1.4
-* Sphinx >= 1.2
+```sh
+pip install --user -U -r requirements-dev.txt
+```
 
 ## Running Meetling in Debug Mode
 
 To run Meetling in debug mode, type:
 
 ```sh
-python3 -m meetling --debug
+python -m meetling --debug
 ```
 
 ## Running the Tests
@@ -21,7 +21,7 @@ python3 -m meetling --debug
 To run all unit tests, type:
 
 ```sh
-python3 -m unittest discover -v
+python -m unittest discover -v
 ```
 
 ## Setting up Sample Data

@@ -1,29 +1,27 @@
 ![Icon](https://raw.githubusercontent.com/NoyaInRain/meetling/master/meetling/res/static/images/favicon.png)
 
-Meetling
-========
+# Meetling
 
 Web app for collaboratively preparing meetings.
 
 You can give it a try at [meetling.org](http://meetling.org/).
 
-## Dependencies
+## Requirements
 
-The following requirements must be set up on your system:
+The following software is required and must be set up on your system:
 
 * Python >= 3.4
-* Tornado >= 3.2
 * Redis >= 2.8
-* redis-py >= 2.10
 * Bower >= 1.5
 
 Meetling should work on any [POSIX](https://en.wikipedia.org/wiki/POSIX) system.
 
-## Building Meetling
+## Installing dependencies
 
-To build Meetling, type:
+To install the dependencies for Meetling, type:
 
 ```sh
+pip install --user -U -r requirements.txt
 bower update
 ```
 
@@ -32,10 +30,10 @@ bower update
 To run Meetling, type:
 
 ```sh
-python3 -m meetling
+python -m meetling
 ```
 
-## Browser Support
+## Browser support
 
 Meetling supports the latest version of popular browsers (i.e. Chrome, Edge, Firefox and Safari; see
 http://caniuse.com/ ).

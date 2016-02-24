@@ -14,6 +14,7 @@
 
 # pylint: disable=missing-docstring
 
+import os
 import subprocess
 import meetling
 from datetime import datetime
@@ -122,7 +123,13 @@ class MeetlingUpdateTest(AsyncTestCase):
     def setup_db(self, tag):
         d = mkdtemp()
         check_output(['git', 'clone', '--branch', tag, '.', d], stderr=subprocess.DEVNULL)
-        check_output(['./misc/sample.py', '--redis-url=15'], stderr=subprocess.DEVNULL, cwd=d)
+
+        # Compatibility for misc/sample.py (obsolete since 0.9.4)
+        if os.path.isfile(os.path.join(d, 'misc/sample.py')):
+            check_output(['./misc/sample.py', '--redis-url=15'], stderr=subprocess.DEVNULL, cwd=d)
+            return
+
+        check_output(['make', 'sample', 'REDISURL=15'], stderr=subprocess.DEVNULL, cwd=d)
 
 class EditableTest(MeetlingTestCase):
     def test_edit(self):

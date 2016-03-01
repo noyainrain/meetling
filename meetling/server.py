@@ -12,30 +12,34 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=arguments-differ; Tornado handler arguments are defined by URLs
+
 """Meetling server."""
 
-import os
-import logging
-import json
-import http.client
-import meetling
 from collections import Mapping
+import http.client
+import json
+import logging
+import os
+
 from tornado.httpserver import HTTPServer
-from tornado.web import Application, RequestHandler, HTTPError
 from tornado.ioloop import IOLoop
+from tornado.web import Application, RequestHandler, HTTPError
+
+import meetling
 from meetling import Meetling
 from meetling.util import str_or_none, parse_isotime
 
 _CLIENT_ERROR_LOG_TEMPLATE = """\
 Client error occurred
-{type}{message_part}
+%s%s
 Stack:
-{stack}
-URL: {url}
-User: {user_name} ({user_id})
-Device info: {device_info}"""
+%s
+URL: %s
+User: %s (%s)
+Device info: %s"""
 
-_logger = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 class MeetlingServer(HTTPServer):
     """Meetling server.
@@ -59,26 +63,27 @@ class MeetlingServer(HTTPServer):
     def __init__(self, port=8080, debug=False, **args):
         handlers = [
             # UI
-            (r'/$', StartPage),
-            (r'/about$', AboutPage),
-            (r'/create-meeting$', EditMeetingPage),
-            (r'/users/([^/]+)/edit$', EditUserPage),
-            (r'/settings/edit$', EditSettingsPage),
-            (r'/meetings/([^/]+)$', MeetingPage),
-            (r'/meetings/([^/]+)/edit$', EditMeetingPage),
-            (r'/log-client-error$', LogClientErrorEndpoint),
+            (r'/$', _StartPage),
+            (r'/about$', _AboutPage),
+            (r'/create-meeting$', _EditMeetingPage),
+            (r'/users/([^/]+)/edit$', _EditUserPage),
+            (r'/settings/edit$', _EditSettingsPage),
+            (r'/meetings/([^/]+)$', _MeetingPage),
+            (r'/meetings/([^/]+)/edit$', _EditMeetingPage),
+            (r'/log-client-error$', _LogClientErrorEndpoint),
             # API
-            (r'/api/login$', LoginEndpoint),
-            (r'/api/meetings$', MeetingsEndpoint),
-            (r'/api/create-example-meeting$', CreateExampleMeetingEndpoint),
-            (r'/api/users/([^/]+)$', UserEndpoint),
-            (r'/api/settings$', SettingsEndpoint),
-            (r'/api/meetings/([^/]+)$', MeetingEndpoint),
-            (r'/api/meetings/([^/]+)/items(/trashed)?$', MeetingItemsEndpoint),
-            (r'/api/meetings/([^/]+)/trash-agenda-item$', MeetingTrashAgendaItemEndpoint),
-            (r'/api/meetings/([^/]+)/restore-agenda-item$', MeetingRestoreAgendaItemEndpoint),
-            (r'/api/meetings/([^/]+)/items/([^/]+)$', AgendaItemEndpoint)
+            (r'/api/login$', _LoginEndpoint),
+            (r'/api/meetings$', _MeetingsEndpoint),
+            (r'/api/create-example-meeting$', _CreateExampleMeetingEndpoint),
+            (r'/api/users/([^/]+)$', _UserEndpoint),
+            (r'/api/settings$', _SettingsEndpoint),
+            (r'/api/meetings/([^/]+)$', _MeetingEndpoint),
+            (r'/api/meetings/([^/]+)/items(/trashed)?$', _MeetingItemsEndpoint),
+            (r'/api/meetings/([^/]+)/trash-agenda-item$', _MeetingTrashAgendaItemEndpoint),
+            (r'/api/meetings/([^/]+)/restore-agenda-item$', _MeetingRestoreAgendaItemEndpoint),
+            (r'/api/meetings/([^/]+)/items/([^/]+)$', _AgendaItemEndpoint)
         ]
+        # pylint: disable=protected-access; meetling is a friend
         application = Application(
             handlers, template_path=os.path.join(meetling._RES_PATH, 'templates'),
             static_path=os.path.join(meetling._RES_PATH, 'static'), debug=debug, server=self)
@@ -121,6 +126,8 @@ class Resource(RequestHandler):
                 pass
 
 class Page(Resource):
+    """Web page."""
+
     def prepare(self):
         super().prepare()
 
@@ -142,44 +149,6 @@ class Page(Resource):
 
     def get_template_namespace(self):
         return {'user': self.app.user, 'settings': self.app.settings}
-
-class StartPage(Page):
-    def get(self):
-        self.render('start.html')
-
-class AboutPage(Page):
-    def get(self):
-        self.render('about.html')
-
-class EditUserPage(Page):
-    def get(self, id):
-        try:
-            user_object = self.app.users[id]
-        except KeyError:
-            raise HTTPError(http.client.NOT_FOUND)
-        if self.app.user != user_object:
-            raise HTTPError(http.client.FORBIDDEN)
-        self.render('edit-user.html', user_object=user_object)
-
-class EditSettingsPage(Page):
-    def get(self):
-        self.render('edit-settings.html')
-
-class MeetingPage(Page):
-    def get(self, id):
-        try:
-            meeting = self.app.meetings[id]
-        except KeyError:
-            raise HTTPError(http.client.NOT_FOUND)
-        self.render('meeting.html', meeting=meeting)
-
-class EditMeetingPage(Page):
-    def get(self, id=None):
-        try:
-            meeting = self.app.meetings[id] if id else None
-        except KeyError:
-            raise HTTPError(http.client.NOT_FOUND)
-        self.render('edit-meeting.html', meeting=meeting)
 
 class Endpoint(Resource):
     """JSON REST API endpoint.
@@ -265,7 +234,45 @@ class Endpoint(Resource):
 
         return args
 
-class LogClientErrorEndpoint(Endpoint):
+class _StartPage(Page):
+    def get(self):
+        self.render('start.html')
+
+class _AboutPage(Page):
+    def get(self):
+        self.render('about.html')
+
+class _EditUserPage(Page):
+    def get(self, id):
+        try:
+            user_object = self.app.users[id]
+        except KeyError:
+            raise HTTPError(http.client.NOT_FOUND)
+        if self.app.user != user_object:
+            raise HTTPError(http.client.FORBIDDEN)
+        self.render('edit-user.html', user_object=user_object)
+
+class _EditSettingsPage(Page):
+    def get(self):
+        self.render('edit-settings.html')
+
+class _MeetingPage(Page):
+    def get(self, id):
+        try:
+            meeting = self.app.meetings[id]
+        except KeyError:
+            raise HTTPError(http.client.NOT_FOUND)
+        self.render('meeting.html', meeting=meeting)
+
+class _EditMeetingPage(Page):
+    def get(self, id=None):
+        try:
+            meeting = self.app.meetings[id] if id else None
+        except KeyError:
+            raise HTTPError(http.client.NOT_FOUND)
+        self.render('edit-meeting.html', meeting=meeting)
+
+class _LogClientErrorEndpoint(Endpoint):
     def post(self):
         if not self.app.user:
             raise meetling.PermissionError()
@@ -287,22 +294,17 @@ class LogClientErrorEndpoint(Endpoint):
 
         message = str_or_none(args.get('message'))
         message_part = ': ' + message if message else ''
-        _logger.error(_CLIENT_ERROR_LOG_TEMPLATE.format(
-            type=args['type'],
-            message_part=message_part,
-            stack=args['stack'].strip(),
-            url=args['url'],
-            user_name=self.app.user.name,
-            user_id=self.app.user.id,
-            device_info=self.request.headers.get('user-agent', '-')
-        ))
+        _LOGGER.error(
+            _CLIENT_ERROR_LOG_TEMPLATE, args['type'], message_part, args['stack'].strip(),
+            args['url'], self.app.user.name, self.app.user.id,
+            self.request.headers.get('user-agent', '-'))
 
-class LoginEndpoint(Endpoint):
+class _LoginEndpoint(Endpoint):
     def post(self):
         user = self.app.login()
         self.write(user.json())
 
-class MeetingsEndpoint(Endpoint):
+class _MeetingsEndpoint(Endpoint):
     def post(self):
         args = self.check_args({
             'title': str,
@@ -319,12 +321,12 @@ class MeetingsEndpoint(Endpoint):
         meeting = self.app.create_meeting(**args)
         self.write(meeting.json(include_users=True))
 
-class CreateExampleMeetingEndpoint(Endpoint):
+class _CreateExampleMeetingEndpoint(Endpoint):
     def post(self):
         meeting = self.app.create_example_meeting()
         self.write(meeting.json(include_users=True))
 
-class UserEndpoint(Endpoint):
+class _UserEndpoint(Endpoint):
     def get(self, id):
         self.write(self.app.users[id].json(exclude_private=True))
 
@@ -334,7 +336,7 @@ class UserEndpoint(Endpoint):
         user.edit(**args)
         self.write(user.json(exclude_private=True))
 
-class SettingsEndpoint(Endpoint):
+class _SettingsEndpoint(Endpoint):
     def get(self):
         self.write(self.app.settings.json(include_users=True))
 
@@ -348,7 +350,7 @@ class SettingsEndpoint(Endpoint):
         settings.edit(**args)
         self.write(settings.json(include_users=True))
 
-class MeetingEndpoint(Endpoint):
+class _MeetingEndpoint(Endpoint):
     def get(self, id):
         meeting = self.app.meetings[id]
         self.write(meeting.json(include_users=True))
@@ -370,13 +372,15 @@ class MeetingEndpoint(Endpoint):
         meeting.edit(**args)
         self.write(meeting.json(include_users=True))
 
-class MeetingItemsEndpoint(Endpoint):
+class _MeetingItemsEndpoint(Endpoint):
     def get(self, id, set):
         meeting = self.app.meetings[id]
         items = meeting.trashed_items.values() if set else meeting.items.values()
         self.write(json.dumps([i.json(include_users=True) for i in items]))
 
     def post(self, id, set):
+        if set:
+            raise HTTPError(http.client.METHOD_NOT_ALLOWED)
         args = self.check_args({
             'title': str,
             'duration': (int, None, 'opt'),
@@ -386,19 +390,19 @@ class MeetingItemsEndpoint(Endpoint):
         item = meeting.create_agenda_item(**args)
         self.write(item.json(include_users=True))
 
-class MeetingTrashAgendaItemEndpoint(Endpoint):
+class _MeetingTrashAgendaItemEndpoint(Endpoint):
     def post(self, id):
         args = self.check_args({'item_id': str})
         meeting = self.app.meetings[id]
         try:
             args['item'] = meeting.items[args.pop('item_id')]
-        except KeyError as e:
+        except KeyError:
             raise meetling.ValueError('item_not_found')
 
         meeting.trash_agenda_item(**args)
         self.write(json.dumps(None))
 
-class MeetingRestoreAgendaItemEndpoint(Endpoint):
+class _MeetingRestoreAgendaItemEndpoint(Endpoint):
     def post(self, id):
         args = self.check_args({'item_id': str})
         meeting = self.app.meetings[id]
@@ -410,7 +414,7 @@ class MeetingRestoreAgendaItemEndpoint(Endpoint):
         meeting.restore_agenda_item(**args)
         self.write(json.dumps(None))
 
-class AgendaItemEndpoint(Endpoint):
+class _AgendaItemEndpoint(Endpoint):
     def get(self, meeting_id, item_id):
         meeting = self.app.meetings[meeting_id]
         item = meeting.items[item_id]

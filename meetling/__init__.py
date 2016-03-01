@@ -22,6 +22,7 @@ communicating with the Redis server.
 """
 
 import os
+
 from meetling.meetling import (Meetling, Object, Editable, User, Settings, Meeting, AgendaItem,
                                ValueError, InputError, PermissionError)
 

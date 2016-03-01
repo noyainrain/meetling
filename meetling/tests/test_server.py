@@ -12,14 +12,16 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=missing-docstring
+# pylint: disable=missing-docstring; test module
 
+from datetime import datetime
 import http.client
 import json
 from urllib.parse import urljoin
-from datetime import datetime
+
 from tornado.httpclient import AsyncHTTPClient, HTTPError
 from tornado.testing import AsyncTestCase, gen_test
+
 from meetling.server import MeetlingServer
 
 class MeetlingServerTest(AsyncTestCase):
@@ -55,7 +57,8 @@ class MeetlingServerTest(AsyncTestCase):
         yield self.request('/settings/edit')
         yield self.request('/meetings/' + self.meeting.id)
         yield self.request('/meetings/{}/edit'.format(self.meeting.id))
-        yield self.request('/log-client-error', method='POST',
+        yield self.request(
+            '/log-client-error', method='POST',
             body='{"type": "Error", "stack": "meetling.Page.prototype.createdCallback", "url": "/"}')
 
         # API

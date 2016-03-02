@@ -14,9 +14,10 @@
 
 """Meetling script."""
 
-import sys
 import argparse
 from argparse import ArgumentParser
+import sys
+
 from meetling.server import MeetlingServer
 
 def main(args):

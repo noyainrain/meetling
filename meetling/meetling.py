@@ -15,10 +15,12 @@
 """Core parts of Meetling."""
 
 import builtins
+from datetime import datetime, timedelta
 from itertools import chain
 from urllib.parse import ParseResult, urlparse, urljoin
-from datetime import datetime, timedelta
+
 from redis import StrictRedis
+
 from meetling.lib.jsonredis import JSONRedis, JSONRedisMapping
 from meetling.util import randstr, str_or_none, parse_isotime
 
@@ -32,10 +34,6 @@ class Meetling:
     .. attribute:: users
 
        Map of all :class:`User` s.
-
-    .. attribute:: settings
-
-       App :class:`Settings`.
 
     .. attribute:: meetings
 
@@ -54,7 +52,7 @@ class Meetling:
         e = InputError()
         try:
             components = urlparse(redis_url)
-            # Port errors are only triggered on access
+            # pylint: disable=pointless-statement; port errors are only triggered on access
             components.port
         except builtins.ValueError:
             e.errors['redis_url'] = 'invalid'
@@ -74,6 +72,7 @@ class Meetling:
 
     @property
     def settings(self):
+        """App :class:`Settings`."""
         return self.r.oget('Settings')
 
     def update(self):
@@ -157,6 +156,7 @@ class Meetling:
         # Promote first user to staff
         if len(self.users) == 1:
             settings = self.settings
+            # pylint: disable=protected-access; Settings is a friend
             settings._staff = [user.id]
             self.r.oset(settings.id, settings)
 
@@ -247,12 +247,14 @@ class Editable:
     *include_users*. If it is ``True``, :class:`User` s are included as JSON objects (instead of
     IDs).
     """
+    # pylint: disable=no-member; mixin
 
     def __init__(self, authors):
         self._authors = authors
 
     @property
     def authors(self):
+        # pylint: disable=missing-docstring; already documented
         return self.app.r.omget(self._authors)
 
     def edit(self, **attrs):
@@ -310,6 +312,7 @@ class User(Object, Editable):
 
         If *exclude_private* is ``True``, private attributes (*auth_secret*) are excluded.
         """
+        # pylint: disable=arguments-differ; extended signature
         json = super().json({'name': self.name, 'auth_secret': self.auth_secret})
         json.update(Editable.json(self, include_users))
         if exclude_private:
@@ -329,6 +332,7 @@ class Settings(Object, Editable):
 
     @property
     def staff(self):
+        # pylint: disable=missing-docstring; already documented
         return self.app.r.omget(self._staff)
 
     def do_edit(self, **attrs):
@@ -440,6 +444,7 @@ class Meeting(Object, Editable):
 
         If *include_items* is ``True``, *items* and *trashed_items* are included.
         """
+        # pylint: disable=arguments-differ; extended signature
         json = super().json({
             'title': self.title,
             'time': self.time.isoformat() + 'Z' if self.time else None,
@@ -495,6 +500,7 @@ class ValueError(builtins.ValueError):
 
     @property
     def code(self):
+        # pylint: disable=missing-docstring; already documented
         return self.args[0] if self.args else None
 
 class InputError(ValueError):

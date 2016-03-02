@@ -12,16 +12,18 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=missing-docstring
+# pylint: disable=missing-docstring; test module
 
+from datetime import datetime
 import os
 import subprocess
-import meetling
-from datetime import datetime
 from subprocess import check_output
 from tempfile import mkdtemp
+
 from redis import RedisError
 from tornado.testing import AsyncTestCase
+
+import meetling
 from meetling import Meetling, Object, Editable
 
 class MeetlingTestCase(AsyncTestCase):
@@ -78,6 +80,18 @@ class MeetlingTest(MeetlingTestCase):
         self.assertTrue(len(meeting.items))
 
 class MeetlingUpdateTest(AsyncTestCase):
+    @staticmethod
+    def setup_db(tag):
+        d = mkdtemp()
+        check_output(['git', 'clone', '--branch', tag, '.', d], stderr=subprocess.DEVNULL)
+
+        # Compatibility for misc/sample.py (obsolete since 0.9.4)
+        if os.path.isfile(os.path.join(d, 'misc/sample.py')):
+            check_output(['./misc/sample.py', '--redis-url=15'], stderr=subprocess.DEVNULL, cwd=d)
+            return
+
+        check_output(['make', 'sample', 'REDISURL=15'], stderr=subprocess.DEVNULL, cwd=d)
+
     def test_update_db_fresh(self):
         app = Meetling(redis_url='15')
         app.r.flushdb()
@@ -119,17 +133,6 @@ class MeetlingUpdateTest(AsyncTestCase):
         self.assertFalse(user.trashed)
         self.assertFalse(meeting.trashed)
         self.assertFalse(item.trashed)
-
-    def setup_db(self, tag):
-        d = mkdtemp()
-        check_output(['git', 'clone', '--branch', tag, '.', d], stderr=subprocess.DEVNULL)
-
-        # Compatibility for misc/sample.py (obsolete since 0.9.4)
-        if os.path.isfile(os.path.join(d, 'misc/sample.py')):
-            check_output(['./misc/sample.py', '--redis-url=15'], stderr=subprocess.DEVNULL, cwd=d)
-            return
-
-        check_output(['make', 'sample', 'REDISURL=15'], stderr=subprocess.DEVNULL, cwd=d)
 
 class EditableTest(MeetlingTestCase):
     def test_edit(self):

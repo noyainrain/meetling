@@ -6,6 +6,13 @@ BOWER = bower
 test:
 	$(PYTHON) -m unittest
 
+.PHONY: lint
+lint:
+	pylint -j 0 meetling
+
+.PHONY: check
+check: test lint
+
 .PHONY: deps
 deps:
 	$(PIP) install --user -U -r requirements.txt
@@ -26,6 +33,8 @@ sample:
 .PHONY: help
 help:
 	@echo "test:     Run all unit tests"
+	@echo "lint:     Lint and check the style of the code"
+	@echo "check:    Run all code quality checks (test and lint)"
 	@echo "deps:     Update the dependencies"
 	@echo "deps-dev: Update the development dependencies"
 	@echo "doc:      Build the documentation"

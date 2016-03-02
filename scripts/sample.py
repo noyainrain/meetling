@@ -17,23 +17,12 @@
 import sys
 sys.path.insert(0, '.')
 
-import argparse
-from argparse import ArgumentParser
+import os
 from meetling import Meetling
 
 def main(args):
-    parser = ArgumentParser(
-        description=
-            """Set up some sample data for Meetling, convenient for developing and experimenting.
-
-            Warning: All existing data in the database will be deleted!
-            """,
-        argument_default=argparse.SUPPRESS)
-    parser.add_argument('--redis-url',
-                        help='See python3 -m meetling --redis-url command line option.')
-    args = parser.parse_args(args[1:])
-
-    app = Meetling(**vars(args))
+    args = {'redis_url': os.environ['REDISURL']} if 'REDISURL' in os.environ else {}
+    app = Meetling(**args)
     app.r.flushdb()
     app.update()
 

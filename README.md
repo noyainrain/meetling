@@ -21,8 +21,7 @@ Meetling should work on any [POSIX](https://en.wikipedia.org/wiki/POSIX) system.
 To install the dependencies for Meetling, type:
 
 ```sh
-pip install --user -U -r requirements.txt
-bower update
+make deps
 ```
 
 ## Running Meetling
@@ -30,7 +29,7 @@ bower update
 To run Meetling, type:
 
 ```sh
-python -m meetling
+python3 -m meetling
 ```
 
 ## Browser support

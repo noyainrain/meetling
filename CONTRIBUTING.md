@@ -5,37 +5,30 @@
 To install the development dependencies for Meetling, type:
 
 ```sh
-pip install --user -U -r requirements-dev.txt
+make deps-dev
 ```
 
-## Running Meetling in Debug Mode
+## Running Meetling in debug mode
 
 To run Meetling in debug mode, type:
 
 ```sh
-python -m meetling --debug
+python3 -m meetling --debug
 ```
 
-## Running the Tests
+## Running the unit tests
 
 To run all unit tests, type:
 
 ```sh
-python -m unittest discover -v
+make
 ```
 
-## Setting up Sample Data
+## Development utilities
 
-To set up some sample data for Meetling, type:
-
-```sh
-./misc/sample.py
-```
-
-## Generating the Documentation
-
-To build the Meetling documentation, type:
+The Makefile that comes with Meetling provides additional utilities for different development tasks.
+To get an overview, type:
 
 ```sh
-sphinx-build doc doc/build
+make help
 ```

@@ -23,6 +23,62 @@
 var micro = {};
 
 /**
+ * Thrown for HTTP JSON REST API errors.
+ *
+ * .. attribute:: error
+ *
+ *    The error object.
+ *
+ * .. attribute:: status
+ *
+ *    The associated HTTP status code.
+ */
+micro.APIError = function(error, status) {
+    Error.call(this);
+    this.error = error;
+    this.status = status;
+};
+micro.APIError.prototype = Object.create(Error.prototype);
+
+/**
+ * Call a *method* on the HTTP JSON REST API endpoint at *url*.
+ *
+ * *method* is a HTTP method (e.g. ``GET`` or ``POST``). Arguments are passed as JSON object *args*.
+ * A promise is returned that resolves to the result as JSON value, once the call is complete.
+ *
+ * If an error occurs, the promise rejects with an :class:`APIError`. For any IO related errors, it
+ * rejects with a :class:`TypeError`.
+ */
+micro.call = function(method, url, args) {
+    options = {method: method, credentials: 'include'};
+    if (args) {
+        options.headers = {'Content-Type': 'application/json'};
+        options.body = JSON.stringify(args);
+    }
+
+    return fetch(url, options).then(function(response) {
+        if (response.status > 500) {
+            // Consider server errors IO errors
+            throw new TypeError();
+        }
+
+        return response.json().then(function(result) {
+            if (!response.ok) {
+                throw new micro.APIError(result, response.status);
+            }
+            return result;
+        }, function(e) {
+            if (e instanceof SyntaxError) {
+                // Consider invalid JSON an IO error
+                throw new TypeError();
+            } else {
+                throw e;
+            }
+        });
+    })
+};
+
+/**
  * Simple menu for (typically) actions and/or links.
  *
  * Secondary items, marked with the ``micro-menu-secondary`` class, are hidden by default and can be

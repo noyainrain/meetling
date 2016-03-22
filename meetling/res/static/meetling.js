@@ -219,13 +219,12 @@ meetling.Page = document.registerElement("meetling-page",
                 message = event.error.message;
             }
 
-            var url = "/log-client-error";
-            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
+            micro.call('POST', '/log-client-error', {
                 type: type,
                 stack: stack,
                 url: location.pathname,
                 message: message
-            })});
+            });
         }
     }}
 })});
@@ -285,12 +284,8 @@ meetling.StartPage = document.registerElement("meetling-start-page",
     handleEvent: {value: function(event) {
         meetling.Page.prototype.handleEvent.call(this, event);
         if (event.currentTarget === this.querySelector(".meetling-start-create-example-meeting")) {
-            var request = new Request("/api/create-example-meeting",
-                                      {method: "POST", credentials: "include"})
-            fetch(request).then(function(response) {
-                return response.json();
-            }).then(function(meeting) {
-                location.assign("/meetings/" + meeting.id);
+            micro.call('POST', '/api/create-example-meeting').then(function(meeting) {
+                location.assign(`/meetings/${meeting.id}`);
             });
         }
     }}
@@ -316,17 +311,16 @@ meetling.EditUserPage = document.registerElement("meetling-edit-user-page",
         var form = this.querySelector(".meetling-edit-user-edit");
         if (event.currentTarget === form) {
             event.preventDefault();
-            var url = "/api/users/" + this.userObject.id;
-            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
-                name: form.elements["name"].value
-            })}).then(function(response) {
-                return response.json();
+            micro.call('POST', `/api/users/${this.userObject.id}`, {
+                name: form.elements['name'].value
             }).then(function(user) {
-                if (user.__type__ === "InputError") {
-                    this.notify("The name is missing.");
-                    return;
+                location.assign('/');
+            }, function(e) {
+                if (e instanceof micro.APIError) {
+                    this.notify('The name is missing.');
+                } else {
+                    throw e;
                 }
-                location.assign("/");
             }.bind(this));
         }
     }}
@@ -347,18 +341,18 @@ meetling.EditSettingsPage = document.registerElement("meetling-edit-settings-pag
         var form = this.querySelector(".meetling-edit-settings-edit");
         if (event.currentTarget === form) {
             event.preventDefault();
-            fetch("/api/settings", {method: "POST", credentials: "include", body: JSON.stringify({
-                title: form.elements["title"].value,
-                icon: form.elements["icon"].value,
-                favicon: form.elements["favicon"].value
-            })}).then(function(response) {
-                return response.json();
+            micro.call('POST', '/api/settings', {
+                title: form.elements['title'].value,
+                icon: form.elements['icon'].value,
+                favicon: form.elements['favicon'].value
             }).then(function(settings) {
-                if (settings.__type__ === "InputError") {
-                    this.notify("The title is missing");
-                    return;
+                location.assign('/');
+            }, function(e) {
+                if (e instanceof micro.APIError) {
+                    this.notify('The title is missing');
+                } else {
+                    throw e;
                 }
-                location.assign("/");
             }.bind(this));
         }
     }}
@@ -541,24 +535,24 @@ meetling.EditMeetingPage = document.registerElement("meetling-edit-meeting-page"
                 dateTime = dateTime.toISOString();
             }
 
-            var url = "/api/meetings";
+            var url = '/api/meetings';
             if (this.meeting) {
-                url = "/api/meetings/" + this.meeting.id;
+                url = `/api/meetings/${this.meeting.id}`;
             }
 
-            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
-                title: form.elements["title"].value,
+            micro.call('POST', url, {
+                title: form.elements['title'].value,
                 time: dateTime,
-                location: form.elements["location"].value,
-                description: form.elements["description"].value
-            })}).then(function(response) {
-                return response.json();
+                location: form.elements['location'].value,
+                description: form.elements['description'].value
             }).then(function(meeting) {
-                if (meeting.__type__ === "InputError") {
-                    this.notify("The title is missing.");
-                    return;
+                location.assign(`/meetings/${meeting.id}`);
+            }, function(e) {
+                if (e instanceof micro.APIError) {
+                    this.notify('The title is missing.');
+                } else {
+                    throw e;
                 }
-                location.assign("/meetings/" + meeting.id);
             }.bind(this));
 
         } else if (event.currentTarget === this._clearButton && (event.type === "click" ||
@@ -623,31 +617,33 @@ meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
             this.parentNode.removeChild(this);
 
         } else if (event.currentTarget === this._trashAction && event.type === "click") {
-            var url = `/api/meetings/${document.body.meeting.id}/trash-agenda-item`;
-            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
+            micro.call('POST', `/api/meetings/${document.body.meeting.id}/trash-agenda-item`, {
                 item_id: this._item.id
-            })}).then(function(response) {
-                return response.json();
-            }).then(function(error) {
-                // If there is an item_not_found ValueError, the item has already been trashed and
-                // we continue as normal to update the UI
+            }).catch(function(e) {
+                // If the item has already been trashed, we continue as normal to update the UI
+                if (!(e instanceof micro.APIError && e.error.__type__ === 'ValueError' &&
+                      e.error.code === 'item_not_found')) {
+                    throw e;
+                }
+            }).then(function() {
                 this._item.trashed = true;
                 document.body.dispatchEvent(
-                    new CustomEvent("trash-agenda-item", {detail: {item: this._item}}));
+                    new CustomEvent('trash-agenda-item', {detail: {item: this._item}}));
             }.bind(this));
 
         } else if (event.currentTarget === this._restoreAction && event.type === "click") {
-            var url = `/api/meetings/${document.body.meeting.id}/restore-agenda-item`;
-            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
+            micro.call('POST', `/api/meetings/${document.body.meeting.id}/restore-agenda-item`, {
                 item_id: this._item.id
-            })}).then(function(response) {
-                return response.json();
-            }).then(function(error) {
-                // If there is an item_not_found ValueError, the item has already been restored and
-                // we continue as normal to update the UI
+            }).catch(function(e) {
+                // If the item has already been restored, we continue as normal to update the UI
+                if (!(e instanceof micro.APIError && e.error.__type__ === 'ValueError' &&
+                      e.error.code === 'item_not_found')) {
+                    throw e;
+                }
+            }).then(function() {
                 this._item.trashed = false;
                 document.body.dispatchEvent(
-                    new CustomEvent("restore-agenda-item", {detail: {item: this._item}}));
+                    new CustomEvent('restore-agenda-item', {detail: {item: this._item}}));
             }.bind(this));
         }
     }}
@@ -708,27 +704,17 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
                 return;
             }
 
-            var url = "/api/meetings/" + document.body.meeting.id + "/items";
+            var url = `/api/meetings/${document.body.meeting.id}/items`;
             if (this._item) {
-                url = "/api/meetings/" + document.body.meeting.id + "/items/" + this._item.id;
+                url = `/api/meetings/${document.body.meeting.id}/items/${this._item.id}`;
             }
 
-            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
-                title: form.elements["title"].value,
-                duration: form.elements["duration"].value ?
-                    parseInt(form.elements["duration"].value) : null,
-                description: form.elements["description"].value
-            })}).then(function(response) {
-                return response.json();
+            micro.call('POST', url, {
+                title: form.elements['title'].value,
+                duration: form.elements['duration'].value ?
+                    parseInt(form.elements['duration'].value) : null,
+                description: form.elements['description'].value
             }).then(function(item) {
-                if (item.__type__ === "InputError") {
-                    var arg = Object.keys(item.errors)[0];
-                    document.body.notify({
-                        title: {empty: "Title is missing."},
-                        duration: {not_positive: "Duration is not positive."}
-                    }[arg][item.errors[arg]]);
-                    return;
-                }
                 if (this._item) {
                     // In edit mode, update the corresponding meetling-agenda-item
                     this.replaced.item = item;
@@ -736,10 +722,20 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
                     // In create mode, append a new meetling-agenda-item to the list
                     var li = new meetling.AgendaItemElement();
                     li.item = item;
-                    this.parentNode.querySelector(".meetling-meeting-items > ul").appendChild(li);
+                    this.parentNode.querySelector('.meetling-meeting-items > ul').appendChild(li);
                 }
                 this._close();
-            }.bind(this));
+            }.bind(this), function(e) {
+                if (e instanceof micro.APIError && e.error.__type__ === 'InputError') {
+                    var arg = Object.keys(e.error.errors)[0];
+                    document.body.notify({
+                        title: {empty: 'Title is missing.'},
+                        duration: {not_positive: 'Duration is not positive.'}
+                    }[arg][e.error.errors[arg]]);
+                } else {
+                    throw e;
+                }
+            });
 
         } else if (event.currentTarget === cancel) {
             event.preventDefault();

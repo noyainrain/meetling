@@ -116,7 +116,8 @@ meetling.TimeInput = document.registerElement("meetling-time-input",
 meetling.UserElement = document.registerElement("meetling-user",
         {prototype: Object.create(HTMLElement.prototype, {
     createdCallback: {value: function() {
-        meetling.loadTemplate(this, ".meetling-user-template");
+        this.appendChild(document.importNode(
+            document.querySelector('.meetling-user-template').content, true));
         this.classList.add("meetling-user");
         this.user = JSON.parse(this.getAttribute("user"));
     }},
@@ -235,7 +236,8 @@ meetling.Page = document.registerElement("meetling-page",
 meetling.SimpleNotification = document.registerElement("meetling-simple-notification",
         {prototype: Object.create(HTMLElement.prototype, {
     createdCallback: {value: function() {
-        meetling.loadTemplate(this, ".meetling-simple-notification-template");
+        this.appendChild(document.importNode(
+            document.querySelector('.meetling-simple-notification-template').content, true));
         this.classList.add("meetling-notification", "meetling-simple-notification");
         this.querySelector(".meetling-simple-notification-dismiss").addEventListener("click", this);
         this.content = this.querySelector(".meetling-simple-notification-content");
@@ -255,7 +257,8 @@ meetling.SimpleNotification = document.registerElement("meetling-simple-notifica
 meetling.ErrorNotification = document.registerElement("meetling-error-notification",
         {prototype: Object.create(HTMLElement.prototype, {
     createdCallback: {value: function() {
-        meetling.loadTemplate(this, ".meetling-error-notification-template");
+        this.appendChild(document.importNode(
+            document.querySelector('.meetling-error-notification-template').content, true));
         this.classList.add("meetling-notification", "meetling-error-notification");
         this.querySelector(".meetling-error-notification-reload").addEventListener("click", this);
     }},
@@ -458,7 +461,8 @@ meetling.MeetingPage = document.registerElement("meetling-meeting-page",
 
         } else if (event.currentTarget === this._shareAction && event.type === "click") {
             var notification = document.createElement("meetling-simple-notification");
-            meetling.loadTemplate(notification.content, ".meetling-share-notification-template");
+            notification.content.appendChild(document.importNode(
+                document.querySelector('.meetling-share-notification-template').content, true));
             notification.content.querySelector("input").value =
                 `${location.origin}/meetings/${this.meeting.id}`;
             this.notify(notification);
@@ -576,7 +580,8 @@ meetling.EditMeetingPage = document.registerElement("meetling-edit-meeting-page"
 meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
         {extends: "li", prototype: Object.create(HTMLLIElement.prototype, {
     createdCallback: {value: function() {
-        meetling.loadTemplate(this, ".meetling-agenda-item-template");
+        this.appendChild(document.importNode(
+            document.querySelector('.meetling-agenda-item-template').content, true));
         this.classList.add("meetling-agenda-item");
         this.item = JSON.parse(this.getAttribute("item"));
         this._trashAction = this.querySelector(".meetling-agenda-item-trash");
@@ -662,7 +667,8 @@ meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
 meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-editor",
         {extends: "li", prototype: Object.create(HTMLLIElement.prototype, {
     createdCallback: {value: function() {
-        meetling.loadTemplate(this, ".meetling-agenda-item-editor-template");
+        this.appendChild(document.importNode(
+            document.querySelector('.meetling-agenda-item-editor-template').content, true));
         this.classList.add("meetling-agenda-item-editor");
         this.querySelector("form").addEventListener("submit", this);
         this.querySelector(".action-cancel").addEventListener("click", this);
@@ -746,24 +752,3 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
         this.parentNode.removeChild(this);
     }}
 })});
-
-/**
- * Load a template into an element *elem*.
- *
- * The template is retrieved via *selector*. If the template is not found, an :class:`Error`
- * (``template_not_found``) is thrown.
- */
-meetling.loadTemplate = function(elem, selector) {
-    var template = document.querySelector(selector);
-    if (!template) {
-        throw new Error("template_not_found");
-    }
-
-    // NOTE: Use template tags once browser support is sufficient:
-    // elem.appendChild(document.importNode(template.content));
-    var content = document.createDocumentFragment();
-    Array.prototype.forEach.call(template.childNodes, function(child) {
-        content.appendChild(child.cloneNode(true));
-    });
-    elem.appendChild(content);
-};

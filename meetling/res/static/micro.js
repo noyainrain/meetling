@@ -34,7 +34,8 @@ micro.Menu = document.registerElement("micro-menu",
     // is present and at the last position.
 
     createdCallback: {value: function() {
-        meetling.loadTemplate(this, ".micro-menu-template");
+        this.appendChild(document.importNode(document.querySelector('.micro-menu-template').content,
+                                             true));
         this.classList.add("micro-menu");
         this._toggleButton = this.querySelector(".micro-menu-toggle-secondary");
         this._toggleButton.addEventListener("click", this);

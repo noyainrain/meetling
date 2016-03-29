@@ -3,7 +3,7 @@
 {% block page-attrs %}
     is="meetling-edit-meeting-page"
     {% if meeting %}
-        meeting="{{ json_encode(meeting.json()) }}"
+        meeting="{{ json_encode(meeting.json(restricted=True)) }}"
     {% end %}
 {% end %}
 

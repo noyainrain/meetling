@@ -20,7 +20,7 @@
     </head>
 
     <body {% block page-attrs %}is="meetling-page"{% end %}
-          user="{{ json_encode(user.json(exclude_private=True)) }}">
+          user="{{ json_encode(user.json(restricted=True)) }}">
         <header class="meetling-page-header">
             <nav class="meetling-page-inside">
                 <h1>
@@ -34,7 +34,7 @@
 
                 <div class="meetling-page-menu">
                     <button class="link">
-                        <meetling-user user="{{ json_encode(user.json(exclude_private=True)) }}">
+                        <meetling-user user="{{ json_encode(user.json(restricted=True)) }}">
                         </meetling-user>
                     </button>
                     <ul>

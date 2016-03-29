@@ -221,7 +221,7 @@ class Cat(Object, Editable):
         if 'name' in attrs:
             self.name = attrs['name']
 
-    def json(self, include_users=False):
-        json = super().json({'name': self.name})
-        json.update(Editable.json(self, include_users))
+    def json(self, restricted=False, include_users=False):
+        json = super().json(attrs={'name': self.name})
+        json.update(Editable.json(self, restricted=restricted, include_users=include_users))
         return json

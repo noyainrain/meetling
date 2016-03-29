@@ -2,7 +2,7 @@
 
 {% block page-attrs %}
     is="meetling-meeting-page"
-    meeting="{{ json_encode(meeting.json(include_users=True, include_items=True)) }}"
+    meeting="{{ json_encode(meeting.json(restricted=True, include_users=True, include_items=True)) }}"
 {% end %}
 
 {% block page-content %}
@@ -25,7 +25,7 @@
     <p class="meetling-detail">
         edited by
         <meetling-user-listing
-            users="{{ json_encode([a.json(exclude_private=True) for a in meeting.authors]) }}">
+            users="{{ json_encode([a.json(restricted=True) for a in meeting.authors]) }}">
         </meetling-user-listing>
     </p>
 
@@ -36,7 +36,7 @@
                 <ul>
                     {% for item in meeting.items.values() %}
                         <li is="meetling-agenda-item"
-                            item="{{ json_encode(item.json(include_users=True)) }}">
+                            item="{{ json_encode(item.json(restricted=True, include_users=True)) }}">
                         </li>
                     {% end %}
                 </ul>

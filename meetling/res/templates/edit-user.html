@@ -2,7 +2,7 @@
 
 {% block page-attrs %}
     is="meetling-edit-user-page"
-    user-object="{{ json_encode(user_object.json(exclude_private=True)) }}"
+    user-object="{{ json_encode(user_object.json(restricted=True)) }}"
 {% end %}
 
 {% block page-content %}

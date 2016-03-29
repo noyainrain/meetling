@@ -302,7 +302,7 @@ class _LogClientErrorEndpoint(Endpoint):
 class _LoginEndpoint(Endpoint):
     def post(self):
         user = self.app.login()
-        self.write(user.json())
+        self.write(user.json(restricted=True))
 
 class _MeetingsEndpoint(Endpoint):
     def post(self):
@@ -319,26 +319,26 @@ class _MeetingsEndpoint(Endpoint):
                 raise meetling.InputError({'time': 'bad_type'})
 
         meeting = self.app.create_meeting(**args)
-        self.write(meeting.json(include_users=True))
+        self.write(meeting.json(restricted=True, include_users=True))
 
 class _CreateExampleMeetingEndpoint(Endpoint):
     def post(self):
         meeting = self.app.create_example_meeting()
-        self.write(meeting.json(include_users=True))
+        self.write(meeting.json(restricted=True, include_users=True))
 
 class _UserEndpoint(Endpoint):
     def get(self, id):
-        self.write(self.app.users[id].json(exclude_private=True))
+        self.write(self.app.users[id].json(restricted=True))
 
     def post(self, id):
         args = self.check_args({'name': (str, 'opt')})
         user = self.app.users[id]
         user.edit(**args)
-        self.write(user.json(exclude_private=True))
+        self.write(user.json(restricted=True))
 
 class _SettingsEndpoint(Endpoint):
     def get(self):
-        self.write(self.app.settings.json(include_users=True))
+        self.write(self.app.settings.json(restricted=True, include_users=True))
 
     def post(self):
         args = self.check_args({
@@ -348,12 +348,12 @@ class _SettingsEndpoint(Endpoint):
         })
         settings = self.app.settings
         settings.edit(**args)
-        self.write(settings.json(include_users=True))
+        self.write(settings.json(restricted=True, include_users=True))
 
 class _MeetingEndpoint(Endpoint):
     def get(self, id):
         meeting = self.app.meetings[id]
-        self.write(meeting.json(include_users=True))
+        self.write(meeting.json(restricted=True, include_users=True))
 
     def post(self, id):
         args = self.check_args({
@@ -370,13 +370,13 @@ class _MeetingEndpoint(Endpoint):
 
         meeting = self.app.meetings[id]
         meeting.edit(**args)
-        self.write(meeting.json(include_users=True))
+        self.write(meeting.json(restricted=True, include_users=True))
 
 class _MeetingItemsEndpoint(Endpoint):
     def get(self, id, set):
         meeting = self.app.meetings[id]
         items = meeting.trashed_items.values() if set else meeting.items.values()
-        self.write(json.dumps([i.json(include_users=True) for i in items]))
+        self.write(json.dumps([i.json(restricted=True, include_users=True) for i in items]))
 
     def post(self, id, set):
         if set:
@@ -388,7 +388,7 @@ class _MeetingItemsEndpoint(Endpoint):
         })
         meeting = self.app.meetings[id]
         item = meeting.create_agenda_item(**args)
-        self.write(item.json(include_users=True))
+        self.write(item.json(restricted=True, include_users=True))
 
 class _MeetingTrashAgendaItemEndpoint(Endpoint):
     def post(self, id):
@@ -418,7 +418,7 @@ class _AgendaItemEndpoint(Endpoint):
     def get(self, meeting_id, item_id):
         meeting = self.app.meetings[meeting_id]
         item = meeting.items[item_id]
-        self.write(item.json(include_users=True))
+        self.write(item.json(restricted=True, include_users=True))
 
     def post(self, meeting_id, item_id):
         args = self.check_args({
@@ -429,4 +429,4 @@ class _AgendaItemEndpoint(Endpoint):
         meeting = self.app.meetings[meeting_id]
         item = meeting.items[item_id]
         item.edit(**args)
-        self.write(item.json(include_users=True))
+        self.write(item.json(restricted=True, include_users=True))

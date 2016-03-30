@@ -55,6 +55,14 @@ class MeetlingTest(MeetlingTestCase):
         self.assertEqual(self.user, self.app.user)
         self.assertIn(self.staff_member, self.app.settings.staff)
 
+    def test_login_code(self):
+        user = self.app.login(code=self.staff_member.auth_secret)
+        self.assertEqual(user, self.staff_member)
+
+    def test_login_code_invalid(self):
+        with self.assertRaisesRegex(meetling.ValueError, 'code_invalid'):
+            self.app.login(code='foo')
+
     def test_create_meeting(self):
         meeting = self.app.create_meeting('Cat Hangout', description='  ')
         self.assertIn(meeting.id, self.app.meetings)

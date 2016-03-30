@@ -29,11 +29,15 @@ Meetling application.
 
 .. http:post:: /api/login
 
-   Log in a new :ref:`User` (device).
+   ``{"code": null}``
 
-   A new user is created and returned.
+   Log in an :ref:`User` (device) and return them.
 
-   The very first user that logs in is registered as staff member.
+   If *code* is given, log in an existing user with the login *code*. If the login fails, a
+   :exc:`ValueError` (``code_invalid``) is returned.
+
+   If *code* is ``null``, create and log in a new user. The very first user who logs in is
+   registered as staff member.
 
 .. http:post:: /api/meetings
 

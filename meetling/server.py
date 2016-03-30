@@ -301,7 +301,8 @@ class _LogClientErrorEndpoint(Endpoint):
 
 class _LoginEndpoint(Endpoint):
     def post(self):
-        user = self.app.login()
+        args = self.check_args({'code': (str, 'opt')})
+        user = self.app.login(**args)
         self.write(user.json(restricted=True))
 
 class _MeetingsEndpoint(Endpoint):

@@ -141,24 +141,31 @@ class Meetling:
         self.user = self.users[id.decode()]
         return self.user
 
-    def login(self):
+    def login(self, code=None):
         """See :http:post:`/api/login`.
 
-        The new user is set as current *user*.
+        The logged-in user is set as current *user*.
         """
-        id = 'User:' + randstr()
-        user = User(id=id, trashed=False, app=self, authors=[id], name='Guest',
-                    auth_secret=randstr())
-        self.r.oset(user.id, user)
-        self.r.rpush('users', user.id)
-        self.r.hset('auth_secret_map', user.auth_secret, user.id)
+        if code:
+            id = self.r.hget('auth_secret_map', code)
+            if not id:
+                raise ValueError('code_invalid')
+            user = self.users[id.decode()]
 
-        # Promote first user to staff
-        if len(self.users) == 1:
-            settings = self.settings
-            # pylint: disable=protected-access; Settings is a friend
-            settings._staff = [user.id]
-            self.r.oset(settings.id, settings)
+        else:
+            id = 'User:' + randstr()
+            user = User(id=id, trashed=False, app=self, authors=[id], name='Guest',
+                        auth_secret=randstr())
+            self.r.oset(user.id, user)
+            self.r.rpush('users', user.id)
+            self.r.hset('auth_secret_map', user.auth_secret, user.id)
+
+            # Promote first user to staff
+            if len(self.users) == 1:
+                settings = self.settings
+                # pylint: disable=protected-access; Settings is a friend
+                settings._staff = [user.id]
+                self.r.oset(settings.id, settings)
 
         return self.authenticate(user.auth_secret)
 

@@ -42,7 +42,7 @@ def main(args):
     text = [
         'To log in as staff member, visit:',
         '',
-        'http://localhost:8080/?login={}'.format(staff_member.auth_secret),
+        'http://localhost:8080/#login={}'.format(staff_member.auth_secret),
         '',
         'Meetings:',
         ''

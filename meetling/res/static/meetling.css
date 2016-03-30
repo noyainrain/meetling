@@ -374,16 +374,9 @@ label > small + small {
     color: #888;
 }
 
-/* ---- Page ---- */
+/* ---- UI ---- */
 
-.meetling-page-inside {
-    box-sizing: content-box;
-    max-width: 70ch;
-    padding: 0 1.5rem;
-    margin: 0 auto;
-}
-
-.meetling-page-header {
+.micro-ui-header {
     position: fixed;
     top: 0;
     left: 0;
@@ -393,38 +386,42 @@ label > small + small {
     background: #fff;
 }
 
-.meetling-page-header nav {
+.micro-ui-header nav {
     display: flex;
     white-space: nowrap;
 }
 
-.meetling-page-header nav h1 {
+.meetling-ui-logo {
     margin: 0;
     font-size: 1rem;
 }
 
-.meetling-page-header nav h1 .link {
+.meetling-ui-logo .link {
     display: block;
     padding: calc(0.25 * 1.5em) 0;
 }
 
-.meetling-page-header nav h1 img {
+.meetling-ui-logo img {
     vertical-align: middle;
 }
 
-.meetling-page-beta {
+.meetling-ui-beta {
     color: #888;
     font-size: 0.875rem;
     text-transform: uppercase;
 }
 
-.meetling-page-header-fill {
+.meetling-ui-header-fill {
     flex: auto;
     min-width: calc(0.25 * 1.5rem);
 }
 
 main {
     padding-top: calc(1.5 * 1.5rem);
+}
+
+.micro-ui-progress {
+    color: #4d8dd9;
 }
 
 /* ---- Notification ---- */
@@ -435,11 +432,11 @@ main {
     border-top: 1px solid #ddd;
 }
 
-.meetling-notification .meetling-page-inside > :first-child {
+.meetling-notification .micro-ui-inside > :first-child {
     margin-top: 0;
 }
 
-.meetling-notification .meetling-page-inside > :last-child {
+.meetling-notification .micro-ui-inside > :last-child {
     margin-bottom: 0;
 }
 
@@ -455,19 +452,19 @@ main {
     color: red;
 }
 
-/* ---- PageMenu ---- */
+/* ---- UIMenu ---- */
 
-.meetling-page-menu {
+.meetling-ui-menu {
     position: relative;
     border-left: 1px solid #ddd;
 }
 
-.meetling-page-menu:last-child {
+.meetling-ui-menu:last-child {
     border-right: 1px solid #ddd;
 }
 
-.meetling-page-menu .link,
-.meetling-page-menu .action {
+.meetling-ui-menu .link,
+.meetling-ui-menu .action {
     display: block;
     padding: calc(0.25 * 1.5em);
     border: none;
@@ -476,29 +473,29 @@ main {
     line-height: 1.5;
 }
 
-.meetling-page-menu .link:hover,
-.meetling-page-menu .action:hover {
+.meetling-ui-menu .link:hover,
+.meetling-ui-menu .action:hover {
     background: #ddd;
     text-decoration: none;
 }
 
-.meetling-page-menu .action {
+.meetling-ui-menu .action {
     color: #4d8dd9;
 }
 
-.meetling-page-menu > .link {
+.meetling-ui-menu > .link {
     color: inherit;
 }
 
-.meetling-page-menu:hover > .link {
+.meetling-ui-menu:hover > .link {
     background: #ddd;
 }
 
-.meetling-page-menu > .link i {
+.meetling-ui-menu > .link i {
     color: #888;
 }
 
-.meetling-page-menu ul {
+.meetling-ui-menu ul {
     display: none;
     position: absolute;
     right: 0;
@@ -509,11 +506,11 @@ main {
     list-style: none;
 }
 
-.meetling-page-menu:hover ul {
+.meetling-ui-menu:hover ul {
     display: block;
 }
 
-.meetling-page-menu li {
+.meetling-ui-menu li {
     border-top: 1px solid #ddd;
 }
 

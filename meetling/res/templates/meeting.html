@@ -1,45 +1,26 @@
-{% extends 'page.html' %}
-
-{% block page-attrs %}
-    is="meetling-meeting-page"
-    meeting="{{ json_encode(meeting.json(restricted=True, include_users=True, include_items=True)) }}"
-{% end %}
-
-{% block page-content %}
-    <h1>{{ meeting.title }}</h1>
+<template class="meetling-meeting-page-template">
+    <h1></h1>
 
     <ul class="meetling-meeting-meta">
-        {% if meeting.time %}
-            <li title="Time">
-                <i class="fa fa-fw fa-calendar"></i>
-                <time datetime="{{ meeting.time.isoformat() + 'Z' }}"></time>
-            </li>
-        {% end %}
-        {% if meeting.location %}
-            <li title="Location"><i class="fa fa-fw fa-map-marker"></i> {{ meeting.location }}</li>
-        {% end %}
+        <li class="meetling-meeting-time" title="Time">
+            <i class="fa fa-fw fa-calendar"></i> <time></time>
+        </li>
+        <li class="meetling-meeting-location" title="Location">
+            <i class="fa fa-fw fa-map-marker"></i> <span></span>
+        </li>
     </ul>
 
-    <p class="micro-multiline">{{ meeting.description or '' }}</p>
+    <p class="micro-multiline"></p>
 
     <p class="meetling-detail">
-        edited by
-        <meetling-user-listing
-            users="{{ json_encode([a.json(restricted=True) for a in meeting.authors]) }}">
-        </meetling-user-listing>
+        edited by <meetling-user-listing></meetling-user-listing>
     </p>
 
     <section class="meetling-meeting-agenda">
         <h1>Agenda</h1>
         <ul>
             <li class="meetling-meeting-items micro-lgroup">
-                <ul>
-                    {% for item in meeting.items.values() %}
-                        <li is="meetling-agenda-item"
-                            item="{{ json_encode(item.json(restricted=True, include_users=True)) }}">
-                        </li>
-                    {% end %}
-                </ul>
+                <ul></ul>
             </li>
             <li class="meetling-meeting-trashed-items-cover">
                 <span data-text="There is one trashed item.|There are {n} trashed items."></span>
@@ -71,11 +52,11 @@
             <button class="meetling-meeting-share action">
                 <i class="fa fa-envelope"></i> Share
             </button>
-            <a class="action" href="/meetings/{{ meeting.id }}/edit">
+            <a class="meetling-meeting-edit action">
                 <i class="fa fa-pencil"></i> Edit
             </a>
         </micro-menu>
-    <section>
+    </section>
 
     <div class="templates">
         <template class="meetling-agenda-item-template">
@@ -113,13 +94,12 @@
                 <h1>New Agenda Item</h1>
                 <form novalidate="novalidate">
                     <label>
-                        <input name="title"></input>
+                        <input name="title" />
                         <small>Title</small>
                     </label>
                     <label>
                         <input type="number" name="duration" min="-9007199254740991"
-                               max="9007199254740991">
-                        </input>
+                               max="9007199254740991" />
                         <small>Duration (optional)</small>
                         <small>
                             How long does this agenda item take in minutes? An estimate is fine
@@ -143,7 +123,7 @@
                 To share the meeting, simply give this link to the other participants:
             </p>
             <label>
-                <input readonly="readonly"></input>
+                <input readonly="readonly" />
                 <small>Share link</small>
             </label>
             <p>
@@ -154,4 +134,4 @@
             </p>
         </template>
     </div>
-{% end %}
+</template>

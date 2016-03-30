@@ -1,21 +1,17 @@
-{% extends 'page.html' %}
-
-{% block page-attrs %}is="meetling-edit-settings-page"{% end %}
-
-{% block page-content %}
+<template class="meetling-edit-settings-page-template">
     <h1>Edit site settings</h1>
     <form class="meetling-edit-settings-edit" novalidate="novalidate">
         <label>
-            <input name="title" value="{{ settings.title }}" autofocus="autofocus" />
+            <input name="title" />
             <small>Title</small>
         </label>
         <label>
-            <input name="icon" type="url" value="{{ settings.icon or '' }}" />
+            <input name="icon" type="url" />
             <small>Icon (optional)</small>
             <small>URL of the site icon.</small>
         </label>
         <label>
-            <input name="favicon" type="url" value="{{ settings.favicon or '' }}" />
+            <input name="favicon" type="url" />
             <small>Favicon (optional)</small>
             <small>URL of the site icon optimized for a small size.</small>
         </label>
@@ -24,4 +20,4 @@
             <a class="action action-cancel" href="/">Cancel</a>
         </p>
     </form>
-{% end %}
+</template>

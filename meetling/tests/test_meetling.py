@@ -46,7 +46,7 @@ class MeetlingTest(MeetlingTestCase):
         self.assertEqual(user, self.app.user)
 
     def test_authenticate_secret_invalid(self):
-        with self.assertRaisesRegex(meetling.ValueError, 'secret_invalid'):
+        with self.assertRaises(meetling.AuthenticationError):
             self.app.authenticate('foo')
 
     def test_login(self):

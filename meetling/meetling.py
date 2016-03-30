@@ -132,12 +132,12 @@ class Meetling:
     def authenticate(self, secret):
         """Authenticate an :class:`User` (device) with *secret*.
 
-        The identified user is set as current *user* and returned. If the authentication fails, a
-        :exc:`ValueError` (``secret_invalid``) is raised.
+        The identified user is set as current *user* and returned. If the authentication fails, an
+        :exc:`AuthenticationError` is raised.
         """
         id = self.r.hget('auth_secret_map', secret)
         if not id:
-            raise ValueError('secret_invalid')
+            raise AuthenticationError()
         self.user = self.users[id.decode()]
         return self.user
 
@@ -288,9 +288,10 @@ class Editable:
     def do_edit(self, **attrs):
         """Subclass API: Perform the edit operation.
 
-        More precisely, validate and then set the given *attrs*. Called by :meth:`edit`, which takes
-        care of basic permission checking, managing *authors* and storing the updated object in the
-        database.
+        More precisely, validate and then set the given *attrs*.
+
+        Must be overridden by host. Called by :meth:`edit`, which takes care of basic permission
+        checking, managing *authors* and storing the updated object in the database.
         """
         raise NotImplementedError()
 
@@ -540,6 +541,10 @@ class InputError(ValueError):
         """
         if self.errors:
             raise self
+
+class AuthenticationError(Exception):
+    """See :ref:`AuthenticationError`."""
+    pass
 
 class PermissionError(Exception):
     """See :ref:`PermissionError`."""

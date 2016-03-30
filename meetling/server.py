@@ -63,14 +63,9 @@ class MeetlingServer(HTTPServer):
     def __init__(self, port=8080, debug=False, **args):
         handlers = [
             # UI
-            (r'/$', _StartPage),
-            (r'/about$', _AboutPage),
-            (r'/create-meeting$', _EditMeetingPage),
-            (r'/users/([^/]+)/edit$', _EditUserPage),
-            (r'/settings/edit$', _EditSettingsPage),
-            (r'/meetings/([^/]+)$', _MeetingPage),
-            (r'/meetings/([^/]+)/edit$', _EditMeetingPage),
             (r'/log-client-error$', _LogClientErrorEndpoint),
+            (r'/replace-auth$', _ReplaceAuthEndpoint),
+            (r'/(?!api/).*$', _UI),
             # API
             (r'/api/login$', _LoginEndpoint),
             (r'/api/meetings$', _MeetingsEndpoint),
@@ -99,8 +94,12 @@ class MeetlingServer(HTTPServer):
         self.listen(self.port)
         IOLoop.instance().start()
 
-class Resource(RequestHandler):
-    """Web resource.
+class _UI(RequestHandler):
+    def get(self):
+        return self.render('page.html')
+
+class Endpoint(RequestHandler):
+    """JSON REST API endpoint.
 
     .. attribute:: server
 
@@ -109,49 +108,6 @@ class Resource(RequestHandler):
     .. attribute:: app
 
        :class:`Meetling` application.
-    """
-
-    def initialize(self):
-        self.server = self.application.settings['server']
-        self.app = self.server.app
-
-    def prepare(self):
-        self.app.user = None
-        auth_secret = self.get_cookie('auth_secret')
-        if auth_secret:
-            try:
-                self.app.authenticate(auth_secret)
-            except meetling.ValueError:
-                # Ignore invalid authentication secrets
-                pass
-
-class Page(Resource):
-    """Web page."""
-
-    def prepare(self):
-        super().prepare()
-
-        # If requested, log in with code
-        login_code = self.get_query_argument('login', None)
-        if login_code:
-            try:
-                user = self.app.authenticate(login_code)
-            except meetling.ValueError:
-                # Ignore invalid login codes
-                pass
-            else:
-                self.set_cookie('auth_secret', user.auth_secret, expires_days=360, httponly=True)
-
-        # If not authenticated yet, log in a new user
-        if not self.app.user:
-            user = self.app.login()
-            self.set_cookie('auth_secret', user.auth_secret, expires_days=360, httponly=True)
-
-    def get_template_namespace(self):
-        return {'user': self.app.user, 'settings': self.app.settings}
-
-class Endpoint(Resource):
-    """JSON REST API endpoint.
 
     .. attribute:: args
 
@@ -159,11 +115,16 @@ class Endpoint(Resource):
     """
 
     def initialize(self):
-        super().initialize()
+        self.server = self.application.settings['server']
+        self.app = self.server.app
         self.args = {}
 
     def prepare(self):
-        super().prepare()
+        self.app.user = None
+        auth_secret = self.get_cookie('auth_secret')
+        if auth_secret:
+            self.app.authenticate(auth_secret)
+
         if self.request.body:
             try:
                 self.args = json.loads(self.request.body.decode())
@@ -173,7 +134,16 @@ class Endpoint(Resource):
                 raise HTTPError(http.client.BAD_REQUEST)
 
     def write_error(self, status_code, exc_info):
-        if issubclass(exc_info[0], meetling.InputError):
+        if issubclass(exc_info[0], KeyError):
+            self.set_status(http.client.NOT_FOUND)
+            self.write({'__type__': 'NotFoundError'})
+        elif issubclass(exc_info[0], meetling.AuthenticationError):
+            self.set_status(http.client.BAD_REQUEST)
+            self.write({'__type__': exc_info[0].__name__})
+        elif issubclass(exc_info[0], meetling.PermissionError):
+            self.set_status(http.client.FORBIDDEN)
+            self.write({'__type__': exc_info[0].__name__})
+        elif issubclass(exc_info[0], meetling.InputError):
             self.set_status(http.client.BAD_REQUEST)
             self.write({
                 '__type__': exc_info[0].__name__,
@@ -183,17 +153,13 @@ class Endpoint(Resource):
         elif issubclass(exc_info[0], meetling.ValueError):
             self.set_status(http.client.BAD_REQUEST)
             self.write({'__type__': exc_info[0].__name__, 'code': exc_info[1].code})
-        elif issubclass(exc_info[0], meetling.PermissionError):
-            self.set_status(http.client.FORBIDDEN)
-            self.write({'__type__': exc_info[0].__name__})
         else:
-            status_code = {KeyError: http.client.NOT_FOUND}.get(exc_info[0], status_code)
-            self.set_status(status_code)
             super().write_error(status_code, exc_info=exc_info)
 
     def log_exception(self, typ, value, tb):
         # These errors are handled specially and there is no need to log them as exceptions
-        if issubclass(typ, (meetling.ValueError, meetling.PermissionError, KeyError)):
+        if issubclass(typ, (KeyError, meetling.AuthenticationError, meetling.PermissionError,
+                            meetling.ValueError)):
             return
         super().log_exception(typ, value, tb)
 
@@ -234,44 +200,6 @@ class Endpoint(Resource):
 
         return args
 
-class _StartPage(Page):
-    def get(self):
-        self.render('start.html')
-
-class _AboutPage(Page):
-    def get(self):
-        self.render('about.html')
-
-class _EditUserPage(Page):
-    def get(self, id):
-        try:
-            user_object = self.app.users[id]
-        except KeyError:
-            raise HTTPError(http.client.NOT_FOUND)
-        if self.app.user != user_object:
-            raise HTTPError(http.client.FORBIDDEN)
-        self.render('edit-user.html', user_object=user_object)
-
-class _EditSettingsPage(Page):
-    def get(self):
-        self.render('edit-settings.html')
-
-class _MeetingPage(Page):
-    def get(self, id):
-        try:
-            meeting = self.app.meetings[id]
-        except KeyError:
-            raise HTTPError(http.client.NOT_FOUND)
-        self.render('meeting.html', meeting=meeting)
-
-class _EditMeetingPage(Page):
-    def get(self, id=None):
-        try:
-            meeting = self.app.meetings[id] if id else None
-        except KeyError:
-            raise HTTPError(http.client.NOT_FOUND)
-        self.render('edit-meeting.html', meeting=meeting)
-
 class _LogClientErrorEndpoint(Endpoint):
     def post(self):
         if not self.app.user:
@@ -298,6 +226,21 @@ class _LogClientErrorEndpoint(Endpoint):
             _CLIENT_ERROR_LOG_TEMPLATE, args['type'], message_part, args['stack'].strip(),
             args['url'], self.app.user.name, self.app.user.id,
             self.request.headers.get('user-agent', '-'))
+
+class _ReplaceAuthEndpoint(RequestHandler):
+    # Compatibility for server side authentication (obsolete since 0.10.0)
+
+    def post(self):
+        app = self.application.settings['server'].app
+        app.user = None
+        auth_secret = self.get_cookie('auth_secret')
+        if auth_secret:
+            try:
+                app.authenticate(auth_secret)
+            except meetling.AuthenticationError:
+                pass
+            self.clear_cookie('auth_secret')
+        self.write(app.user.json(restricted=True) if app.user else 'null')
 
 class _LoginEndpoint(Endpoint):
     def post(self):

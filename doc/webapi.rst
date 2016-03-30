@@ -9,7 +9,8 @@ Meetling provides a JSON REST API.
 Arguments are passed to an endpoint simply as JSON object and the result is returned as JSON value.
 *Objects* contain a ``__type__`` attribute that holds the name of the object type.
 
-For any endpoint an :ref:`InputError` is returned if the input contains invalid arguments.
+If a requested endpoint doesn't exist, a :ref:`NotFoundError` is returned. For any endpoint, an
+:ref:`InputError` is returned if the input contains invalid arguments.
 
 Authentication and Permissions
 ------------------------------
@@ -17,8 +18,9 @@ Authentication and Permissions
 To make an API request authenticated as some user, include a cookie named ``auth_secret`` with the
 :ref:`User` 's *auth_secret*.
 
-For any endpoint an :ref:`PermissionError` is returned if the current user is not allowed to perform
-the action.
+If user authentication with the given secret fails, an :ref:`AuthenticationError` is returned. For
+any endpoint, a :ref:`PermissionError` is returned if the current user is not allowed to perform the
+action.
 
 .. _Meetling:
 
@@ -258,6 +260,20 @@ InputError is a :ref:`ValueError` with *code* set to ``input_invalid``.
 .. attribute:: errors
 
    Map of argument names / error strings for every problematic argument of the input.
+
+.. _NotFoundError:
+
+NotFoundError
+-------------
+
+Returned if a requested endpoint does not exist.
+
+.. _AuthenticationError:
+
+AuthenticationError
+-------------------
+
+Returned if user authentication fails.
 
 .. _PermissionError:
 

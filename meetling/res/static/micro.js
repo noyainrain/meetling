@@ -79,6 +79,159 @@ micro.call = function(method, url, args) {
 };
 
 /**
+ * User interface of a micro app.
+ *
+ * At the core of the UI are pages, where any page has a corresponding (shareable and bookmarkable)
+ * URL. The UI takes care of user navigation.
+ *
+ * .. attribute:: page
+ *
+ *    The current page. May be ``null``.
+ *
+ * .. attribute:: pages
+ *
+ *    Subclass API: Table of available pages.
+ *
+ *    It is a list of objects with the attributes *url* and *page*, where *page* is the page to show
+ *    if the requested URL matches the regular expression pattern *url*.
+ *
+ *    *page* is either an element name or a function. If it is an element name, the element is
+ *    created and used as page. If it is a function, it has the form *page(url)* and is responsible
+ *    to prepare and return a page element. *url* is the requested URL. Groups captured from the URL
+ *    pattern are passed as additional arguments. The function may return a promise.
+ *
+ *    May be set by subclass in :meth:`init`. Defaults to ``[]``.
+ */
+micro.UI = document.registerElement('micro-ui',
+        {extends: 'body', prototype: Object.create(HTMLBodyElement.prototype, {
+    createdCallback: {value: function() {
+        this.page = null;
+        this.pages = [];
+
+        this._progressElem = this.querySelector('.micro-ui-progress');
+        this._pageSpace = this.querySelector('main .micro-ui-inside');
+
+        this.addEventListener('click', this);
+        window.addEventListener('popstate', this);
+
+        // Register UI as global
+        ui = this;
+
+        // Go!
+        this._progressElem.style.display = 'block';
+        Promise.resolve(this.update()).then(function() {
+            return this.init();
+        }.bind(this)).then(function() {
+            this.querySelector('.micro-ui-header').style.display = 'block';
+            return this._route(location.pathname);
+        }.bind(this));
+    }},
+
+    /**
+     * Subclass API: Update the UI storage.
+     *
+     * If the storage is fresh, it will be initialized. If the storage is already up-to-date,
+     * nothing will be done.
+     *
+     * May return a promise. Note that the UI is not available to the user before the promise
+     * resolves.
+     *
+     * May be overridden by subclass. The default implementation does nothing. Called on startup.
+     */
+    update: {value: function() {}},
+
+    /**
+     * Subclass API: Initialize the UI.
+     *
+     * May return a promise. Note that the UI is not available to the user before the promise
+     * resolves.
+     *
+     * May be overridden by subclass. The default implementation does nothing. Called on startup.
+     */
+    init: {value: function() {}},
+
+    /**
+     * Navigate to the given *url*.
+     */
+    navigate: {value: function(url) {
+        history.pushState(null, null, url);
+        this._route(url);
+    }},
+
+    _open: {value: function(page) {
+        this._close();
+        this._pageSpace.appendChild(page);
+        this.page = page;
+    }},
+
+    _close: {value: function() {
+        if (this.page) {
+            this._pageSpace.removeChild(this.page);
+            this.page = null;
+        }
+    }},
+
+    _route: {value: function(url) {
+        this._close();
+        this._progressElem.style.display = 'block';
+
+        var match = null;
+        var route = null;
+        for (route of this.pages) {
+            match = new RegExp(route.url).exec(url);
+            if (match) {
+                break;
+            }
+        }
+
+        return Promise.resolve().then(function() {
+            if (!match) {
+                return document.createElement('micro-not-found-page');
+            }
+
+            if (typeof route.page === 'string') {
+                return document.createElement(route.page);
+            } else {
+                var args = [url].concat(match.slice(1));
+                return Promise.resolve(route.page.apply(null, args)).catch(function(e) {
+                    if (e instanceof micro.APIError) {
+                        switch(e.error.__type__) {
+                        case 'NotFoundError':
+                            return document.createElement('micro-not-found-page');
+                        case 'PermissionError':
+                            return document.createElement('micro-forbidden-page');
+                        }
+                    }
+                    throw e;
+                });
+            }
+        }).then(function(page) {
+            this._progressElem.style.display = 'none';
+            this._open(page);
+        }.bind(this));
+    }},
+
+    handleEvent: {value: function(event) {
+        if (event.type === 'click') {
+            // parentElement may be null if an element is detached from the DOM by a previous click
+            // handler
+            for (var e = event.target; e && e !== this; e = e.parentElement) {
+                if (e instanceof HTMLAnchorElement) {
+                    if (e.origin === location.origin) {
+                        event.preventDefault();
+                        this.navigate(e.pathname);
+                    }
+                    break;
+                }
+            }
+
+        } else if (event.target === window && event.type === 'popstate') {
+            this._route(location.pathname);
+        }
+    }}
+})});
+
+/**
  * Simple menu for (typically) actions and/or links.
  *
  * Secondary items, marked with the ``micro-menu-secondary`` class, are hidden by default and can be
@@ -112,5 +265,27 @@ micro.Menu = document.registerElement("micro-menu",
             this.classList.toggle("micro-menu-secondary-visible");
             this._update();
         }
+    }}
+})});
+
+/**
+ * Not found page.
+ */
+micro.NotFoundPage = document.registerElement('micro-not-found-page',
+        {prototype: Object.create(HTMLElement.prototype, {
+    createdCallback: {value: function() {
+        this.appendChild(document.importNode(
+            ui.querySelector('.micro-not-found-page-template').content, true));
+    }}
+})});
+
+/**
+ * Forbidden page.
+ */
+micro.ForbiddenPage = document.registerElement('micro-forbidden-page',
+        {prototype: Object.create(HTMLElement.prototype, {
+    createdCallback: {value: function() {
+        this.appendChild(document.importNode(
+            ui.querySelector('.micro-forbidden-page-template').content, true));
     }}
 })});

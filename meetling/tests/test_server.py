@@ -51,15 +51,10 @@ class MeetlingServerTest(AsyncTestCase):
     def test_availability(self):
         # UI
         yield self.request('/')
-        yield self.request('/about')
-        yield self.request('/create-meeting')
-        yield self.request('/users/{}/edit'.format(self.user.id))
-        yield self.request('/settings/edit')
-        yield self.request('/meetings/' + self.meeting.id)
-        yield self.request('/meetings/{}/edit'.format(self.meeting.id))
         yield self.request(
             '/log-client-error', method='POST',
             body='{"type": "Error", "stack": "meetling.Page.prototype.createdCallback", "url": "/"}')
+        yield self.request('/replace-auth', method='POST', body='')
 
         # API
         now = datetime.utcnow()

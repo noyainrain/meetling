@@ -1,14 +1,7 @@
-{% extends 'page.html' %}
-
-{% block page-attrs %}is="meetling-start-page"{% end %}
-
-{% block page-content %}
+<template class="meetling-start-page-template">
     <div class="meetling-start-intro">
         <h1 class="meetling-logo" href="/">
-            <a class="link">
-                {% if settings.icon %}<img src="{{ settings.icon }}" />{% end %}
-                {{ settings.title }}
-            </a>
+            <a class="link"><img /><span></span></a>
         </h1>
         <p class="meetling-start-slogan">Prepare meetings together</p>
         <p class="meetling-start-description">
@@ -27,4 +20,4 @@
             </button>
         </p>
     </div>
-{% end %}
+</template>

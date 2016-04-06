@@ -1,18 +1,8 @@
-{% extends 'page.html' %}
-
-{% block page-attrs %}
-    is="meetling-edit-meeting-page"
-    {% if meeting %}
-        meeting="{{ json_encode(meeting.json()) }}"
-    {% end %}
-{% end %}
-
-{% block page-content %}
-    <h1>{{ 'Edit ' + meeting.title if meeting else 'New Meeting' }}</h1>
+<template class="meetling-edit-meeting-page-template">
+    <h1></h1>
     <form class="meetling-edit-meeting-edit" novalidate="novalidate">
         <label>
-            <input name="title" value="{{ meeting.title if meeting else '' }}"
-                   autofocus="autofocus" />
+            <input name="title" />
             <small>Title</small>
         </label>
         <label>
@@ -27,20 +17,17 @@
             </small>
         </label>
         <label>
-            <input name="location" value="{{ meeting.location or '' if meeting else ''}}" />
+            <input name="location" />
             <small>Location (optional)</small>
             <small>Where does the meeting take place?</small>
         </label>
         <label>
-            <textarea name="description">{{ meeting.description or '' if meeting else '' }}</textarea>
+            <textarea name="description"></textarea>
             <small>Description (optional)</small>
         </label>
         <p class="actions">
             <button class="action"><i class="fa fa-check-circle"></i> Done</button>
-            <a class="action action-cancel"
-               href="{{ '/meetings/' + meeting.id if meeting else '/' }}">
-                Cancel
-            </a>
+            <a class="action action-cancel">Cancel</a>
         </p>
     </form>
-{% end %}
+</template>

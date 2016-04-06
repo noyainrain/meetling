@@ -116,9 +116,10 @@ meetling.TimeInput = document.registerElement("meetling-time-input",
 meetling.UserElement = document.registerElement("meetling-user",
         {prototype: Object.create(HTMLElement.prototype, {
     createdCallback: {value: function() {
-        meetling.loadTemplate(this, ".meetling-user-template");
+        this._user = null;
+        this.appendChild(document.importNode(
+            document.querySelector('.meetling-user-template').content, true));
         this.classList.add("meetling-user");
-        this.user = JSON.parse(this.getAttribute("user"));
     }},
 
     user: {
@@ -146,8 +147,8 @@ meetling.UserElement = document.registerElement("meetling-user",
 meetling.UserListingElement = document.registerElement("meetling-user-listing",
         {prototype: Object.create(HTMLElement.prototype, {
     createdCallback: {value: function() {
+        this._users = [];
         this.classList.add("meetling-user-listing");
-        this.users = JSON.parse(this.getAttribute("users")) || [];
     }},
 
     users: {
@@ -171,18 +172,104 @@ meetling.UserListingElement = document.registerElement("meetling-user-listing",
 })});
 
 /**
- * Meetling page.
+ * Meetling UI.
  *
  * .. attribute:: user
  *
- *    Current :ref:`User`. Initialized from the JSON value of the corresponding HTML attribute.
+ *    Current :ref:`User`.
+ *
+ * .. attribute:: settings
+ *
+ *    App :ref:`Settings`.
  */
-meetling.Page = document.registerElement("meetling-page",
-        {extends: "body", prototype: Object.create(HTMLBodyElement.prototype, {
-    createdCallback: {value: function() {
-        window.addEventListener("error", this);
-        this.user = JSON.parse(this.getAttribute("user"));
+meetling.UI = document.registerElement('meetling-ui',
+        {extends: 'body', prototype: Object.create(micro.UI.prototype, {
+    update: {value: function() {
+        var version = localStorage.version || null;
+        if (!version) {
+            // Compatibility for server side authentication (obsolete since 0.10.0)
+            return micro.call('POST', '/replace-auth').then(function(user) {
+                this._storeUser(user);
+                localStorage.version = 1;
+            }.bind(this));
+        }
     }},
+
+    init: {value: function() {
+        this.user = JSON.parse(localStorage.user);
+        this.settings = null;
+
+        this.pages = [
+            {url: '^/$', page: 'meetling-start-page'},
+            {url: '^/about$', page: 'meetling-about-page'},
+            {url: '^/create-meeting$', page: 'meetling-edit-meeting-page'},
+            {url: '^/users/([^/]+)/edit$', page: this._makeEditUserPage.bind(this)},
+            {url: '^/settings/edit$', page: this._makeEditSettingsPage.bind(this)},
+            {url: '^/meetings/([^/]+)$', page: this._makeMeetingPage.bind(this)},
+            {url: '^/meetings/([^/]+)/edit$', page: this._makeEditMeetingPage.bind(this)}
+        ];
+
+        window.addEventListener('error', this);
+        this.addEventListener('user-edit', this);
+        this.addEventListener('settings-edit', this);
+
+        return Promise.resolve().then(function() {
+            // If requested, log in with code
+            var match = /^#login=(.+)$/.exec(location.hash);
+            if (match) {
+                history.replaceState(null, null, location.pathname);
+                return micro.call('POST', '/api/login', {
+                    code: match[1]
+                }).then(this._storeUser.bind(this), function(e) {
+                    // Ignore invalid login codes
+                    if (!(e instanceof micro.APIError)) {
+                        throw e;
+                    }
+                });
+            }
+
+        }.bind(this)).then(function() {
+            // If not logged in (yet), log in as a new user
+            if (!this.user) {
+                return micro.call('POST', '/api/login').then(this._storeUser.bind(this));
+            }
+
+        }.bind(this)).then(function() {
+            return micro.call('GET', '/api/settings');
+
+        }).then(function(settings) {
+            this.settings = settings;
+            this._update();
+
+            // Update the user details
+            micro.call('GET', `/api/users/${this.user.id}`).then(function(user) {
+                this.dispatchEvent(new CustomEvent('user-edit', {detail: {user: user}}));
+            }.bind(this));
+
+        }.bind(this)).catch(function(e) {
+            // Authentication errors are a corner case and happen only if a) the user has deleted
+            // their account on another device or b) the database has been reset (during
+            // development)
+            // TODO: Move to global error handling once unhandledrejection and ErrorEvent.error are
+            // available in supported browsers
+            if (e instanceof micro.APIError && e.error.__type__ === 'AuthenticationError') {
+                this._storeUser(null);
+                location.reload()
+            } else {
+                throw e;
+            }
+        }.bind(this));
+    }},
+
+    /**
+     * Is the current :attr:`user` a staff member?
+     */
+    staff: {
+        get: function() {
+            return this.settings.staff.map(function(s) { return s.id; }).indexOf(this.user.id) !=
+                   -1;
+        }
+    },
 
     /**
      * Show a *notification* to the user.
@@ -199,12 +286,78 @@ meetling.Page = document.registerElement("meetling-page",
             notification = elem;
         }
 
-        var space = this.querySelector(".meetling-page-notification-space");
+        var space = this.querySelector('.meetling-ui-notification-space');
         space.textContent = "";
         space.appendChild(notification);
     }},
 
+    _update: {value: function() {
+        document.title = this.settings.title;
+        this.querySelector('.meetling-ui-logo-text').textContent = this.settings.title;
+        var img = this.querySelector('.meetling-ui-logo img');
+        if (this.settings.favicon) {
+            document.querySelector('link[rel="icon"]').href = this.settings.favicon;
+            img.src = this.settings.favicon;
+            img.style.display = '';
+        } else {
+            img.style.display = 'none';
+        }
+
+        this.querySelector('.micro-ui-header meetling-user').user = this.user;
+        this.querySelector('.meetling-ui-edit-user .action').href = `/users/${this.user.id}/edit`;
+
+        this.querySelector('.meetling-ui-edit-settings').style.display = this.staff ? '' : 'none';
+    }},
+
+    _storeUser: {value: function(user) {
+        this.user = user;
+        if (user) {
+            localStorage.user = JSON.stringify(user);
+            document.cookie =
+                `auth_secret=${user.auth_secret}; path=/; max-age=${360 * 24 * 60 * 60}`;
+        } else {
+            localStorage.user = null;
+            document.cookie = 'auth_secret=; path=/; max-age=0';
+        }
+    }},
+
+    _makeEditUserPage: {value: function(url, id) {
+        return micro.call('GET', `/api/users/${id}`).then(function(user) {
+            if (!(this.user.id === user.id)) {
+                return document.createElement('micro-forbidden-page');
+            }
+            var page = document.createElement('meetling-edit-user-page');
+            page.user = user;
+            return page;
+        }.bind(this));
+    }},
+
+    _makeEditSettingsPage: {value: function(url) {
+        if (!this.staff) {
+            return document.createElement('micro-forbidden-page');
+        }
+        return document.createElement('meetling-edit-settings-page');
+    }},
+
+    _makeMeetingPage: {value: function(url, id) {
+        return micro.call('GET', `/api/meetings/${id}`).then(function(meeting) {
+            var page = document.createElement('meetling-meeting-page');
+            page.meeting = meeting;
+            return page;
+        });
+    }},
+
+    _makeEditMeetingPage: {value: function(url, id) {
+        return micro.call('GET', `/api/meetings/${id}`).then(function(meeting) {
+            var page = document.createElement('meetling-edit-meeting-page');
+            page.meeting = meeting;
+            return page;
+        });
+    }},
+
     handleEvent: {value: function(event) {
+        micro.UI.prototype.handleEvent.call(this, event);
+
         if (event.currentTarget === window && event.type === "error") {
             this.notify(document.createElement("meetling-error-notification"));
 
@@ -218,13 +371,20 @@ meetling.Page = document.registerElement("meetling-page",
                 message = event.error.message;
             }
 
-            var url = "/log-client-error";
-            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
+            micro.call('POST', '/log-client-error', {
                 type: type,
                 stack: stack,
                 url: location.pathname,
                 message: message
-            })});
+            });
+
+        } else if (event.target === this && event.type === 'user-edit') {
+            this._storeUser(event.detail.user);
+            this._update();
+
+        } else if (event.target === this && event.type === 'settings-edit') {
+            this.settings = event.detail.settings;
+            this._update();
         }
     }}
 })});
@@ -235,7 +395,8 @@ meetling.Page = document.registerElement("meetling-page",
 meetling.SimpleNotification = document.registerElement("meetling-simple-notification",
         {prototype: Object.create(HTMLElement.prototype, {
     createdCallback: {value: function() {
-        meetling.loadTemplate(this, ".meetling-simple-notification-template");
+        this.appendChild(document.importNode(
+            ui.querySelector('.meetling-simple-notification-template').content, true));
         this.classList.add("meetling-notification", "meetling-simple-notification");
         this.querySelector(".meetling-simple-notification-dismiss").addEventListener("click", this);
         this.content = this.querySelector(".meetling-simple-notification-content");
@@ -255,7 +416,8 @@ meetling.SimpleNotification = document.registerElement("meetling-simple-notifica
 meetling.ErrorNotification = document.registerElement("meetling-error-notification",
         {prototype: Object.create(HTMLElement.prototype, {
     createdCallback: {value: function() {
-        meetling.loadTemplate(this, ".meetling-error-notification-template");
+        this.appendChild(document.importNode(
+            ui.querySelector('.meetling-error-notification-template').content, true));
         this.classList.add("meetling-notification", "meetling-error-notification");
         this.querySelector(".meetling-error-notification-reload").addEventListener("click", this);
     }},
@@ -269,112 +431,151 @@ meetling.ErrorNotification = document.registerElement("meetling-error-notificati
 })});
 
 /**
- * Start page, built on ``start.html``.
+ * Start page.
  */
-meetling.StartPage = document.registerElement("meetling-start-page",
-        {extends: "body", prototype: Object.create(meetling.Page.prototype, {
+meetling.StartPage = document.registerElement('meetling-start-page',
+        {prototype: Object.create(HTMLElement.prototype, {
     createdCallback: {value: function() {
-        meetling.Page.prototype.createdCallback.call(this);
-        this.querySelector(".meetling-start-create-example-meeting").addEventListener("click",
-                                                                                      this);
+        this.appendChild(document.importNode(
+            ui.querySelector('.meetling-start-page-template').content, true));
+        this._createExampleMeetingAction =
+            this.querySelector('.meetling-start-create-example-meeting');
+
+        var img = this.querySelector('.meetling-logo img');
+        if (ui.settings.icon) {
+            img.src = ui.settings.icon;
+            img.style.display = '';
+        } else {
+            img.style.display = 'none';
+        }
+        this.querySelector('.meetling-logo span').textContent = ui.settings.title;
+
+        this._createExampleMeetingAction.addEventListener('click', this);
     }},
 
     handleEvent: {value: function(event) {
-        meetling.Page.prototype.handleEvent.call(this, event);
-        if (event.currentTarget === this.querySelector(".meetling-start-create-example-meeting")) {
-            var request = new Request("/api/create-example-meeting",
-                                      {method: "POST", credentials: "include"})
-            fetch(request).then(function(response) {
-                return response.json();
-            }).then(function(meeting) {
-                location.assign("/meetings/" + meeting.id);
+        if (event.currentTarget === this._createExampleMeetingAction && event.type === 'click') {
+            micro.call('POST', '/api/create-example-meeting').then(function(meeting) {
+                ui.navigate(`/meetings/${meeting.id}`);
             });
         }
     }}
 })});
 
 /**
- * Edit user page, built on ``edit-user.html``.
- *
- * .. attribute:: userObject
- *
- *    :ref:`User` to edit. Initialized from the JSON value of the corresponding HTML attribute.
+ * About page.
  */
-meetling.EditUserPage = document.registerElement("meetling-edit-user-page",
-        {extends: "body", prototype: Object.create(meetling.Page.prototype, {
+meetling.AboutPage = document.registerElement('meetling-about-page',
+        {prototype: Object.create(HTMLElement.prototype, {
     createdCallback: {value: function() {
-        meetling.Page.prototype.createdCallback.call(this);
+        this.appendChild(document.importNode(
+            ui.querySelector('.meetling-about-page-template').content, true));
+        var h1 = this.querySelector('h1');
+        h1.textContent = h1.dataset.text.replace('{title}', ui.settings.title);
+        var p = this.querySelector('.meetling-about-short');
+        p.textContent = p.dataset.text.replace('{title}', ui.settings.title);
+    }}
+})});
+
+/**
+ * Edit user page.
+ */
+meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
+        {prototype: Object.create(HTMLElement.prototype, {
+    createdCallback: {value: function() {
+        this._user = null;
+        this.appendChild(document.importNode(
+            ui.querySelector('.meetling-edit-user-page-template').content, true));
+        this._form = this.querySelector('form');
         this.querySelector(".meetling-edit-user-edit").addEventListener("submit", this);
-        this.userObject = JSON.parse(this.getAttribute("user-object"));
+    }},
+
+    /**
+     * :ref:`User` to edit.
+     */
+    user: {
+        get: function() {
+            return this._user;
+        },
+        set: function(value) {
+            this._user = value;
+            this._form.elements['name'].value = this._user.name;
+        }
+    },
+
+    attachedCallback: {value: function() {
+        this._form.elements['name'].focus();
     }},
 
     handleEvent: {value: function(event) {
-        meetling.Page.prototype.handleEvent.call(this, event);
-        var form = this.querySelector(".meetling-edit-user-edit");
-        if (event.currentTarget === form) {
+        if (event.currentTarget === this._form) {
             event.preventDefault();
-            var url = "/api/users/" + this.userObject.id;
-            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
-                name: form.elements["name"].value
-            })}).then(function(response) {
-                return response.json();
+            micro.call('POST', `/api/users/${this._user.id}`, {
+                name: this._form.elements['name'].value
             }).then(function(user) {
-                if (user.__type__ === "InputError") {
-                    this.notify("The name is missing.");
-                    return;
+                ui.navigate('/');
+                ui.dispatchEvent(new CustomEvent('user-edit', {detail: {user: user}}));
+            }, function(e) {
+                if (e instanceof micro.APIError) {
+                    ui.notify('The name is missing.');
+                } else {
+                    throw e;
                 }
-                location.assign("/");
             }.bind(this));
         }
     }}
 })});
 
 /**
- * Edit settings page, built on ``edit-settings.html``.
+ * Edit settings page.
  */
-meetling.EditSettingsPage = document.registerElement("meetling-edit-settings-page",
-        {extends: "body", prototype: Object.create(meetling.Page.prototype, {
+meetling.EditSettingsPage = document.registerElement('meetling-edit-settings-page',
+        {prototype: Object.create(HTMLElement.prototype, {
     createdCallback: {value: function() {
-        meetling.Page.prototype.createdCallback.call(this);
+        this.appendChild(document.importNode(
+            ui.querySelector('.meetling-edit-settings-page-template').content, true));
+        this._form = this.querySelector('form');
+        this._form.elements['title'].value = ui.settings.title;
+        this._form.elements['icon'].value = ui.settings.icon || '';
+        this._form.elements['favicon'].value = ui.settings.favicon || '';
         this.querySelector(".meetling-edit-settings-edit").addEventListener("submit", this);
     }},
 
+    attachedCallback: {value: function() {
+        this._form.elements['title'].focus();
+    }},
+
     handleEvent: {value: function(event) {
-        meetling.Page.prototype.handleEvent.call(this, event);
-        var form = this.querySelector(".meetling-edit-settings-edit");
-        if (event.currentTarget === form) {
+        if (event.currentTarget === this._form) {
             event.preventDefault();
-            fetch("/api/settings", {method: "POST", credentials: "include", body: JSON.stringify({
-                title: form.elements["title"].value,
-                icon: form.elements["icon"].value,
-                favicon: form.elements["favicon"].value
-            })}).then(function(response) {
-                return response.json();
+            micro.call('POST', '/api/settings', {
+                title: this._form.elements['title'].value,
+                icon: this._form.elements['icon'].value,
+                favicon: this._form.elements['favicon'].value
             }).then(function(settings) {
-                if (settings.__type__ === "InputError") {
-                    this.notify("The title is missing");
-                    return;
+                ui.navigate('/');
+                ui.dispatchEvent(new CustomEvent('settings-edit', {detail: {settings: settings}}));
+            }, function(e) {
+                if (e instanceof micro.APIError) {
+                    ui.notify('The title is missing');
+                } else {
+                    throw e;
                 }
-                location.assign("/");
             }.bind(this));
         }
     }}
 })});
 
 /**
- * Meeting page, built on ``meeting.html``.
- *
- * .. attribute:: meeting
- *
- *    Represented :ref:`Meeting`. The initial value is set from the JSON value of the HTML attribute
- *    of the same name.
+ * Meeting page.
  */
-meetling.MeetingPage = document.registerElement("meetling-meeting-page",
-        {extends: "body", prototype: Object.create(meetling.Page.prototype, {
+meetling.MeetingPage = document.registerElement('meetling-meeting-page',
+        {prototype: Object.create(HTMLElement.prototype, {
     createdCallback: {value: function() {
-        meetling.Page.prototype.createdCallback.call(this);
-        this.meeting = JSON.parse(this.getAttribute("meeting"));
+        this._meeting = null;
 
+        this.appendChild(document.importNode(
+            ui.querySelector('.meetling-meeting-page-template').content, true));
         this._agendaUl = this.querySelector(".meetling-meeting-agenda > ul");
         this._itemsUl = this.querySelector(".meetling-meeting-items > ul");
         this._trashedItemsUl = this.querySelector(".meetling-meeting-trashed-items > ul");
@@ -384,19 +585,71 @@ meetling.MeetingPage = document.registerElement("meetling-meeting-page",
             this.querySelector(".meetling-meeting-create-agenda-item .action");
         this._shareAction = this.querySelector(".meetling-meeting-share");
 
-        if (this.meeting.time) {
-            this.querySelector(".meetling-meeting-meta time").textContent =
-                new Date(this.meeting.time).toLocaleString("en", meetling._DATE_TIME_FORMAT);
-        }
-
-        document.addEventListener("WebComponentsReady", this);
-        this.addEventListener("trash-agenda-item", this);
-        this.addEventListener("restore-agenda-item", this);
         this._showTrashedItemsAction.addEventListener("click", this);
         this._hideTrashedItemsAction.addEventListener("click", this);
         this._createAgendaItemAction.addEventListener("click", this);
         this._shareAction.addEventListener("click", this);
     }},
+
+    attachedCallback: {value: function() {
+        ui.addEventListener('trash-agenda-item', this);
+        ui.addEventListener('restore-agenda-item', this);
+
+        var p1 = micro.call('GET', `/api/meetings/${this._meeting.id}/items`);
+        var p2 = micro.call('GET', `/api/meetings/${this._meeting.id}/items/trashed`);
+        Promise.all([p1, p2]).then(function(results) {
+            for (var item of results[0]) {
+                var li = document.createElement('li', 'meetling-agenda-item');
+                li.item = item;
+                this._itemsUl.appendChild(li);
+            }
+            for (var item of results[1]) {
+                var li = document.createElement('li', 'meetling-agenda-item');
+                li.item = item;
+                this._trashedItemsUl.appendChild(li);
+            }
+            this._update();
+        }.bind(this));
+    }},
+
+    detachedCallback: {value: function() {
+        ui.removeEventListener('trash-agenda-item', this);
+        ui.removeEventListener('restore-agenda-item', this);
+    }},
+
+    /**
+     * Represented :ref:`Meeting`.
+     */
+    meeting: {
+        get: function() {
+            return this._meeting;
+        },
+        set: function(value) {
+            this._meeting = value;
+            this.querySelector('h1').textContent = this._meeting.title;
+            if (this._meeting.time) {
+                var time = this.querySelector('.meetling-meeting-time time');
+                time.dateTime = this._meeting.time;
+                time.textContent = new Date(this._meeting.time).toLocaleString(
+                    'en', meetling._DATE_TIME_FORMAT);
+            } else {
+                this.querySelector('.meetling-meeting-time').style.display = 'none';
+            }
+            if (this._meeting.location) {
+                this.querySelector('.meetling-meeting-location span').textContent =
+                    this._meeting.location;
+            } else {
+                this.querySelector('.meetling-meeting-location').style.display = 'none';
+            }
+            this.querySelector('.micro-multiline').textContent =
+                this._meeting.description || '';
+            this.querySelector('.meetling-detail meetling-user-listing').users =
+                this._meeting.authors;
+            this.querySelector('.meetling-meeting-edit').href =
+                `/meetings/${this._meeting.id}/edit`;
+            this._update();
+        }
+    },
 
     _update: {value: function() {
         var trashedItemsCoverLi = this.querySelector(".meetling-meeting-trashed-items-cover");
@@ -422,23 +675,13 @@ meetling.MeetingPage = document.registerElement("meetling-meeting-page",
     }},
 
     handleEvent: {value: function(event) {
-        meetling.Page.prototype.handleEvent.call(this, event);
-
-        if (event.target === document && event.type === "WebComponentsReady") {
-            for (var item of this.meeting.trashed_items) {
-                var li = document.createElement("li", "meetling-agenda-item");
-                li.item = item;
-                this._trashedItemsUl.appendChild(li);
-            }
-            this._update();
-
-        } else if (event.target === this && event.type === "trash-agenda-item") {
+        if (event.target === ui && event.type === 'trash-agenda-item') {
             var li = this._getAgendaItemElement(event.detail.item.id);
             li.item = event.detail.item;
             this._trashedItemsUl.appendChild(li);
             this._update();
 
-        } else if (event.target === this && event.type === "restore-agenda-item") {
+        } else if (event.target === ui && event.type === 'restore-agenda-item') {
             var li = this._getAgendaItemElement(event.detail.item.id);
             li.item = event.detail.item;
             this._itemsUl.appendChild(li);
@@ -458,30 +701,27 @@ meetling.MeetingPage = document.registerElement("meetling-meeting-page",
 
         } else if (event.currentTarget === this._shareAction && event.type === "click") {
             var notification = document.createElement("meetling-simple-notification");
-            meetling.loadTemplate(notification.content, ".meetling-share-notification-template");
+            notification.content.appendChild(document.importNode(
+                ui.querySelector('.meetling-share-notification-template').content, true));
             notification.content.querySelector("input").value =
                 `${location.origin}/meetings/${this.meeting.id}`;
-            this.notify(notification);
+            ui.notify(notification);
         }
     }}
 })});
 
 /**
- * Edit meeting page, built on ``edit-meeting.html``.
- *
- * .. attribute:: meeting
- *
- *    :ref:`Meeting` to edit. ``null`` means the page is in create mode.
+ * Edit meeting page.
  */
-meetling.EditMeetingPage = document.registerElement("meetling-edit-meeting-page",
-        {extends: "body", prototype: Object.create(meetling.Page.prototype, {
+meetling.EditMeetingPage = document.registerElement('meetling-edit-meeting-page',
+        {prototype: Object.create(HTMLElement.prototype, {
     createdCallback: {value: function() {
-        meetling.Page.prototype.createdCallback.call(this);
-        this.meeting = JSON.parse(this.getAttribute("meeting"));
+        this.appendChild(document.importNode(
+            ui.querySelector('.meetling-edit-meeting-page-template').content, true));
+        this._form = this.querySelector('.meetling-edit-meeting-edit');
         this.querySelector(".meetling-edit-meeting-example-date").textContent =
             new Date().toLocaleDateString("en", meetling._DATE_FORMAT);
         this.querySelector(".meetling-edit-meeting-edit").addEventListener("submit", this);
-        document.addEventListener("WebComponentsReady", this);
 
         this._pikaday = new Pikaday({
             field: this.querySelector('.meetling-edit-meeting-edit [name="date"]'),
@@ -496,7 +736,47 @@ meetling.EditMeetingPage = document.registerElement("meetling-edit-meeting-page"
         this._clearButton.addEventListener("click", this);
         // Pikaday prevents click events on touch-enabled devices
         this._clearButton.addEventListener("touchend", this);
+
+        this.meeting = null;
     }},
+
+    attachedCallback: {value: function() {
+        this._form.elements['title'].focus();
+    }},
+
+    /**
+     * :ref:`Meeting` to edit.
+     *
+     * ``null`` means the page is in create mode.
+     */
+    meeting: {
+        get: function() {
+            return this._meeting;
+        },
+        set: function(value) {
+            this._meeting = value;
+            var h1 = this.querySelector('h1');
+            var action = this.querySelector('.action-cancel');
+            if (this._meeting) {
+                h1.textContent = `Edit ${this._meeting.title}`;
+                this._form.elements['title'].value = this._meeting.title;
+                if (this._meeting.time) {
+                    var time = new Date(this.meeting.time);
+                    this._pikaday.setDate(time);
+                    var hour = time.getHours();
+                    var minute = time.getMinutes();
+                    this._form.elements['time'].timeValue =
+                        `${hour < 10 ? '0' + hour : hour}:${minute < 10 ? '0' + minute : minute}`;
+                }
+                this._form.elements['location'].value = this._meeting.location || '';
+                this._form.elements['description'].value = this._meeting.description || '';
+                action.href = `/meetings/${this._meeting.id}`;
+            } else {
+                h1.textContent = 'New Meeting';
+                action.href = `/`;
+            }
+        }
+    },
 
     _formatDate: {value: function() {
         return this._pikaday.getDate().toLocaleDateString("en", meetling._DATE_FORMAT);
@@ -507,28 +787,15 @@ meetling.EditMeetingPage = document.registerElement("meetling-edit-meeting-page"
     }},
 
     handleEvent: {value: function(event) {
-        meetling.Page.prototype.handleEvent.call(this, event);
-        var form = this.querySelector(".meetling-edit-meeting-edit");
-
-        if (event.target === document && event.type === "WebComponentsReady") {
-            if (this.meeting && this.meeting.time) {
-                var time = new Date(this.meeting.time);
-                this._pikaday.setDate(time);
-                var hour = time.getHours();
-                var minute = time.getMinutes();
-                form.elements["time"].timeValue =
-                    (hour < 10 ? "0" + hour : hour) + ":" + (minute < 10 ? "0" + minute : minute);
-            }
-
-        } else if (event.currentTarget === form && event.type === "submit") {
+        if (event.currentTarget === this._form && event.type === 'submit') {
             event.preventDefault();
 
             var dateTime = null;
             var date = this._pikaday.getDate();
-            var time = form.elements["time"].timeValue;
-            if (date || time || !form.elements["time"].checkValidity()) {
+            var time = this._form.elements['time'].timeValue;
+            if (date || time || !this._form.elements['time'].checkValidity()) {
                 if (!(date && time)) {
-                    document.body.notify("Date and time are incomplete.");
+                    ui.notify('Date and time are incomplete.');
                     return;
                 }
                 dateTime = date;
@@ -537,24 +804,24 @@ meetling.EditMeetingPage = document.registerElement("meetling-edit-meeting-page"
                 dateTime = dateTime.toISOString();
             }
 
-            var url = "/api/meetings";
+            var url = '/api/meetings';
             if (this.meeting) {
-                url = "/api/meetings/" + this.meeting.id;
+                url = `/api/meetings/${this.meeting.id}`;
             }
 
-            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
-                title: form.elements["title"].value,
+            micro.call('POST', url, {
+                title: this._form.elements['title'].value,
                 time: dateTime,
-                location: form.elements["location"].value,
-                description: form.elements["description"].value
-            })}).then(function(response) {
-                return response.json();
+                location: this._form.elements['location'].value,
+                description: this._form.elements['description'].value
             }).then(function(meeting) {
-                if (meeting.__type__ === "InputError") {
-                    this.notify("The title is missing.");
-                    return;
+                ui.navigate(`/meetings/${meeting.id}`);
+            }, function(e) {
+                if (e instanceof micro.APIError) {
+                    ui.notify('The title is missing.');
+                } else {
+                    throw e;
                 }
-                location.assign("/meetings/" + meeting.id);
             }.bind(this));
 
         } else if (event.currentTarget === this._clearButton && (event.type === "click" ||
@@ -576,9 +843,10 @@ meetling.EditMeetingPage = document.registerElement("meetling-edit-meeting-page"
 meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
         {extends: "li", prototype: Object.create(HTMLLIElement.prototype, {
     createdCallback: {value: function() {
-        meetling.loadTemplate(this, ".meetling-agenda-item-template");
+        this._item = null;
+        this.appendChild(document.importNode(
+            ui.querySelector('.meetling-agenda-item-template').content, true));
         this.classList.add("meetling-agenda-item");
-        this.item = JSON.parse(this.getAttribute("item"));
         this._trashAction = this.querySelector(".meetling-agenda-item-trash");
         this._restoreAction = this.querySelector(".meetling-agenda-item-restore");
         this._trashAction.addEventListener("click", this);
@@ -618,31 +886,33 @@ meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
             this.parentNode.removeChild(this);
 
         } else if (event.currentTarget === this._trashAction && event.type === "click") {
-            var url = `/api/meetings/${document.body.meeting.id}/trash-agenda-item`;
-            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
+            micro.call('POST', `/api/meetings/${ui.page.meeting.id}/trash-agenda-item`, {
                 item_id: this._item.id
-            })}).then(function(response) {
-                return response.json();
-            }).then(function(error) {
-                // If there is an item_not_found ValueError, the item has already been trashed and
-                // we continue as normal to update the UI
+            }).catch(function(e) {
+                // If the item has already been trashed, we continue as normal to update the UI
+                if (!(e instanceof micro.APIError && e.error.__type__ === 'ValueError' &&
+                      e.error.code === 'item_not_found')) {
+                    throw e;
+                }
+            }).then(function() {
                 this._item.trashed = true;
-                document.body.dispatchEvent(
-                    new CustomEvent("trash-agenda-item", {detail: {item: this._item}}));
+                ui.dispatchEvent(
+                    new CustomEvent('trash-agenda-item', {detail: {item: this._item}}));
             }.bind(this));
 
         } else if (event.currentTarget === this._restoreAction && event.type === "click") {
-            var url = `/api/meetings/${document.body.meeting.id}/restore-agenda-item`;
-            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
+            micro.call('POST', `/api/meetings/${ui.page.meeting.id}/restore-agenda-item`, {
                 item_id: this._item.id
-            })}).then(function(response) {
-                return response.json();
-            }).then(function(error) {
-                // If there is an item_not_found ValueError, the item has already been restored and
-                // we continue as normal to update the UI
+            }).catch(function(e) {
+                // If the item has already been restored, we continue as normal to update the UI
+                if (!(e instanceof micro.APIError && e.error.__type__ === 'ValueError' &&
+                      e.error.code === 'item_not_found')) {
+                    throw e;
+                }
+            }).then(function() {
                 this._item.trashed = false;
-                document.body.dispatchEvent(
-                    new CustomEvent("restore-agenda-item", {detail: {item: this._item}}));
+                ui.dispatchEvent(
+                    new CustomEvent('restore-agenda-item', {detail: {item: this._item}}));
             }.bind(this));
         }
     }}
@@ -662,7 +932,8 @@ meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
 meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-editor",
         {extends: "li", prototype: Object.create(HTMLLIElement.prototype, {
     createdCallback: {value: function() {
-        meetling.loadTemplate(this, ".meetling-agenda-item-editor-template");
+        this.appendChild(document.importNode(
+            ui.querySelector('.meetling-agenda-item-editor-template').content, true));
         this.classList.add("meetling-agenda-item-editor");
         this.querySelector("form").addEventListener("submit", this);
         this.querySelector(".action-cancel").addEventListener("click", this);
@@ -698,31 +969,21 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
             event.preventDefault();
 
             if (!form.elements["duration"].checkValidity()) {
-                document.body.notify("Duration is not a number.");
+                ui.notify('Duration is not a number.');
                 return;
             }
 
-            var url = "/api/meetings/" + document.body.meeting.id + "/items";
+            var url = `/api/meetings/${ui.page.meeting.id}/items`;
             if (this._item) {
-                url = "/api/meetings/" + document.body.meeting.id + "/items/" + this._item.id;
+                url = `/api/meetings/${ui.page.meeting.id}/items/${this._item.id}`;
             }
 
-            fetch(url, {method: "POST", credentials: "include", body: JSON.stringify({
-                title: form.elements["title"].value,
-                duration: form.elements["duration"].value ?
-                    parseInt(form.elements["duration"].value) : null,
-                description: form.elements["description"].value
-            })}).then(function(response) {
-                return response.json();
+            micro.call('POST', url, {
+                title: form.elements['title'].value,
+                duration: form.elements['duration'].value ?
+                    parseInt(form.elements['duration'].value) : null,
+                description: form.elements['description'].value
             }).then(function(item) {
-                if (item.__type__ === "InputError") {
-                    var arg = Object.keys(item.errors)[0];
-                    document.body.notify({
-                        title: {empty: "Title is missing."},
-                        duration: {not_positive: "Duration is not positive."}
-                    }[arg][item.errors[arg]]);
-                    return;
-                }
                 if (this._item) {
                     // In edit mode, update the corresponding meetling-agenda-item
                     this.replaced.item = item;
@@ -730,10 +991,20 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
                     // In create mode, append a new meetling-agenda-item to the list
                     var li = new meetling.AgendaItemElement();
                     li.item = item;
-                    this.parentNode.querySelector(".meetling-meeting-items > ul").appendChild(li);
+                    this.parentNode.querySelector('.meetling-meeting-items > ul').appendChild(li);
                 }
                 this._close();
-            }.bind(this));
+            }.bind(this), function(e) {
+                if (e instanceof micro.APIError && e.error.__type__ === 'InputError') {
+                    var arg = Object.keys(e.error.errors)[0];
+                    ui.notify({
+                        title: {empty: 'Title is missing.'},
+                        duration: {not_positive: 'Duration is not positive.'}
+                    }[arg][e.error.errors[arg]]);
+                } else {
+                    throw e;
+                }
+            });
 
         } else if (event.currentTarget === cancel) {
             event.preventDefault();
@@ -746,24 +1017,3 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
         this.parentNode.removeChild(this);
     }}
 })});
-
-/**
- * Load a template into an element *elem*.
- *
- * The template is retrieved via *selector*. If the template is not found, an :class:`Error`
- * (``template_not_found``) is thrown.
- */
-meetling.loadTemplate = function(elem, selector) {
-    var template = document.querySelector(selector);
-    if (!template) {
-        throw new Error("template_not_found");
-    }
-
-    // NOTE: Use template tags once browser support is sufficient:
-    // elem.appendChild(document.importNode(template.content));
-    var content = document.createDocumentFragment();
-    Array.prototype.forEach.call(template.childNodes, function(child) {
-        content.appendChild(child.cloneNode(true));
-    });
-    elem.appendChild(content);
-};

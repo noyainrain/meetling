@@ -132,33 +132,40 @@ class Meetling:
     def authenticate(self, secret):
         """Authenticate an :class:`User` (device) with *secret*.
 
-        The identified user is set as current *user* and returned. If the authentication fails, a
-        :exc:`ValueError` (``secret_invalid``) is raised.
+        The identified user is set as current *user* and returned. If the authentication fails, an
+        :exc:`AuthenticationError` is raised.
         """
         id = self.r.hget('auth_secret_map', secret)
         if not id:
-            raise ValueError('secret_invalid')
+            raise AuthenticationError()
         self.user = self.users[id.decode()]
         return self.user
 
-    def login(self):
+    def login(self, code=None):
         """See :http:post:`/api/login`.
 
-        The new user is set as current *user*.
+        The logged-in user is set as current *user*.
         """
-        id = 'User:' + randstr()
-        user = User(id=id, trashed=False, app=self, authors=[id], name='Guest',
-                    auth_secret=randstr())
-        self.r.oset(user.id, user)
-        self.r.rpush('users', user.id)
-        self.r.hset('auth_secret_map', user.auth_secret, user.id)
+        if code:
+            id = self.r.hget('auth_secret_map', code)
+            if not id:
+                raise ValueError('code_invalid')
+            user = self.users[id.decode()]
 
-        # Promote first user to staff
-        if len(self.users) == 1:
-            settings = self.settings
-            # pylint: disable=protected-access; Settings is a friend
-            settings._staff = [user.id]
-            self.r.oset(settings.id, settings)
+        else:
+            id = 'User:' + randstr()
+            user = User(id=id, trashed=False, app=self, authors=[id], name='Guest',
+                        auth_secret=randstr())
+            self.r.oset(user.id, user)
+            self.r.rpush('users', user.id)
+            self.r.hset('auth_secret_map', user.auth_secret, user.id)
+
+            # Promote first user to staff
+            if len(self.users) == 1:
+                settings = self.settings
+                # pylint: disable=protected-access; Settings is a friend
+                settings._staff = [user.id]
+                self.r.oset(settings.id, settings)
 
         return self.authenticate(user.auth_secret)
 
@@ -228,11 +235,19 @@ class Object:
         self.trashed = trashed
         self.app = app
 
-    def json(self, attrs={}):
+    def json(self, restricted=False, attrs={}):
         """Return a JSON object representation of the object.
 
         The name of the object type is included as ``__type__``.
+
+        By default, all attributes are included. If *restricted* is ``True``, a restricted view of
+        the object is returned, i.e. attributes that should not be available to the current
+        :attr:`Meetling.user` are excluded.
+
+        Subclass API: May be overridden by subclass. The default implementation returns the
+        attributes of :class:`Object`. *restricted* is ignored.
         """
+        # pylint: disable=unused-argument; restricted is part of the subclass API
         json = {'__type__': type(self).__name__, 'id': self.id, 'trashed': self.trashed}
         json.update(attrs)
         return json
@@ -273,17 +288,18 @@ class Editable:
     def do_edit(self, **attrs):
         """Subclass API: Perform the edit operation.
 
-        More precisely, validate and then set the given *attrs*. Called by :meth:`edit`, which takes
-        care of basic permission checking, managing *authors* and storing the updated object in the
-        database.
+        More precisely, validate and then set the given *attrs*.
+
+        Must be overridden by host. Called by :meth:`edit`, which takes care of basic permission
+        checking, managing *authors* and storing the updated object in the database.
         """
         raise NotImplementedError()
 
-    def json(self, include_users=False):
+    def json(self, restricted=False, include_users=False):
         """Subclass API: Return a JSON object representation of the editable part of the object."""
         json = {'authors': self._authors}
         if include_users:
-            json['authors'] = [a.json(exclude_private=True) for a in self.authors]
+            json['authors'] = [a.json(restricted=restricted) for a in self.authors]
         return json
 
 class User(Object, Editable):
@@ -307,15 +323,12 @@ class User(Object, Editable):
         if 'name' in attrs:
             self.name = attrs['name']
 
-    def json(self, include_users=False, exclude_private=False):
-        """See :meth:`Object.json`.
-
-        If *exclude_private* is ``True``, private attributes (*auth_secret*) are excluded.
-        """
+    def json(self, restricted=False, include_users=False):
+        """See :meth:`Object.json`."""
         # pylint: disable=arguments-differ; extended signature
-        json = super().json({'name': self.name, 'auth_secret': self.auth_secret})
-        json.update(Editable.json(self, include_users))
-        if exclude_private:
+        json = super().json(attrs={'name': self.name, 'auth_secret': self.auth_secret})
+        json.update(Editable.json(self, restricted=restricted, include_users=include_users))
+        if restricted and not self.app.user == self:
             del json['auth_secret']
         return json
 
@@ -351,16 +364,16 @@ class Settings(Object, Editable):
         if 'favicon' in attrs:
             self.favicon = str_or_none(attrs['favicon'])
 
-    def json(self, include_users=False):
-        json = super().json({
+    def json(self, restricted=False, include_users=False):
+        json = super().json(attrs={
             'title': self.title,
             'icon': self.icon,
             'favicon': self.favicon,
             'staff': self._staff
         })
-        json.update(Editable.json(self, include_users))
+        json.update(Editable.json(self, restricted=restricted, include_users=include_users))
         if include_users:
-            json['staff'] = [u.json(exclude_private=True) for u in self.staff]
+            json['staff'] = [u.json(restricted=restricted) for u in self.staff]
         return json
 
 class Meeting(Object, Editable):
@@ -439,23 +452,24 @@ class Meeting(Object, Editable):
         item.trashed = False
         self.app.r.oset(item.id, item)
 
-    def json(self, include_users=False, include_items=False):
+    def json(self, restricted=False, include_users=False, include_items=False):
         """See :meth:`Object.json`.
 
         If *include_items* is ``True``, *items* and *trashed_items* are included.
         """
         # pylint: disable=arguments-differ; extended signature
-        json = super().json({
+        json = super().json(attrs={
             'title': self.title,
             'time': self.time.isoformat() + 'Z' if self.time else None,
             'location': self.location,
             'description': self.description
         })
-        json.update(Editable.json(self, include_users))
+        json.update(Editable.json(self, restricted=restricted, include_users=include_users))
         if include_items:
-            json['items'] = [i.json(include_users=include_users) for i in self.items.values()]
-            json['trashed_items'] = [
-                i.json(include_users=include_users) for i in self.trashed_items.values()]
+            json['items'] = [i.json(restricted=restricted, include_users=include_users)
+                             for i in self.items.values()]
+            json['trashed_items'] = [i.json(restricted=restricted, include_users=include_users)
+                                     for i in self.trashed_items.values()]
         return json
 
 class AgendaItem(Object, Editable):
@@ -483,13 +497,13 @@ class AgendaItem(Object, Editable):
         if 'description' in attrs:
             self.description = str_or_none(attrs['description'])
 
-    def json(self, include_users=False):
-        json = super().json({
+    def json(self, restricted=False, include_users=False):
+        json = super().json(attrs={
             'title': self.title,
             'duration': self.duration,
             'description': self.description
         })
-        json.update(Editable.json(self, include_users))
+        json.update(Editable.json(self, restricted=restricted, include_users=include_users))
         return json
 
 class ValueError(builtins.ValueError):
@@ -527,6 +541,10 @@ class InputError(ValueError):
         """
         if self.errors:
             raise self
+
+class AuthenticationError(Exception):
+    """See :ref:`AuthenticationError`."""
+    pass
 
 class PermissionError(Exception):
     """See :ref:`PermissionError`."""

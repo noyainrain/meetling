@@ -4,49 +4,45 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width; initial-scale=1; user-scalable=no" />
-        <title>{{ settings.title }}</title>
+        <title>Meetling</title>
 
-        {% if settings.favicon %}<link rel="icon" href="{{ settings.favicon }}" />{% end %}
+        <link rel="icon" />
         <link rel="stylesheet" href="/static/lib/pikaday/css/pikaday.css" />
         <link rel="stylesheet" href="/static/lib/font-awesome/css/font-awesome.min.css" />
         <link rel="stylesheet" href="/static/micro.css" />
         <link rel="stylesheet" href="/static/meetling.css" />
 
-        <script src="/static/lib/fetch/fetch.js"></script>
-        <script src="/static/lib/webcomponentsjs/webcomponents-lite.js"></script>
-        <script src="/static/lib/pikaday/pikaday.js"></script>
-        <script src="/static/micro.js"></script>
-        <script src="/static/meetling.js"></script>
+        <script src="/static/lib/fetch/fetch.js" defer="defer"></script>
+        <script src="/static/lib/webcomponentsjs/webcomponents-lite.js" defer="defer"></script>
+        <script src="/static/lib/pikaday/pikaday.js" defer="defer"></script>
+        <script src="/static/micro.js" defer="defer"></script>
+        <script src="/static/meetling.js" defer="defer"></script>
     </head>
 
-    <body {% block page-attrs %}is="meetling-page"{% end %}
-          user="{{ json_encode(user.json(exclude_private=True)) }}">
-        <header class="meetling-page-header">
-            <nav class="meetling-page-inside">
-                <h1>
+    <body is="meetling-ui">
+        <header class="micro-ui-header" style="display: none;">
+            <nav class="micro-ui-inside">
+                <h1 class="meetling-ui-logo">
                     <a class="link" href="/">
-                        {% if settings.favicon %}<img src="{{ settings.favicon }}" />{% end %}
-                        {{ settings.title }} <span class="meetling-page-beta">Beta</span>
+                        <img /> <span class="meetling-ui-logo-text"></span>
+                        <span class="meetling-ui-beta">Beta</span>
                     </a>
                 </h1>
 
-                <div class="meetling-page-header-fill"></div>
+                <div class="meetling-ui-header-fill"></div>
 
-                <div class="meetling-page-menu">
-                    <button class="link">
-                        <meetling-user user="{{ json_encode(user.json(exclude_private=True)) }}">
-                        </meetling-user>
-                    </button>
+                <div class="meetling-ui-menu">
+                    <button class="link"><meetling-user></meetling-user></button>
                     <ul>
-                        <li>
-                            <a class="action" href="/users/{{ user.id }}/edit">
+                        <li class="meetling-ui-edit-user">
+                            <a class="action">
                                 <i class="fa fa-fw fa-wrench"></i> Edit user settings
                             </a>
                         </li>
                     </ul>
                 </div>
 
-                <div class="meetling-page-menu">
+                <div class="meetling-ui-menu">
                     <button class="link"><i class="fa fa-fw fa-bars"></i></button>
                     <ul>
                         <li>
@@ -54,39 +50,41 @@
                                 <i class="fa fa-fw fa-question-circle"></i> About
                             </a>
                         </li>
-                        {% if user in settings.staff %}
-                            <li>
-                                <a class="action" href="/settings/edit">
-                                    <i class="fa fa-fw fa-wrench"></i> Edit site settings
-                                </a>
-                            </li>
-                        {% end %}
+                        <li class="meetling-ui-edit-settings">
+                            <a class="action" href="/settings/edit">
+                                <i class="fa fa-fw fa-wrench"></i> Edit site settings
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </nav>
 
-            <div class="meetling-page-notification-space"></div>
+            <div class="meetling-ui-notification-space"></div>
         </header>
 
         <main>
-            <div class="meetling-page-inside">
-                {% block page-content %}{% end %}
+            <div class="micro-ui-inside">
+                <p class="micro-ui-progress" style="display: none;">
+                    <i class="fa fa-spin fa-spinner"></i>
+                </p>
             </div>
         </main>
 
         <div class="templates">
-            <div class="micro-menu-template">
+            {% include micro.html %}
+
+            <template class="micro-menu-template">
                 <button class="micro-menu-toggle-secondary action action-subtle">
                     <i class="fa"></i>
                 </button>
-            </div>
+            </template>
 
-            <div class="meetling-user-template">
+            <template class="meetling-user-template">
                 <i class="fa fa-user"></i><span></span>
-            </div>
+            </template>
 
-            <div class="meetling-simple-notification-template">
-                <div class="meetling-page-inside compact">
+            <template class="meetling-simple-notification-template">
+                <div class="micro-ui-inside compact">
                     <div class="meetling-simple-notification-content"></div>
                     <p class="group">
                         <button class="meetling-simple-notification-dismiss action action-subtle">
@@ -94,10 +92,10 @@
                         </button>
                     </p>
                 </div>
-            </div>
+            </template>
 
-            <div class="meetling-error-notification-template">
-                <div class="meetling-page-inside compact">
+            <template class="meetling-error-notification-template">
+                <div class="micro-ui-inside compact">
                     <p>
                         <i class="fa fa-exclamation-triangle"></i> Oops, something went very wrong!
                         We have been notified and will do our best to fix the problem as soon as
@@ -110,7 +108,14 @@
                         </button>
                     </p>
                 </div>
-            </div>
+            </template>
+
+            {% include start.html %}
+            {% include about.html %}
+            {% include edit-user.html %}
+            {% include edit-settings.html %}
+            {% include meeting.html %}
+            {% include edit-meeting.html %}
         </div>
     </body>
 </html>

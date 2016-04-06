@@ -24,6 +24,6 @@ communicating with the Redis server.
 import os
 
 from meetling.meetling import (Meetling, Object, Editable, User, Settings, Meeting, AgendaItem,
-                               ValueError, InputError, PermissionError)
+                               ValueError, InputError, AuthenticationError, PermissionError)
 
 _RES_PATH = os.path.join(os.path.dirname(__file__), 'res')

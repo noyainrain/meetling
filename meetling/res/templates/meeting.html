@@ -1,45 +1,26 @@
-{% extends 'page.html' %}
-
-{% block page-attrs %}
-    is="meetling-meeting-page"
-    meeting="{{ json_encode(meeting.json(include_users=True, include_items=True)) }}"
-{% end %}
-
-{% block page-content %}
-    <h1>{{ meeting.title }}</h1>
+<template class="meetling-meeting-page-template">
+    <h1></h1>
 
     <ul class="meetling-meeting-meta">
-        {% if meeting.time %}
-            <li title="Time">
-                <i class="fa fa-fw fa-calendar"></i>
-                <time datetime="{{ meeting.time.isoformat() + 'Z' }}"></time>
-            </li>
-        {% end %}
-        {% if meeting.location %}
-            <li title="Location"><i class="fa fa-fw fa-map-marker"></i> {{ meeting.location }}</li>
-        {% end %}
+        <li class="meetling-meeting-time" title="Time">
+            <i class="fa fa-fw fa-calendar"></i> <time></time>
+        </li>
+        <li class="meetling-meeting-location" title="Location">
+            <i class="fa fa-fw fa-map-marker"></i> <span></span>
+        </li>
     </ul>
 
-    <p class="micro-multiline">{{ meeting.description or '' }}</p>
+    <p class="micro-multiline"></p>
 
     <p class="meetling-detail">
-        edited by
-        <meetling-user-listing
-            users="{{ json_encode([a.json(exclude_private=True) for a in meeting.authors]) }}">
-        </meetling-user-listing>
+        edited by <meetling-user-listing></meetling-user-listing>
     </p>
 
     <section class="meetling-meeting-agenda">
         <h1>Agenda</h1>
         <ul>
             <li class="meetling-meeting-items micro-lgroup">
-                <ul>
-                    {% for item in meeting.items.values() %}
-                        <li is="meetling-agenda-item"
-                            item="{{ json_encode(item.json(include_users=True)) }}">
-                        </li>
-                    {% end %}
-                </ul>
+                <ul></ul>
             </li>
             <li class="meetling-meeting-trashed-items-cover">
                 <span data-text="There is one trashed item.|There are {n} trashed items."></span>
@@ -71,87 +52,83 @@
             <button class="meetling-meeting-share action">
                 <i class="fa fa-envelope"></i> Share
             </button>
-            <a class="action" href="/meetings/{{ meeting.id }}/edit">
+            <a class="meetling-meeting-edit action">
                 <i class="fa fa-pencil"></i> Edit
             </a>
         </micro-menu>
+    </section>
+</template>
+
+<template class="meetling-agenda-item-template">
     <section>
-
-    <div class="templates">
-        <div class="meetling-agenda-item-template">
-            <section>
-                <header class="group">
-                    <h1></h1>
-                    <p class="meetling-agenda-item-duration" title="Duration">
-                        <i class="fa fa-clock-o"></i> <span></span>
-                    </p>
-                </header>
-                <div class="meetling-agenda-item-content compact">
-                    <p class="meetling-agenda-item-description micro-multiline"></p>
-                    <p class="meetling-detail">
-                        edited by <meetling-user-listing></meetling-user-listing>
-                    </p>
-                    <micro-menu class="meetling-agenda-item-menu">
-                        <button class="action action-subtle meetling-agenda-item-edit">
-                            <i class="fa fa-pencil"></i> Edit
-                        </button>
-                        <button class="meetling-agenda-item-trash micro-menu-secondary action action-subtle">
-                            <i class="fa fa-trash-o"></i> Trash
-                        </button>
-                    </micro-menu>
-                    <micro-menu class="meetling-agenda-item-trashed-menu">
-                        <button class="meetling-agenda-item-restore action action-subtle">
-                            <i class="fa fa-undo"></i> Restore
-                        </button>
-                    </micro-menu>
-                </div>
-            </section>
-        </div>
-
-        <div class="meetling-agenda-item-editor-template">
-            <section>
-                <h1>New Agenda Item</h1>
-                <form novalidate="novalidate">
-                    <label>
-                        <input name="title"></input>
-                        <small>Title</small>
-                    </label>
-                    <label>
-                        <input type="number" name="duration" min="-9007199254740991"
-                               max="9007199254740991">
-                        </input>
-                        <small>Duration (optional)</small>
-                        <small>
-                            How long does this agenda item take in minutes? An estimate is fine
-                            here.
-                        </small>
-                    </label>
-                    <label>
-                        <textarea name="description"></textarea>
-                        <small>Description (optional)</small>
-                    </label>
-                    <p class="group">
-                        <button class="action"><i class="fa fa-check-circle"></i> Done</button>
-                        <button class="action action-cancel">Cancel</button>
-                    </p>
-                </form>
-            </section>
-        </div>
-
-        <div class="meetling-share-notification-template">
-            <p>
-                To share the meeting, simply give this link to the other participants:
+        <header class="group">
+            <h1></h1>
+            <p class="meetling-agenda-item-duration" title="Duration">
+                <i class="fa fa-clock-o"></i> <span></span>
             </p>
+        </header>
+        <div class="meetling-agenda-item-content compact">
+            <p class="meetling-agenda-item-description micro-multiline"></p>
+            <p class="meetling-detail">
+                edited by <meetling-user-listing></meetling-user-listing>
+            </p>
+            <micro-menu class="meetling-agenda-item-menu">
+                <button class="action action-subtle meetling-agenda-item-edit">
+                    <i class="fa fa-pencil"></i> Edit
+                </button>
+                <button class="meetling-agenda-item-trash micro-menu-secondary action action-subtle">
+                    <i class="fa fa-trash-o"></i> Trash
+                </button>
+            </micro-menu>
+            <micro-menu class="meetling-agenda-item-trashed-menu">
+                <button class="meetling-agenda-item-restore action action-subtle">
+                    <i class="fa fa-undo"></i> Restore
+                </button>
+            </micro-menu>
+        </div>
+    </section>
+</template>
+
+<template class="meetling-agenda-item-editor-template">
+    <section>
+        <h1>New Agenda Item</h1>
+        <form novalidate="novalidate">
             <label>
-                <input readonly="readonly"></input>
-                <small>Share link</small>
+                <input name="title" />
+                <small>Title</small>
             </label>
-            <p>
+            <label>
+                <input type="number" name="duration" min="-9007199254740991"
+                       max="9007199254740991" />
+                <small>Duration (optional)</small>
                 <small>
-                    Anyone with the link can propose and edit agenda items and change the details of
-                    the meeting.
+                    How long does this agenda item take in minutes? An estimate is fine here.
                 </small>
+            </label>
+            <label>
+                <textarea name="description"></textarea>
+                <small>Description (optional)</small>
+            </label>
+            <p class="group">
+                <button class="action"><i class="fa fa-check-circle"></i> Done</button>
+                <button class="action action-cancel">Cancel</button>
             </p>
-        </div>
-    </div>
-{% end %}
+        </form>
+    </section>
+</template>
+
+<template class="meetling-share-notification-template">
+    <p>
+        To share the meeting, simply give this link to the other participants:
+    </p>
+    <label>
+        <input readonly="readonly" />
+        <small>Share link</small>
+    </label>
+    <p>
+        <small>
+            Anyone with the link can propose and edit agenda items and change the details of the
+            meeting.
+        </small>
+    </p>
+</template>

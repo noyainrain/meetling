@@ -96,7 +96,7 @@ class MeetlingServer(HTTPServer):
 
 class _UI(RequestHandler):
     def get(self):
-        return self.render('page.html')
+        return self.render('meetling.html')
 
 class Endpoint(RequestHandler):
     """JSON REST API endpoint.

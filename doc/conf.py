@@ -7,6 +7,8 @@ project = 'Meetling'
 copyright = '2015 Meetling contributors'
 version = release = '0.11.2'
 
+master_doc = 'index'
+
 html_logo = '../meetling/res/static/images/icon.svg'
 html_favicon = '../meetling/res/static/images/favicon.png'
 html_sidebars = {'**': ['globaltoc.html', 'relations.html', 'searchbox.html']}

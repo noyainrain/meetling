@@ -10,7 +10,8 @@ git merge
 # Update documentation
 git rm -r .
 cp -r doc/build/* .
-git add $(ls doc/build)
+touch .nojekyll
+git add $(ls doc/build) .nojekyll
 
 # Publish
 git commit -m "Update documentation"

@@ -1,0 +1,406 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>2. Web API &mdash; Meetling 0.11.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.11.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+    <link rel="top" title="Meetling 0.11.0 documentation" href="contents.html" />
+    <link rel="next" title="3. Python API" href="pythonapi.html" />
+    <link rel="prev" title="1. Introduction" href="introduction.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="web-api">
+<h1>2. Web API<a class="headerlink" href="#web-api" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>2.1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Meetling provides a JSON REST API.</p>
+<p>Arguments are passed to an endpoint simply as JSON object and the result is returned as JSON value.
+<em>Objects</em> contain a <code class="docutils literal"><span class="pre">__type__</span></code> attribute that holds the name of the object type.</p>
+<p>If a requested endpoint doesn&#8217;t exist, a <a class="reference internal" href="#notfounderror"><span>NotFoundError</span></a> is returned. For any endpoint, an
+<a class="reference internal" href="#inputerror"><span>InputError</span></a> is returned if the input contains invalid arguments.</p>
+</div>
+<div class="section" id="authentication-and-permissions">
+<h2>2.2. Authentication and Permissions<a class="headerlink" href="#authentication-and-permissions" title="Permalink to this headline">¶</a></h2>
+<p>To make an API request authenticated as some user, include a cookie named <code class="docutils literal"><span class="pre">auth_secret</span></code> with the
+<a class="reference internal" href="#user"><span>User</span></a> &#8216;s <em>auth_secret</em>.</p>
+<p>If user authentication with the given secret fails, an <a class="reference internal" href="#authenticationerror"><span>AuthenticationError</span></a> is returned. For
+any endpoint, a <a class="reference internal" href="#permissionerror"><span>PermissionError</span></a> is returned if the current user is not allowed to perform the
+action.</p>
+</div>
+<div class="section" id="meetling">
+<span id="id1"></span><h2>2.3. Meetling<a class="headerlink" href="#meetling" title="Permalink to this headline">¶</a></h2>
+<p>Meetling application.</p>
+<dl class="post">
+<dt id="post--api-login">
+<code class="descname">POST </code><code class="descname">/api/login</code><a class="headerlink" href="#post--api-login" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">{&quot;code&quot;:</span> <span class="pre">null}</span></code></p>
+<p>Log in an <a class="reference internal" href="#user"><span>User</span></a> (device) and return them.</p>
+<p>If <em>code</em> is given, log in an existing user with the login <em>code</em>. If the login fails, a
+<code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> (<code class="docutils literal"><span class="pre">code_invalid</span></code>) is returned.</p>
+<p>If <em>code</em> is <code class="docutils literal"><span class="pre">null</span></code>, create and log in a new user. The very first user who logs in is
+registered as staff member.</p>
+</dd></dl>
+
+<dl class="post">
+<dt id="post--api-meetings">
+<code class="descname">POST </code><code class="descname">/api/meetings</code><a class="headerlink" href="#post--api-meetings" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">{&quot;title&quot;,</span> <span class="pre">&quot;time&quot;:</span> <span class="pre">null,</span> <span class="pre">&quot;location&quot;:</span> <span class="pre">null,</span> <span class="pre">&quot;description&quot;:</span> <span class="pre">null}</span></code></p>
+<p>Create a <a class="reference internal" href="#meeting"><span>Meeting</span></a> and return it.</p>
+<p>Permission: Authenticated users.</p>
+</dd></dl>
+
+<dl class="post">
+<dt id="post--api-create-example-meeting">
+<code class="descname">POST </code><code class="descname">/api/create-example-meeting</code><a class="headerlink" href="#post--api-create-example-meeting" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a <a class="reference internal" href="#meeting"><span>Meeting</span></a> with an example agenda and return it.</p>
+<p>Useful to illustrate how meetings work.</p>
+<p>Permission: Authenticated users.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="object">
+<span id="id2"></span><h2>2.4. Object<a class="headerlink" href="#object" title="Permalink to this headline">¶</a></h2>
+<p>Object in the Meetling universe.</p>
+<dl class="attribute">
+<dt id="id">
+<code class="descname">id</code><a class="headerlink" href="#id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique ID of the object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trashed">
+<code class="descname">trashed</code><a class="headerlink" href="#trashed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates if the object has been trashed (deleted).</p>
+</dd></dl>
+
+</div>
+<div class="section" id="editable">
+<span id="id3"></span><h2>2.5. Editable<a class="headerlink" href="#editable" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="#object"><span>Object</span></a> that can be edited.</p>
+<p>The URL that uniquely identifies an object is referred to as <em>object-url</em>, e.g. <code class="docutils literal"><span class="pre">meetings/abc</span></code> for
+a <a class="reference internal" href="#meeting"><span>Meeting</span></a> with the <em>id</em> <code class="docutils literal"><span class="pre">abc</span></code>.</p>
+<dl class="describe">
+<dt>
+<code class="descname">authors</code></dt>
+<dd><p><a class="reference internal" href="#user"><span>User</span></a> s who edited the object.</p>
+</dd></dl>
+
+<dl class="post">
+<dt id="post--api-(object-url)">
+<code class="descname">POST </code><code class="descname">/api/(object-url)</code><a class="headerlink" href="#post--api-(object-url)" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">{attrs...}</span></code></p>
+<p>Edit the attributes given by <em>attrs</em> and return the updated object.</p>
+<p>A <em>trashed</em> (deleted) object cannot be edited. In this case a <a class="reference internal" href="#valueerror"><span>ValueError</span></a>
+(<cite>object_trashed</cite>) is returned.</p>
+<p>Permission: Authenticated users.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="user">
+<span id="id4"></span><h2>2.6. User<a class="headerlink" href="#user" title="Permalink to this headline">¶</a></h2>
+<p>Meetling user.</p>
+<p>User is an <a class="reference internal" href="#object"><span>Object</span></a> and <a class="reference internal" href="#editable"><span>Editable</span></a> by the user oneself.</p>
+<dl class="describe">
+<dt>
+<code class="descname">name</code></dt>
+<dd><p>Name or nick name.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">auth_secret</code></dt>
+<dd><p>Secret for authentication. Visible only to the user oneself.</p>
+</dd></dl>
+
+<dl class="get">
+<dt id="get--api-users-(id)">
+<code class="descname">GET </code><code class="descname">/api/users/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="headerlink" href="#get--api-users-(id)" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the user given by <em>id</em>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="settings">
+<span id="id5"></span><h2>2.7. Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
+<p>App settings.</p>
+<p>Settings is an <a class="reference internal" href="#object"><span>Object</span></a> and <a class="reference internal" href="#editable"><span>Editable</span></a> by staff members.</p>
+<dl class="describe">
+<dt>
+<code class="descname">title</code></dt>
+<dd><p>Site title.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">icon</code></dt>
+<dd><p>URL of the site icon. May be <code class="docutils literal"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">favicon</code></dt>
+<dd><p>URL of the site icon optimized for a small size. May be <code class="docutils literal"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">staff</code></dt>
+<dd><p>Staff users.</p>
+</dd></dl>
+
+<dl class="get">
+<dt id="get--api-settings">
+<code class="descname">GET </code><code class="descname">/api/settings</code><a class="headerlink" href="#get--api-settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the settings.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="meeting">
+<span id="id6"></span><h2>2.8. Meeting<a class="headerlink" href="#meeting" title="Permalink to this headline">¶</a></h2>
+<p>Meeting.</p>
+<p>Meeting is an <a class="reference internal" href="#object"><span>Object</span></a> and <a class="reference internal" href="#editable"><span>Editable</span></a>.</p>
+<dl class="describe">
+<dt>
+<code class="descname">title</code></dt>
+<dd><p>Title of the meeting.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">time</code></dt>
+<dd><p>Date and time the meeting begins. May be <code class="docutils literal"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">location</code></dt>
+<dd><p>Location where the meeting takes place. May be <code class="docutils literal"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">description</code></dt>
+<dd><p>Description of the meeting. May be <code class="docutils literal"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="get">
+<dt id="get--api-meetings-(id)">
+<code class="descname">GET </code><code class="descname">/api/meetings/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="headerlink" href="#get--api-meetings-(id)" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the meeting given by <em>id</em>.</p>
+</dd></dl>
+
+<dl class="get">
+<dt id="get--api-meetings-(id)-items">
+<code class="descname">GET </code><code class="descname">/api/meetings/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/items</code><a class="headerlink" href="#get--api-meetings-(id)-items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the list of <a class="reference internal" href="#agendaitem"><span>AgendaItem</span></a> s on the meeting&#8217;s agenda.</p>
+<p>If <code class="docutils literal"><span class="pre">/trashed</span></code> is appended to the URL, only trashed (deleted) items are returned.</p>
+</dd></dl>
+
+<dl class="post">
+<dt id="post--api-meetings-(id)-items">
+<code class="descname">POST </code><code class="descname">/api/meetings/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/items</code><a class="headerlink" href="#post--api-meetings-(id)-items" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">{&quot;title&quot;,</span> <span class="pre">&quot;duration&quot;:</span> <span class="pre">null,</span> <span class="pre">&quot;description&quot;:</span> <span class="pre">null}</span></code></p>
+<p>Create an <a class="reference internal" href="#agendaitem"><span>AgendaItem</span></a> and return it.</p>
+<p>Permission: Authenticated users.</p>
+</dd></dl>
+
+<dl class="post">
+<dt id="post--api-meetings-(id)-trash-agenda-item">
+<code class="descname">POST </code><code class="descname">/api/meetings/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/trash-agenda-item</code><a class="headerlink" href="#post--api-meetings-(id)-trash-agenda-item" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">{&quot;item_id&quot;}</span></code></p>
+<p>Trash (delete) the <a class="reference internal" href="#agendaitem"><span>AgendaItem</span></a> with <em>item_id</em>.</p>
+<p>If there is no item with <em>item_id</em> for the meeting, a <a class="reference internal" href="#valueerror"><span>ValueError</span></a> (<code class="docutils literal"><span class="pre">item_not_found</span></code>) is
+returned.</p>
+<p>Permission: Authenticated users.</p>
+</dd></dl>
+
+<dl class="post">
+<dt id="post--api-meetings-(id)-restore-agenda-item">
+<code class="descname">POST </code><code class="descname">/api/meetings/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/restore-agenda-item</code><a class="headerlink" href="#post--api-meetings-(id)-restore-agenda-item" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">{&quot;item_id&quot;}</span></code></p>
+<p>Restore the previously trashed (deleted) <a class="reference internal" href="#agendaitem"><span>AgendaItem</span></a> with <em>item_id</em>.</p>
+<p>If there is no trashed item with <em>item_id</em> for the meeting, a <a class="reference internal" href="#valueerror"><span>ValueError</span></a>
+(<code class="docutils literal"><span class="pre">item_not_found</span></code>) is returned.</p>
+<p>Permission: Authenticated users.</p>
+</dd></dl>
+
+<dl class="post">
+<dt id="post--api-meetings-(id)-move-agenda-item">
+<code class="descname">POST </code><code class="descname">/api/meetings/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/move-agenda-item</code><a class="headerlink" href="#post--api-meetings-(id)-move-agenda-item" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">{&quot;item_id&quot;,</span> <span class="pre">&quot;to_id&quot;}</span></code></p>
+<p>Move the <a class="reference internal" href="#agendaitem"><span>AgendaItem</span></a> with <em>item_id</em> to the position directly after the item with <em>to_id</em>.</p>
+<p>If <em>to_id</em> is <code class="docutils literal"><span class="pre">null</span></code>, move the item to the top of the agenda.</p>
+<p>If there is no item with <em>item_id</em> or <em>to_id</em> for the meeting, a <a class="reference internal" href="#valueerror"><span>ValueError</span></a>
+(<code class="docutils literal"><span class="pre">item_not_found</span></code> or <code class="docutils literal"><span class="pre">to_not_found</span></code>) is returned.</p>
+<p>Permission: Authenticated users.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="agendaitem">
+<span id="id7"></span><h2>2.9. AgendaItem<a class="headerlink" href="#agendaitem" title="Permalink to this headline">¶</a></h2>
+<p>Item on a <a class="reference internal" href="#meeting"><span>Meeting</span></a> &#8216;s agenda.</p>
+<p>AgendaItem is an <a class="reference internal" href="#object"><span>Object</span></a> and <a class="reference internal" href="#editable"><span>Editable</span></a>.</p>
+<dl class="describe">
+<dt>
+<code class="descname">title</code></dt>
+<dd><p>Title of the item.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">duration</code></dt>
+<dd><p>Time the agenda item takes in minutes. May be <code class="docutils literal"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">description</code></dt>
+<dd><p>Description of the item. May be <code class="docutils literal"><span class="pre">null</span></code>.</p>
+</dd></dl>
+
+<dl class="get">
+<dt id="get--api-meetings-(meeting-id)-items-(item-id)">
+<code class="descname">GET </code><code class="descname">/api/meetings/(meeting-id)/items/(item-id)</code><a class="headerlink" href="#get--api-meetings-(meeting-id)-items-(item-id)" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the item given by <em>item-id</em>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="valueerror">
+<span id="id8"></span><h2>2.10. ValueError<a class="headerlink" href="#valueerror" title="Permalink to this headline">¶</a></h2>
+<p>Returned for value-related errors.</p>
+<dl class="attribute">
+<dt id="code">
+<code class="descname">code</code><a class="headerlink" href="#code" title="Permalink to this definition">¶</a></dt>
+<dd><p>Error string providing more information about the problem.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="inputerror">
+<span id="id9"></span><h2>2.11. InputError<a class="headerlink" href="#inputerror" title="Permalink to this headline">¶</a></h2>
+<p>Returned if the input to an endpoint contains one or more arguments with an invalid value.</p>
+<p>InputError is a <a class="reference internal" href="#valueerror"><span>ValueError</span></a> with <em>code</em> set to <code class="docutils literal"><span class="pre">input_invalid</span></code>.</p>
+<dl class="attribute">
+<dt id="errors">
+<code class="descname">errors</code><a class="headerlink" href="#errors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map of argument names / error strings for every problematic argument of the input.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="notfounderror">
+<span id="id10"></span><h2>2.12. NotFoundError<a class="headerlink" href="#notfounderror" title="Permalink to this headline">¶</a></h2>
+<p>Returned if a requested endpoint does not exist.</p>
+</div>
+<div class="section" id="authenticationerror">
+<span id="id11"></span><h2>2.13. AuthenticationError<a class="headerlink" href="#authenticationerror" title="Permalink to this headline">¶</a></h2>
+<p>Returned if user authentication fails.</p>
+</div>
+<div class="section" id="permissionerror">
+<span id="id12"></span><h2>2.14. PermissionError<a class="headerlink" href="#permissionerror" title="Permalink to this headline">¶</a></h2>
+<p>Returned if the current user is not allowed to perform an action.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="contents.html">
+              <img class="logo" src="_static/icon.svg" alt="Logo"/>
+            </a></p>
+<h3><a href="contents.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">1. Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">2. Web API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#authentication-and-permissions">2.2. Authentication and Permissions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#meetling">2.3. Meetling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#object">2.4. Object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#editable">2.5. Editable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user">2.6. User</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#settings">2.7. Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#meeting">2.8. Meeting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#agendaitem">2.9. AgendaItem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#valueerror">2.10. ValueError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#inputerror">2.11. InputError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#notfounderror">2.12. NotFoundError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#authenticationerror">2.13. AuthenticationError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#permissionerror">2.14. PermissionError</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pythonapi.html">3. Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">4. Contributing</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="contents.html">Documentation overview</a><ul>
+      <li>Previous: <a href="introduction.html" title="previous chapter">1. Introduction</a></li>
+      <li>Next: <a href="pythonapi.html" title="next chapter">3. Python API</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015 Meetling contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/webapi.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

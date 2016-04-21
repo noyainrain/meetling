@@ -20,7 +20,7 @@
         <h1>Agenda</h1>
         <ul>
             <li class="meetling-meeting-items micro-lgroup">
-                <ul></ul>
+                <ol is='micro-ol'></ol>
             </li>
             <li class="meetling-meeting-trashed-items-cover">
                 <span data-text="There is one trashed item.|There are {n} trashed items."></span>
@@ -60,6 +60,10 @@
 </template>
 
 <template class="meetling-agenda-item-template">
+    <div class="meetling-agenda-item-handle micro-ol-handle group">
+        <div></div>
+        <p></p>
+    </div>
     <section>
         <header class="group">
             <h1></h1>

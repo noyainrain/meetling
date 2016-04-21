@@ -77,6 +77,9 @@ class MeetlingServerTest(AsyncTestCase):
                            method='POST', body='{{"item_id": "{}"}}'.format(self.item.id))
         yield self.request('/api/meetings/{}/restore-agenda-item'.format(self.meeting.id),
                            method='POST', body='{{"item_id": "{}"}}'.format(self.item.id))
+        yield self.request(
+            '/api/meetings/{}/move-agenda-item'.format(self.meeting.id), method='POST',
+            body='{{"item_id": "{}", "to_id": null}}'.format(self.item.id))
         yield self.request('/api/meetings/{}/items/{}'.format(self.meeting.id, self.item.id))
         yield self.request('/api/meetings/{}/items/{}'.format(self.meeting.id, self.item.id),
                            method='POST', body='{"title": "Intensive purring", "duration": 10}')

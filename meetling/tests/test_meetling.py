@@ -176,8 +176,10 @@ class MeetingTest(MeetlingTestCase):
         self.meeting = self.app.create_meeting('Cat hangout')
         self.items = [
             self.meeting.create_agenda_item('Eating'),
-            self.meeting.create_agenda_item('Purring')
+            self.meeting.create_agenda_item('Purring'),
+            self.meeting.create_agenda_item('Sleeping')
         ]
+        self.external_item = self.app.create_meeting('Other').create_agenda_item('Other')
 
     def test_edit(self):
         time = datetime.utcnow()
@@ -192,7 +194,7 @@ class MeetingTest(MeetlingTestCase):
 
     def test_trash_agenda_item(self):
         self.meeting.trash_agenda_item(self.items[0])
-        self.assertEqual(list(self.meeting.items.values()), [self.items[1]])
+        self.assertEqual(list(self.meeting.items.values()), self.items[1:])
         self.assertEqual(list(self.meeting.trashed_items.values()), [self.items[0]])
 
     def test_trash_agenda_item_item_trashed(self):
@@ -203,12 +205,34 @@ class MeetingTest(MeetlingTestCase):
     def test_restore_agenda_item(self):
         self.meeting.trash_agenda_item(self.items[0])
         self.meeting.restore_agenda_item(self.items[0])
-        self.assertEqual(list(self.meeting.items.values()), [self.items[1], self.items[0]])
+        self.assertEqual(list(self.meeting.items.values()), self.items[1:] + [self.items[0]])
         self.assertFalse(list(self.meeting.trashed_items.values()))
 
     def test_restore_agenda_item_item_not_trashed(self):
         with self.assertRaisesRegex(meetling.ValueError, 'item_not_found'):
             self.meeting.restore_agenda_item(self.items[0])
+
+    def test_move_agenda_item(self):
+        self.meeting.move_agenda_item(self.items[1], self.items[2])
+        self.assertEqual(list(self.meeting.items.values()),
+                         [self.items[0], self.items[2], self.items[1]])
+
+    def test_move_agenda_item_to_none(self):
+        self.meeting.move_agenda_item(self.items[1], None)
+        self.assertEqual(list(self.meeting.items.values()),
+                         [self.items[1], self.items[0], self.items[2]])
+
+    def test_move_agenda_item_to_item(self):
+        self.meeting.move_agenda_item(self.items[1], self.items[1])
+        self.assertEqual(list(self.meeting.items.values()), self.items)
+
+    def test_move_agenda_item_item_external(self):
+        with self.assertRaisesRegex(meetling.ValueError, 'item_not_found'):
+            self.meeting.move_agenda_item(self.external_item, None)
+
+    def test_move_agenda_item_to_external(self):
+        with self.assertRaisesRegex(meetling.ValueError, 'to_not_found'):
+            self.meeting.move_agenda_item(self.items[0], self.external_item)
 
 class AgendaItemTest(MeetlingTestCase):
     def test_edit(self):

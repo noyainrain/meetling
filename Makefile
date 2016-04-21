@@ -26,6 +26,11 @@ deps-dev:
 doc:
 	sphinx-build doc doc/build
 
+# TODO: document
+.PHONY: release-doc
+release-doc: doc
+	scripts/release-doc.sh
+
 .PHONY: sample
 sample:
 	scripts/sample.py

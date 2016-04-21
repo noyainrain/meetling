@@ -8,7 +8,8 @@
     list-style: none;
 }
 
-.micro-lgroup > ul {
+.micro-lgroup > ul,
+.micro-lgroup > ol {
     padding: 0;
     margin: 0;
 }
@@ -39,6 +40,10 @@
 
 /* ---- UI ---- */
 
+.micro-ui-dragging {
+    cursor: move;
+}
+
 .micro-ui-inside {
     box-sizing: content-box;
     max-width: 70ch;
@@ -51,6 +56,12 @@
     color: #00f;
     font-size: 3rem;
     text-align: center;
+}
+
+/* ---- OL ---- */
+
+.micro-ol-handle {
+    cursor: move;
 }
 
 /* ---- NotFoundPage ---- */

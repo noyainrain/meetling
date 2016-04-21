@@ -79,6 +79,23 @@ micro.call = function(method, url, args) {
 };
 
 /**
+ * Find the first ancestor of *elem* that satisfies *predicate*.
+ *
+ * If no ancestor is found, ``undefined`` is returned. The function *predicate(elem)* returns
+ * ``true`` if *elem* fullfills the desired criteria, ``false`` otherwise. It is called for any
+ * ancestor of *elem*, from its parent up until (excluding) *top* (defaults to
+ * ``document.documentElement``).
+ */
+micro.findAncestor = function(elem, predicate, top) {
+    top = top || document.documentElement;
+    for (var e = elem; e && e !== top; e = e.parentElement) {
+        if (predicate(e)) {
+            return e;
+        }
+    }
+};
+
+/**
  * User interface of a micro app.
  *
  * At the core of the UI are pages, where any page has a corresponding (shareable and bookmarkable)
@@ -213,20 +230,139 @@ micro.UI = document.registerElement('micro-ui',
 
     handleEvent: {value: function(event) {
         if (event.type === 'click') {
-            // parentElement may be null if an element is detached from the DOM by a previous click
-            // handler
-            for (var e = event.target; e && e !== this; e = e.parentElement) {
-                if (e instanceof HTMLAnchorElement) {
-                    if (e.origin === location.origin) {
-                        event.preventDefault();
-                        this.navigate(e.pathname);
-                    }
-                    break;
-                }
+            var a = micro.findAncestor(event.target,
+                function(e) { return e instanceof HTMLAnchorElement; }, this);
+            if (a && a.origin === location.origin) {
+                event.preventDefault();
+                this.navigate(a.pathname);
             }
 
         } else if (event.target === window && event.type === 'popstate') {
             this._route(location.pathname);
+        }
+    }}
+})});
+
+/**
+ * Enhanced ordered list.
+ *
+ * The list is sortable by the user, i.e. an user can move an item of the list by dragging it by a
+ * handle. A handle is defined by the ``micro-ol-handle`` class; if an item has no handle, it cannot
+ * be moved. While an item is moving, the class ``micro-ol-li-moving` is applied to it.
+ *
+ * Events:
+ *
+ * .. describe:: moveitem
+ *
+ *    Dispatched if an item has been moved by the user. The *detail* object of the
+ *    :class:`CustomEvent` has the following attributes: *li* is the item that has been moved, from
+ *    the position directly before the reference item *from* to directly before *to*. If *from* or
+ *    *to* is ``null``, it means the end of the list. Thus *from* and *to* may be used in
+ *    :func:`Node.insertBefore`.
+ */
+micro.OL = document.registerElement('micro-ol',
+        {extends: 'ol', prototype: Object.create(HTMLOListElement.prototype, {
+    createdCallback: {value: function() {
+        this._li = null;
+        this._from = null;
+        this._to = null;
+        this._over = null;
+
+        this.addEventListener('mousedown', this);
+        this.addEventListener('mousemove', this);
+        this.addEventListener('touchstart', this);
+        this.addEventListener('touchmove', this);
+    }},
+
+    attachedCallback: {value: function() {
+        window.addEventListener('mouseup', this);
+        window.addEventListener('touchend', this);
+    }},
+
+    detachedCallback: {value: function() {
+        window.removeEventListener('mouseup', this);
+        window.removeEventListener('touchend', this);
+    }},
+
+    handleEvent: {value: function(event) {
+        if (event.currentTarget === this) {
+            switch (event.type) {
+            case 'touchstart':
+            case 'mousedown':
+                // Locate li intended for moving
+                var handle = micro.findAncestor(event.target,
+                    function(e) { return e.classList.contains('micro-ol-handle'); }, this);
+                if (!handle) {
+                    break;
+                }
+                this._li = micro.findAncestor(handle,
+                    function(e) { return e.parentElement === this; }.bind(this), this);
+                if (!this._li) {
+                    break;
+                }
+
+                // Prevent scrolling and text selection
+                event.preventDefault();
+                this._from = this._li.nextElementSibling;
+                this._to = null;
+                this._over = this._li;
+                this._li.classList.add('micro-ol-li-moving');
+                ui.classList.add('micro-ui-dragging');
+                break;
+
+            case 'touchmove':
+            case 'mousemove':
+                if (!this._li) {
+                    break;
+                }
+
+                // Locate li the pointer is over
+                var x;
+                var y;
+                if (event.type === 'touchmove') {
+                    x = event.targetTouches[0].clientX;
+                    y = event.targetTouches[0].clientY;
+                } else {
+                    x = event.clientX;
+                    y = event.clientY;
+                }
+                var over = micro.findAncestor(document.elementFromPoint(x, y),
+                    function(e) { return e.parentElement === this; }.bind(this), this);
+                if (!over) {
+                    break;
+                }
+
+                // If the moving li swaps with a larger item, the pointer is still over that item
+                // after the swap. We prevent accidently swapping back on the next pointer move by
+                // remembering the last item the pointer was over.
+                if (over === this._over) {
+                    break;
+                }
+                this._over = over;
+
+                if (this._li.compareDocumentPosition(this._over) &
+                        Node.DOCUMENT_POSITION_PRECEDING) {
+                    this._to = this._over;
+                } else {
+                    this._to = this._over.nextElementSibling;
+                }
+                this.insertBefore(this._li, this._to);
+                break;
+            }
+
+        } else if (event.currentTarget === window &&
+                   ['touchend', 'mouseup'].indexOf(event.type) !== -1) {
+            if (!this._li) {
+                return;
+            }
+
+            this._li.classList.remove('micro-ol-li-moving');
+            ui.classList.remove('micro-ui-dragging');
+            if (this._to !== this._from) {
+                this.dispatchEvent(new CustomEvent('moveitem',
+                    {detail: {li: this._li, from: this._from, to: this._to}}));
+            }
+            this._li = null;
         }
     }}
 })});

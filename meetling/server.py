@@ -76,6 +76,7 @@ class MeetlingServer(HTTPServer):
             (r'/api/meetings/([^/]+)/items(/trashed)?$', _MeetingItemsEndpoint),
             (r'/api/meetings/([^/]+)/trash-agenda-item$', _MeetingTrashAgendaItemEndpoint),
             (r'/api/meetings/([^/]+)/restore-agenda-item$', _MeetingRestoreAgendaItemEndpoint),
+            (r'/api/meetings/([^/]+)/move-agenda-item$', _MeetingMoveAgendaItemEndpoint),
             (r'/api/meetings/([^/]+)/items/([^/]+)$', _AgendaItemEndpoint)
         ]
         # pylint: disable=protected-access; meetling is a friend
@@ -356,6 +357,24 @@ class _MeetingRestoreAgendaItemEndpoint(Endpoint):
             raise meetling.ValueError('item_not_found')
 
         meeting.restore_agenda_item(**args)
+        self.write(json.dumps(None))
+
+class _MeetingMoveAgendaItemEndpoint(Endpoint):
+    def post(self, id):
+        args = self.check_args({'item_id': str, 'to_id': (str, None)})
+        meeting = self.app.meetings[id]
+        try:
+            args['item'] = meeting.items[args.pop('item_id')]
+        except KeyError:
+            raise meetling.ValueError('item_not_found')
+        args['to'] = args.pop('to_id')
+        if args['to'] is not None:
+            try:
+                args['to'] = meeting.items[args['to']]
+            except KeyError:
+                raise meetling.ValueError('to_not_found')
+
+        meeting.move_agenda_item(**args)
         self.write(json.dumps(None))
 
 class _AgendaItemEndpoint(Endpoint):

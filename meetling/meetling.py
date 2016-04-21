@@ -452,6 +452,21 @@ class Meeting(Object, Editable):
         item.trashed = False
         self.app.r.oset(item.id, item)
 
+    def move_agenda_item(self, item, to):
+        """See :http:post:`/api/meetings/(id)/move-agenda-item`."""
+        if to:
+            if to.id not in self.items:
+                raise ValueError('to_not_found')
+            if to == item:
+                # No op
+                return
+        if not self.app.r.lrem(self._items_key, 1, item.id):
+            raise ValueError('item_not_found')
+        if to:
+            self.app.r.linsert(self._items_key, 'after', to.id, item.id)
+        else:
+            self.app.r.lpush(self._items_key, item.id)
+
     def json(self, restricted=False, include_users=False, include_items=False):
         """See :meth:`Object.json`.
 

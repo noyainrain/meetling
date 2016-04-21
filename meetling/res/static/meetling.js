@@ -291,6 +291,11 @@ meetling.UI = document.registerElement('meetling-ui',
         space.appendChild(notification);
     }},
 
+    synthesizeMeetingTrashAgendaItemEvent: {value: function(item) {
+        var item = Object.assign({}, item, {trashed: true});
+        this.dispatchEvent(new CustomEvent('trash-agenda-item', {detail: {item: item}}));
+    }},
+
     _update: {value: function() {
         document.title = this.settings.title;
         this.querySelector('.meetling-ui-logo-text').textContent = this.settings.title;
@@ -577,7 +582,7 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-meeting-page-template').content, true));
         this._agendaUl = this.querySelector(".meetling-meeting-agenda > ul");
-        this._itemsUl = this.querySelector(".meetling-meeting-items > ul");
+        this._itemsOL = this.querySelector('.meetling-meeting-items > ol');
         this._trashedItemsUl = this.querySelector(".meetling-meeting-trashed-items > ul");
         this._showTrashedItemsAction = this.querySelector(".meetling-meeting-show-trashed-items");
         this._hideTrashedItemsAction = this.querySelector(".meetling-meeting-hide-trashed-items");
@@ -585,6 +590,7 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
             this.querySelector(".meetling-meeting-create-agenda-item .action");
         this._shareAction = this.querySelector(".meetling-meeting-share");
 
+        this._itemsOL.addEventListener('moveitem', this);
         this._showTrashedItemsAction.addEventListener("click", this);
         this._hideTrashedItemsAction.addEventListener("click", this);
         this._createAgendaItemAction.addEventListener("click", this);
@@ -601,7 +607,7 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
             for (var item of results[0]) {
                 var li = document.createElement('li', 'meetling-agenda-item');
                 li.item = item;
-                this._itemsUl.appendChild(li);
+                this._itemsOL.appendChild(li);
             }
             for (var item of results[1]) {
                 var li = document.createElement('li', 'meetling-agenda-item');
@@ -674,6 +680,29 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
         return null;
     }},
 
+    _moveAgendaItem: {value: function(item, to) {
+        return micro.call('POST', `/api/meetings/${this.meeting.id}/move-agenda-item`, {
+            item_id: item.id,
+            to_id: to ? to.id : null
+        }).catch(function(e) {
+            if (e instanceof micro.APIError && e.error.__type__ === 'ValueError' &&
+                    e.error.code === 'item_not_found') {
+                ui.synthesizeMeetingTrashAgendaItemEvent(item);
+            } else if (e instanceof micro.APIError && e.error.__type__ === 'ValueError' &&
+                       e.error.code === 'to_not_found') {
+                // If the reference item has been trashed, retry by moving to its predecessor
+                var previous = this._getAgendaItemElement(to.id).previousElementSibling;
+                if (previous) {
+                    previous = previous.item;
+                }
+                ui.synthesizeMeetingTrashAgendaItemEvent(to);
+                return this._moveAgendaItem(item, previous);
+            } else {
+                throw e;
+            }
+        }.bind(this));
+    }},
+
     handleEvent: {value: function(event) {
         if (event.target === ui && event.type === 'trash-agenda-item') {
             var li = this._getAgendaItemElement(event.detail.item.id);
@@ -684,8 +713,15 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
         } else if (event.target === ui && event.type === 'restore-agenda-item') {
             var li = this._getAgendaItemElement(event.detail.item.id);
             li.item = event.detail.item;
-            this._itemsUl.appendChild(li);
+            this._itemsOL.appendChild(li);
             this._update();
+
+        } else if (event.currentTarget === this._itemsOL && event.type === 'moveitem') {
+            var to = event.detail.li.previousElementSibling;
+            if (to) {
+                to = to.item;
+            }
+            this._moveAgendaItem(event.detail.li.item, to);
 
         } else if ((event.currentTarget === this._showTrashedItemsAction ||
                     event.currentTarget === this._hideTrashedItemsAction) &&
@@ -895,9 +931,7 @@ meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
                     throw e;
                 }
             }).then(function() {
-                this._item.trashed = true;
-                ui.dispatchEvent(
-                    new CustomEvent('trash-agenda-item', {detail: {item: this._item}}));
+                ui.synthesizeMeetingTrashAgendaItemEvent(this._item);
             }.bind(this));
 
         } else if (event.currentTarget === this._restoreAction && event.type === "click") {
@@ -991,7 +1025,7 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
                     // In create mode, append a new meetling-agenda-item to the list
                     var li = new meetling.AgendaItemElement();
                     li.item = item;
-                    this.parentNode.querySelector('.meetling-meeting-items > ul').appendChild(li);
+                    this.parentNode.querySelector('.meetling-meeting-items > ol').appendChild(li);
                 }
                 this._close();
             }.bind(this), function(e) {

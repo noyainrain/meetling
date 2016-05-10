@@ -13,31 +13,6 @@
  * - border: #bbb
  */
 
-/* ---- Fonts ---- */
-
-@font-face {
-    font-family: "Open Sans";
-    src: url("lib/open-sans/OpenSans-Regular.ttf");
-}
-
-@font-face {
-    font-family: "Open Sans";
-    src: url("lib/open-sans/OpenSans-Italic.ttf");
-    font-style: italic;
-}
-
-@font-face {
-    font-family: "Open Sans";
-    src: url("lib/open-sans/OpenSans-Bold.ttf");
-    font-weight: bold;
-}
-
-@font-face {
-    font-family: "Open Sans";
-    src: url("lib/open-sans/OpenSans-Light.ttf");
-    font-weight: 300;
-}
-
 /* ---- General ---- */
 
 * {

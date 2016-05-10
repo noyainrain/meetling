@@ -1,2 +1,2 @@
-tornado >= 3.2, < 4
+tornado >= 4.2, < 5
 redis >= 2.10, < 3

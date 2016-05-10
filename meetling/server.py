@@ -81,7 +81,7 @@ class MeetlingServer(HTTPServer):
         ]
         # pylint: disable=protected-access; meetling is a friend
         application = Application(
-            handlers, template_path=os.path.join(meetling._RES_PATH, 'templates'),
+            handlers, gzip=True, template_path=os.path.join(meetling._RES_PATH, 'templates'),
             static_path=os.path.join(meetling._RES_PATH, 'static'), debug=debug, server=self)
         super().__init__(application)
 
@@ -97,7 +97,8 @@ class MeetlingServer(HTTPServer):
 
 class _UI(RequestHandler):
     def get(self):
-        return self.render('meetling.html')
+        self.set_header('Cache-Control', 'no-cache')
+        self.render('meetling.html')
 
 class Endpoint(RequestHandler):
     """JSON REST API endpoint.
@@ -133,6 +134,9 @@ class Endpoint(RequestHandler):
                 raise HTTPError(http.client.BAD_REQUEST)
             if not isinstance(self.args, Mapping):
                 raise HTTPError(http.client.BAD_REQUEST)
+
+        if self.request.method in {'GET', 'HEAD'}:
+            self.set_header('Cache-Control', 'no-cache')
 
     def write_error(self, status_code, exc_info):
         if issubclass(exc_info[0], KeyError):

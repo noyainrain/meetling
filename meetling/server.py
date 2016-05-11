@@ -12,6 +12,7 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=abstract-method; Tornado handlers define a semi-abstract data_received()
 # pylint: disable=arguments-differ; Tornado handler arguments are defined by URLs
 
 """Meetling server."""
@@ -61,6 +62,8 @@ class MeetlingServer(HTTPServer):
     """
 
     def __init__(self, port=8080, debug=False, **args):
+        # pylint: disable=super-init-not-called; Configurable classes use initialize() instead of
+        #                                        __init__()
         handlers = [
             # UI
             (r'/log-client-error$', _LogClientErrorEndpoint),
@@ -81,13 +84,18 @@ class MeetlingServer(HTTPServer):
         ]
         # pylint: disable=protected-access; meetling is a friend
         application = Application(
-            handlers, gzip=True, template_path=os.path.join(meetling._RES_PATH, 'templates'),
+            handlers, compress_response=True,
+            template_path=os.path.join(meetling._RES_PATH, 'templates'),
             static_path=os.path.join(meetling._RES_PATH, 'static'), debug=debug, server=self)
-        super().__init__(application)
+        super().initialize(application)
 
         self.port = port
         self.debug = debug
         self.app = Meetling(**args)
+
+    def initialize(self, *args, **kwargs):
+        # Configurable classes call initialize() instead of __init__()
+        self.__init__(*args, **kwargs)
 
     def run(self):
         """Run the server."""

@@ -123,6 +123,8 @@ User is an :ref:`Object` and :ref:`Editable` by the user oneself.
 Settings
 --------
 
+x
+
 App settings.
 
 Settings is an :ref:`Object` and :ref:`Editable` by staff members.

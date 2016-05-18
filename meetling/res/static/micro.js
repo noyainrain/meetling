@@ -175,6 +175,26 @@ micro.UI = document.registerElement('micro-ui',
         this._route(url);
     }},
 
+    /**
+     * Show a *notification* to the user.
+     *
+     * *notification* is a :class:`HTMLElement`, like for example :class:`SimpleNotification`.
+     * Alternatively, *notification* can be a simple message string to display.
+     */
+    notify: {value: function(notification) {
+        if (typeof notification === "string") {
+            var elem = document.createElement("meetling-simple-notification");
+            var p = document.createElement("p");
+            p.textContent = notification;
+            elem.content.appendChild(p);
+            notification = elem;
+        }
+
+        var space = this.querySelector('.meetling-ui-notification-space');
+        space.textContent = "";
+        space.appendChild(notification);
+    }},
+
     _open: {value: function(page) {
         this._close();
         this._pageSpace.appendChild(page);
@@ -400,6 +420,27 @@ micro.Menu = document.registerElement("micro-menu",
         if (event.currentTarget === this._toggleButton && event.type === "click") {
             this.classList.toggle("micro-menu-secondary-visible");
             this._update();
+        }
+    }}
+})});
+
+/**
+ * Simple notification.
+ */
+micro.SimpleNotification = document.registerElement("meetling-simple-notification",
+        {prototype: Object.create(HTMLElement.prototype, {
+    createdCallback: {value: function() {
+        this.appendChild(document.importNode(
+            ui.querySelector('.meetling-simple-notification-template').content, true));
+        this.classList.add("meetling-notification", "meetling-simple-notification");
+        this.querySelector(".meetling-simple-notification-dismiss").addEventListener("click", this);
+        this.content = this.querySelector(".meetling-simple-notification-content");
+    }},
+
+    handleEvent: {value: function(event) {
+        if (event.currentTarget === this.querySelector(".meetling-simple-notification-dismiss") &&
+                event.type === "click") {
+            this.parentNode.removeChild(this);
         }
     }}
 })});

@@ -271,26 +271,6 @@ meetling.UI = document.registerElement('meetling-ui',
         }
     },
 
-    /**
-     * Show a *notification* to the user.
-     *
-     * *notification* is a :class:`HTMLElement`, like for example :class:`SimpleNotification`.
-     * Alternatively, *notification* can be a simple message string to display.
-     */
-    notify: {value: function(notification) {
-        if (typeof notification === "string") {
-            var elem = document.createElement("meetling-simple-notification");
-            var p = document.createElement("p");
-            p.textContent = notification;
-            elem.content.appendChild(p);
-            notification = elem;
-        }
-
-        var space = this.querySelector('.meetling-ui-notification-space');
-        space.textContent = "";
-        space.appendChild(notification);
-    }},
-
     synthesizeMeetingTrashAgendaItemEvent: {value: function(item) {
         var item = Object.assign({}, item, {trashed: true});
         this.dispatchEvent(new CustomEvent('trash-agenda-item', {detail: {item: item}}));
@@ -390,27 +370,6 @@ meetling.UI = document.registerElement('meetling-ui',
         } else if (event.target === this && event.type === 'settings-edit') {
             this.settings = event.detail.settings;
             this._update();
-        }
-    }}
-})});
-
-/**
- * Simple notification.
- */
-meetling.SimpleNotification = document.registerElement("meetling-simple-notification",
-        {prototype: Object.create(HTMLElement.prototype, {
-    createdCallback: {value: function() {
-        this.appendChild(document.importNode(
-            ui.querySelector('.meetling-simple-notification-template').content, true));
-        this.classList.add("meetling-notification", "meetling-simple-notification");
-        this.querySelector(".meetling-simple-notification-dismiss").addEventListener("click", this);
-        this.content = this.querySelector(".meetling-simple-notification-content");
-    }},
-
-    handleEvent: {value: function(event) {
-        if (event.currentTarget === this.querySelector(".meetling-simple-notification-dismiss") &&
-                event.type === "click") {
-            this.parentNode.removeChild(this);
         }
     }}
 })});

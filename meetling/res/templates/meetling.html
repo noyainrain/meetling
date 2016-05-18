@@ -1,148 +1,80 @@
-<!DOCTYPE html>
+{% extends micro.html %}
 
-<html>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width; initial-scale=1; user-scalable=no" />
-        <title>Meetling</title>
+{% block env %}
+    {% set ui_type = 'meetling-ui' %}
+{% end %}
 
-        <link rel="icon" />
-        <link rel="stylesheet" href="{{ static_url('lib/pikaday/css/pikaday.css') }}" />
-        <link rel="stylesheet"
-              href="{{ static_url('lib/font-awesome/css/font-awesome.min.css') }}" />
-        <link rel="stylesheet" href="{{ static_url('micro.css') }}" />
-        <link rel="stylesheet" href="{{ static_url('meetling.css') }}" />
+{% block head %}
+    <link rel="stylesheet" href="{{ static_url('lib/pikaday/css/pikaday.css') }}" />
+    <link rel="stylesheet" href="{{ static_url('meetling.css') }}" />
 
-        <script src="{{ static_url('lib/fetch/fetch.js') }}" defer="defer"></script>
-        <script src="{{ static_url('lib/webcomponentsjs/webcomponents-lite.js') }}" defer="defer">
-        </script>
-        <script src="{{ static_url('lib/pikaday/pikaday.js') }}" defer="defer"></script>
-        <script src="{{ static_url('micro.js') }}" defer="defer"></script>
-        <script src="{{ static_url('meetling.js') }}" defer="defer"></script>
+    <script src="{{ static_url('lib/pikaday/pikaday.js') }}" defer="defer"></script>
+    <script src="{{ static_url('meetling.js') }}" defer="defer"></script>
+{% end %}
 
-        <style>
-            @font-face {
-                font-family: 'Open Sans';
-                src: url('{{ static_url('lib/open-sans/OpenSans-Regular.ttf') }}');
-            }
+{% block header %}
+    <h1 class="meetling-ui-logo">
+        <a class="link" href="/">
+            <img /> <span class="meetling-ui-logo-text"></span>
+            <span class="meetling-ui-beta">Beta</span>
+        </a>
+    </h1>
 
-            @font-face {
-                font-family: 'Open Sans';
-                src: url('{{ static_url('lib/open-sans/OpenSans-Italic.ttf') }}');
-                font-style: italic;
-            }
+    <div class="meetling-ui-header-fill"></div>
 
-            @font-face {
-                font-family: 'Open Sans';
-                src: url('{{ static_url('lib/open-sans/OpenSans-Bold.ttf') }}');
-                font-weight: bold;
-            }
+    <div class="meetling-ui-menu">
+        <button class="link"><meetling-user></meetling-user></button>
+        <ul>
+            <li class="meetling-ui-edit-user">
+                <a class="action">
+                    <i class="fa fa-fw fa-wrench"></i> Edit user settings
+                </a>
+            </li>
+        </ul>
+    </div>
 
-            @font-face {
-                font-family: 'Open Sans';
-                src: url('{{ static_url('lib/open-sans/OpenSans-Light.ttf') }}');
-                font-weight: 300;
-            }
-        </style>
-    </head>
+    <div class="meetling-ui-menu">
+        <button class="link"><i class="fa fa-fw fa-bars"></i></button>
+        <ul>
+            <li>
+                <a class="link" href="/about">
+                    <i class="fa fa-fw fa-question-circle"></i> About
+                </a>
+            </li>
+            <li class="meetling-ui-edit-settings">
+                <a class="action" href="/settings/edit">
+                    <i class="fa fa-fw fa-wrench"></i> Edit site settings
+                </a>
+            </li>
+        </ul>
+    </div>
+{% end %}
 
-    <body is="meetling-ui">
-        <header class="micro-ui-header" style="display: none;">
-            <nav class="micro-ui-inside">
-                <h1 class="meetling-ui-logo">
-                    <a class="link" href="/">
-                        <img /> <span class="meetling-ui-logo-text"></span>
-                        <span class="meetling-ui-beta">Beta</span>
-                    </a>
-                </h1>
+{% block templates %}
+    <template class="meetling-user-template">
+        <i class="fa fa-user"></i><span></span>
+    </template>
 
-                <div class="meetling-ui-header-fill"></div>
-
-                <div class="meetling-ui-menu">
-                    <button class="link"><meetling-user></meetling-user></button>
-                    <ul>
-                        <li class="meetling-ui-edit-user">
-                            <a class="action">
-                                <i class="fa fa-fw fa-wrench"></i> Edit user settings
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="meetling-ui-menu">
-                    <button class="link"><i class="fa fa-fw fa-bars"></i></button>
-                    <ul>
-                        <li>
-                            <a class="link" href="/about">
-                                <i class="fa fa-fw fa-question-circle"></i> About
-                            </a>
-                        </li>
-                        <li class="meetling-ui-edit-settings">
-                            <a class="action" href="/settings/edit">
-                                <i class="fa fa-fw fa-wrench"></i> Edit site settings
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-
-            <div class="meetling-ui-notification-space"></div>
-        </header>
-
-        <main>
-            <div class="micro-ui-inside">
-                <p class="micro-ui-progress" style="display: none;">
-                    <i class="fa fa-spin fa-spinner"></i>
-                </p>
-            </div>
-        </main>
-
-        <div class="templates">
-            {% include micro.html %}
-
-            <template class="micro-menu-template">
-                <button class="micro-menu-toggle-secondary action action-subtle">
-                    <i class="fa"></i>
+    <template class="meetling-error-notification-template">
+        <div class="micro-ui-inside compact">
+            <p>
+                <i class="fa fa-exclamation-triangle"></i> Oops, something went very wrong!
+                We have been notified and will do our best to fix the problem as soon as
+                possible. We are sorry for the inconvenience!
+            </p>
+            <p>In the meantime, you may reload the page and give it another try.</p>
+            <p class="group">
+                <button class="meetling-error-notification-reload action">
+                    Reload the page
                 </button>
-            </template>
-
-            <template class="meetling-user-template">
-                <i class="fa fa-user"></i><span></span>
-            </template>
-
-            <template class="meetling-simple-notification-template">
-                <div class="micro-ui-inside compact">
-                    <div class="meetling-simple-notification-content"></div>
-                    <p class="group">
-                        <button class="meetling-simple-notification-dismiss action action-subtle">
-                            Dismiss
-                        </button>
-                    </p>
-                </div>
-            </template>
-
-            <template class="meetling-error-notification-template">
-                <div class="micro-ui-inside compact">
-                    <p>
-                        <i class="fa fa-exclamation-triangle"></i> Oops, something went very wrong!
-                        We have been notified and will do our best to fix the problem as soon as
-                        possible. We are sorry for the inconvenience!
-                    </p>
-                    <p>In the meantime, you may reload the page and give it another try.</p>
-                    <p class="group">
-                        <button class="meetling-error-notification-reload action">
-                            Reload the page
-                        </button>
-                    </p>
-                </div>
-            </template>
-
-            {% include start.html %}
-            {% include about.html %}
-            {% include edit-user.html %}
-            {% include edit-settings.html %}
-            {% include meeting.html %}
-            {% include edit-meeting.html %}
+            </p>
         </div>
-    </body>
-</html>
+    </template>
+
+    {% include start.html %}
+    {% include about.html %}
+    {% include edit-user.html %}
+    {% include edit-settings.html %}
+    {% include meeting.html %}
+    {% include edit-meeting.html %}
+{% end %}

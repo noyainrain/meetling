@@ -1,11 +1,99 @@
-<template class="micro-not-found-page-template">
-    <h1 class="micro-icon-title"><i class="fa fa-map-signs"></i></h1>
-    <p>Oops, we have not found the page you are looking for!</p>
-    <p><small>If you've been here before, someone has deleted what was here.</small></p>
-</template>
+{% block env %}{% end %}
 
-<template class="micro-forbidden-page-template">
-    <h1 class="micro-icon-title"><i class="fa fa-lock"></i></h1>
-    <p>Oops, you are not allowed to view this page!<p>
-    <p><small>If you've been here before, someone has revoked your permission.</small></p>
-</template>
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width; initial-scale=1; user-scalable=no" />
+        <title></title>
+
+        <link rel="icon" />
+        <link rel="stylesheet"
+              href="{{ static_url('lib/font-awesome/css/font-awesome.min.css') }}" />
+        <link rel="stylesheet" href="{{ static_url('micro.css') }}" />
+
+        <script src="{{ static_url('lib/fetch/fetch.js') }}" defer="defer"></script>
+        <script src="{{ static_url('lib/webcomponentsjs/webcomponents-lite.js') }}" defer="defer">
+        </script>
+        <script src="{{ static_url('micro.js') }}" defer="defer"></script>
+
+        <style>
+            @font-face {
+                font-family: 'Open Sans';
+                src: url('{{ static_url('lib/open-sans/OpenSans-Regular.ttf') }}');
+            }
+
+            @font-face {
+                font-family: 'Open Sans';
+                src: url('{{ static_url('lib/open-sans/OpenSans-Italic.ttf') }}');
+                font-style: italic;
+            }
+
+            @font-face {
+                font-family: 'Open Sans';
+                src: url('{{ static_url('lib/open-sans/OpenSans-Bold.ttf') }}');
+                font-weight: bold;
+            }
+
+            @font-face {
+                font-family: 'Open Sans';
+                src: url('{{ static_url('lib/open-sans/OpenSans-Light.ttf') }}');
+                font-weight: 300;
+            }
+        </style>
+
+        {% block head %}{% end %}
+    </head>
+
+    <body is="{{ ui_type }}">
+        <header class="micro-ui-header" style="display: none;">
+            <nav class="micro-ui-inside">
+                {% block header %}{% end %}
+            </nav>
+
+            <div class="meetling-ui-notification-space"></div>
+        </header>
+
+        <main>
+            <div class="micro-ui-inside">
+                <p class="micro-ui-progress" style="display: none;">
+                    <i class="fa fa-spin fa-spinner"></i>
+                </p>
+            </div>
+        </main>
+
+        <div class="templates">
+            <template class="micro-menu-template">
+                <button class="micro-menu-toggle-secondary action action-subtle">
+                    <i class="fa"></i>
+                </button>
+            </template>
+
+            <template class="meetling-simple-notification-template">
+                <div class="micro-ui-inside compact">
+                    <div class="meetling-simple-notification-content"></div>
+                    <p class="group">
+                        <button class="meetling-simple-notification-dismiss action action-subtle">
+                            Dismiss
+                        </button>
+                    </p>
+                </div>
+            </template>
+
+            <template class="micro-not-found-page-template">
+                <h1 class="micro-icon-title"><i class="fa fa-map-signs"></i></h1>
+                <p>Oops, we have not found the page you are looking for!</p>
+                <p><small>If you've been here before, someone has deleted what was here.</small></p>
+            </template>
+
+            <template class="micro-forbidden-page-template">
+                <h1 class="micro-icon-title"><i class="fa fa-lock"></i></h1>
+                <p>Oops, you are not allowed to view this page!<p>
+                <p><small>If you've been here before, someone has revoked your permission.</small></p>
+            </template>
+
+            {% block templates %}{% end %}
+        </div>
+    </body>
+</html>

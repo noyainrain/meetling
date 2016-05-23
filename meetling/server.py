@@ -139,32 +139,32 @@ class Endpoint(RequestHandler):
             try:
                 self.args = json.loads(self.request.body.decode())
             except ValueError:
-                raise HTTPError(http.client.BAD_REQUEST)
+                raise HTTPError(int(http.client.BAD_REQUEST))
             if not isinstance(self.args, Mapping):
-                raise HTTPError(http.client.BAD_REQUEST)
+                raise HTTPError(int(http.client.BAD_REQUEST))
 
         if self.request.method in {'GET', 'HEAD'}:
             self.set_header('Cache-Control', 'no-cache')
 
     def write_error(self, status_code, exc_info):
         if issubclass(exc_info[0], KeyError):
-            self.set_status(http.client.NOT_FOUND)
+            self.set_status(int(http.client.NOT_FOUND))
             self.write({'__type__': 'NotFoundError'})
         elif issubclass(exc_info[0], meetling.AuthenticationError):
-            self.set_status(http.client.BAD_REQUEST)
+            self.set_status(int(http.client.BAD_REQUEST))
             self.write({'__type__': exc_info[0].__name__})
         elif issubclass(exc_info[0], meetling.PermissionError):
-            self.set_status(http.client.FORBIDDEN)
+            self.set_status(int(http.client.FORBIDDEN))
             self.write({'__type__': exc_info[0].__name__})
         elif issubclass(exc_info[0], meetling.InputError):
-            self.set_status(http.client.BAD_REQUEST)
+            self.set_status(int(http.client.BAD_REQUEST))
             self.write({
                 '__type__': exc_info[0].__name__,
                 'code': exc_info[1].code,
                 'errors': exc_info[1].errors
             })
         elif issubclass(exc_info[0], meetling.ValueError):
-            self.set_status(http.client.BAD_REQUEST)
+            self.set_status(int(http.client.BAD_REQUEST))
             self.write({'__type__': exc_info[0].__name__, 'code': exc_info[1].code})
         else:
             super().write_error(status_code, exc_info=exc_info)
@@ -337,7 +337,7 @@ class _MeetingItemsEndpoint(Endpoint):
 
     def post(self, id, set):
         if set:
-            raise HTTPError(http.client.METHOD_NOT_ALLOWED)
+            raise HTTPError(int(http.client.METHOD_NOT_ALLOWED))
         args = self.check_args({
             'title': str,
             'duration': (int, None, 'opt'),

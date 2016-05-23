@@ -119,3 +119,10 @@ class MeetlingServerTest(AsyncTestCase):
         self.assertEqual(cm.exception.code, http.client.BAD_REQUEST)
         error = json.loads(cm.exception.response.body.decode())
         self.assertEqual(error.get('__type__'), 'ValueError')
+
+    @gen_test
+    def test_post_body_invalid_json(self):
+        with self.assertRaises(HTTPError) as cm:
+            yield self.request('/api/meetings/' + self.meeting.id, method='POST', body='foo')
+        e = cm.exception
+        self.assertEqual(e.code, http.client.BAD_REQUEST)

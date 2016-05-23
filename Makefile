@@ -1,6 +1,8 @@
 PYTHON = python3
 PIP = pip3
-BOWER = bower
+NPM = npm
+
+PIPFLAGS=$$([ -z "$$VIRTUAL_ENV" ] && echo --user) -U
 
 .PHONY: test
 test:
@@ -15,12 +17,13 @@ check: test lint
 
 .PHONY: deps
 deps:
-	$(PIP) install --user -U -r requirements.txt
-	$(BOWER) update
+	$(PIP) install $(PIPFLAGS) -r requirements.txt
+	$(NPM) update
+	node_modules/.bin/bower update
 
 .PHONY: deps-dev
 deps-dev:
-	$(PIP) install --user -U -r requirements-dev.txt
+	$(PIP) install $(PIPFLAGS) -r requirements-dev.txt
 
 .PHONY: doc
 doc:

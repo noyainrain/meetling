@@ -1,0 +1,9 @@
+language: python
+python:
+    - "3.4"
+    - "3.5"
+services: redis-server
+install:
+    - make deps
+    - make deps-dev
+script: make check

@@ -30,6 +30,10 @@ ignore-long-lines=://|'.+'|".+"
 # Remove TODO, reminders may be helpful
 notes=FIXME,XXX
 
+[typecheck]
+# http.client status codes are defined dynamically
+ignored-modules=http.client
+
 [classes]
 # Add initialize, it is used by Tornado
 defining-attr-methods=__init__,__new__,setUp,initialize

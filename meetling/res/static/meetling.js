@@ -454,6 +454,10 @@ meetling.StartPage = document.registerElement('meetling-start-page',
         }
         this.querySelector('.meetling-logo span').textContent = ui.settings.title;
 
+        // TODO
+        this.querySelector('.oinkoink').href =
+            `https://telegram.me/meetlingorgbot?start=${ui.user.auth_secret}`;
+
         this._createExampleMeetingAction.addEventListener('click', this);
     }},
 

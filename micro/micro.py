@@ -166,6 +166,9 @@ class Application:
         type = self.types[type]
         return type(app=self, **json)
 
+class Extension:
+    pass
+
 class Object:
     """See :ref:`Object`.
 

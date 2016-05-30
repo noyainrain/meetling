@@ -28,6 +28,7 @@ from urllib.parse import urlparse
 import micro
 from micro import AuthRequest
 from micro.util import str_or_none, parse_isotime
+from tornado.gen import coroutine
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from tornado.template import DictLoader, filter_whitespace
@@ -35,6 +36,7 @@ from tornado.web import Application, RequestHandler, HTTPError
 
 import meetling
 from meetling import Meetling
+from meetling.ext.telegram import Telegram
 import meetling.server.templates
 
 _CLIENT_ERROR_LOG_TEMPLATE = """\
@@ -107,6 +109,13 @@ class MeetlingServer(HTTPServer):
             (r'/api/meetings/([^/]+)/move-agenda-item$', _MeetingMoveAgendaItemEndpoint),
             (r'/api/meetings/([^/]+)/items/([^/]+)$', _AgendaItemEndpoint)
         ]
+
+        # TODO
+        url = 'https://tun.inrain.org' # TODO: get from some config file
+        token = '188662197:AAHtgXkiB6qBq2_KLYYs7pi9l3uVAvA8xrc' # TODO: get from some config
+        hook_path = '/telegram-update-hook/' + token
+        handlers.insert(2, (hook_path + r'$', _TelegramUpdateHook))
+
         # pylint: disable=protected-access; meetling is a friend
         application = Application(
             handlers, compress_response=True,
@@ -119,6 +128,7 @@ class MeetlingServer(HTTPServer):
         self.debug = debug
         self.app = Meetling(email='bot@' + urlparts.hostname,
                             render_email_auth_message=self._render_email_auth_message, **args)
+        self.telegram = Telegram(self)
 
         self._message_templates = DictLoader(meetling.server.templates.MESSAGE_TEMPLATES,
                                              autoescape=None)
@@ -132,6 +142,8 @@ class MeetlingServer(HTTPServer):
 
     def run(self):
         """Run the server."""
+        IOLoop.instance().add_callback(self.update)
+
         self.app.update()
         self.listen(self.port)
         IOLoop.instance().start()
@@ -209,10 +221,74 @@ class MeetlingServer(HTTPServer):
     #    self.render_notification('meeting-edit', subscriber=subscriber, feed=feed,
     #                             meeting=event.object)
 
+    @coroutine
+    def update(self):
+        self.telegram.update()
+
+        from meetling.micro import Notification
+        user = self.app.users['User:ripsppycnvbsakxx']
+        print('TESTING NOTIFY')
+        yield self.telegram.notify(Notification(None, user))
+        print('TESTING CONNECT')
+        self.telegram.connect(user)
+
+
 class _UI(RequestHandler):
     def get(self):
         self.set_header('Cache-Control', 'no-cache')
         self.render('meetling.html')
+
+# TODO: move to telegram module
+class _TelegramUpdateHook(RequestHandler):
+    def post(self):
+        print('HOOK')
+        # TODO: handle update_id sequence?
+        # TODO: handle edited_message?
+        # TODO: handle inline foo?
+        from meetling.micro import WebAPI
+        update = json.loads(self.request.body.decode(), object_hook=WebAPI.Object)
+        IOLoop.instance().spawn_callback(self._foo, update)
+
+    def _foo(self, update):
+        self.server = self.application.settings['server']
+        self.app = self.server.app
+        self.api = self.server.telegram.api
+
+        print(update)
+        print(update.message.text)
+
+        cmd = None
+        rest = None
+        if hasattr(update.message, 'text'):
+            tokens = update.message.text.split(maxsplit=1)
+            cmd, rest = tokens[0], tokens[1:]
+
+        reply = None
+        if cmd == '/start':
+            secret = rest
+            if secret:
+                secret = secret[0]
+                user_id = self.app.r.get(secret)
+                print(user_id)
+                if user_id:
+                    self.app.r.delete(secret)
+                    print(update.message.chat.id)
+                    self.app.r.hset('telegram', user_id, update.message.chat.id)
+                    reply = 'Nice, you will now receive notifications via Telegram'
+            # TODO: if user already registered, reply = 'Notifications are already set up'
+            if not reply:
+                reply = 'Visit https://meetling.org/ and enable notifications via Telegram.'
+        elif cmd == '/help':
+            # TODO: Register commands with BotFather
+            reply = 'Commands:\n/start\n/help'
+        else:
+            reply = 'I\'m not really sure what you mean. Need some /help?'
+
+        # TODO: reply_to_message_id?
+        self.api.call('POST', 'sendMessage', {
+            'chat_id': update.message.chat.id,
+            'text': reply
+        })
 
 class Endpoint(RequestHandler):
     """JSON REST API endpoint.

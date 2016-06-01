@@ -10,7 +10,7 @@ test:
 
 .PHONY: lint
 lint:
-	pylint -j 0 meetling
+	pylint -j 0 meetling micro
 
 .PHONY: check
 check: test lint

@@ -12,4 +12,11 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-"""Included external modules."""
+"""Toolkit for social micro web apps.
+
+micro is based on Redis and thus any method may raise a :exc:`RedisError` if there is a problem
+communicating with the Redis server.
+"""
+
+from micro.micro import (Application, Object, Editable, User, Settings, ValueError, InputError,
+                         AuthenticationError, PermissionError)

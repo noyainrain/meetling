@@ -20,11 +20,10 @@ import subprocess
 from subprocess import check_output
 from tempfile import mkdtemp
 
-from redis import RedisError
+import micro
 from tornado.testing import AsyncTestCase
 
-import meetling
-from meetling import Meetling, Object, Editable
+from meetling import Meetling
 
 class MeetlingTestCase(AsyncTestCase):
     def setUp(self):
@@ -36,33 +35,6 @@ class MeetlingTestCase(AsyncTestCase):
         self.user = self.app.login()
 
 class MeetlingTest(MeetlingTestCase):
-    def test_init_redis_url_invalid(self):
-        with self.assertRaises(meetling.InputError):
-            Meetling(redis_url='//localhost:foo')
-
-    def test_authenticate(self):
-        user = self.app.authenticate(self.user.auth_secret)
-        self.assertEqual(user, self.user)
-        self.assertEqual(user, self.app.user)
-
-    def test_authenticate_secret_invalid(self):
-        with self.assertRaises(meetling.AuthenticationError):
-            self.app.authenticate('foo')
-
-    def test_login(self):
-        # login() is called by setUp()
-        self.assertIn(self.user.id, self.app.users)
-        self.assertEqual(self.user, self.app.user)
-        self.assertIn(self.staff_member, self.app.settings.staff)
-
-    def test_login_code(self):
-        user = self.app.login(code=self.staff_member.auth_secret)
-        self.assertEqual(user, self.staff_member)
-
-    def test_login_code_invalid(self):
-        with self.assertRaisesRegex(meetling.ValueError, 'code_invalid'):
-            self.app.login(code='foo')
-
     def test_create_meeting(self):
         meeting = self.app.create_meeting('Cat Hangout', description='  ')
         self.assertIn(meeting.id, self.app.meetings)
@@ -70,18 +42,8 @@ class MeetlingTest(MeetlingTestCase):
         self.assertIsNone(meeting.description)
 
     def test_create_meeting_title_empty(self):
-        with self.assertRaises(meetling.InputError):
+        with self.assertRaises(micro.InputError):
             self.app.create_meeting('  ')
-
-    def test_create_meeting_user_anonymous(self):
-        self.app.user = None
-        with self.assertRaises(meetling.PermissionError):
-            self.app.create_meeting('Cat hangout')
-
-    def test_create_meeting_no_redis(self):
-        app = Meetling(redis_url='//localhoax')
-        with self.assertRaises(RedisError):
-            app.login()
 
     def test_create_example_meeting(self):
         meeting = self.app.create_example_meeting()
@@ -142,25 +104,6 @@ class MeetlingUpdateTest(AsyncTestCase):
         self.assertFalse(meeting.trashed)
         self.assertFalse(item.trashed)
 
-class EditableTest(MeetlingTestCase):
-    def test_edit(self):
-        cat = Cat(id='Cat', trashed=False, app=self.app, authors=[], name=None)
-        cat.edit(name='Happy')
-        cat.edit(name='Grumpy')
-        user2 = self.app.login()
-        cat.edit(name='Hover')
-        self.assertEqual(cat.authors, [self.user, user2])
-
-    def test_edit_cat_trashed(self):
-        cat = Cat(id='Cat', trashed=True, app=self.app, authors=[], name=None)
-        with self.assertRaisesRegex(meetling.ValueError, 'object_trashed'):
-            cat.edit(name='Happy')
-
-class UserTest(MeetlingTestCase):
-    def test_edit(self):
-        self.user.edit(name='Happy')
-        self.assertEqual(self.user.name, 'Happy')
-
 class SettingsTest(MeetlingTestCase):
     def test_edit(self):
         self.app.user = self.staff_member
@@ -199,7 +142,7 @@ class MeetingTest(MeetlingTestCase):
 
     def test_trash_agenda_item_item_trashed(self):
         self.meeting.trash_agenda_item(self.items[0])
-        with self.assertRaisesRegex(meetling.ValueError, 'item_not_found'):
+        with self.assertRaisesRegex(micro.ValueError, 'item_not_found'):
             self.meeting.trash_agenda_item(self.items[0])
 
     def test_restore_agenda_item(self):
@@ -209,7 +152,7 @@ class MeetingTest(MeetlingTestCase):
         self.assertFalse(list(self.meeting.trashed_items.values()))
 
     def test_restore_agenda_item_item_not_trashed(self):
-        with self.assertRaisesRegex(meetling.ValueError, 'item_not_found'):
+        with self.assertRaisesRegex(micro.ValueError, 'item_not_found'):
             self.meeting.restore_agenda_item(self.items[0])
 
     def test_move_agenda_item(self):
@@ -227,11 +170,11 @@ class MeetingTest(MeetlingTestCase):
         self.assertEqual(list(self.meeting.items.values()), self.items)
 
     def test_move_agenda_item_item_external(self):
-        with self.assertRaisesRegex(meetling.ValueError, 'item_not_found'):
+        with self.assertRaisesRegex(micro.ValueError, 'item_not_found'):
             self.meeting.move_agenda_item(self.external_item, None)
 
     def test_move_agenda_item_to_external(self):
-        with self.assertRaisesRegex(meetling.ValueError, 'to_not_found'):
+        with self.assertRaisesRegex(micro.ValueError, 'to_not_found'):
             self.meeting.move_agenda_item(self.items[0], self.external_item)
 
 class AgendaItemTest(MeetlingTestCase):
@@ -242,18 +185,3 @@ class AgendaItemTest(MeetlingTestCase):
         self.assertEqual(item.title, 'Intensive purring')
         self.assertEqual(item.duration, 10)
         self.assertIsNone(item.description)
-
-class Cat(Object, Editable):
-    def __init__(self, id, trashed, app, authors, name):
-        super().__init__(id=id, trashed=trashed, app=app)
-        Editable.__init__(self, authors=authors)
-        self.name = name
-
-    def do_edit(self, **attrs):
-        if 'name' in attrs:
-            self.name = attrs['name']
-
-    def json(self, restricted=False, include_users=False):
-        json = super().json(attrs={'name': self.name})
-        json.update(Editable.json(self, restricted=restricted, include_users=include_users))
-        return json

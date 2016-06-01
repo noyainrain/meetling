@@ -22,12 +22,12 @@ If user authentication with the given secret fails, an :ref:`AuthenticationError
 any endpoint, a :ref:`PermissionError` is returned if the current user is not allowed to perform the
 action.
 
-.. _Meetling:
+.. _Application:
 
-Meetling
---------
+Application
+-----------
 
-Meetling application.
+Social micro web app.
 
 .. http:post:: /api/login
 
@@ -40,6 +40,13 @@ Meetling application.
 
    If *code* is ``null``, create and log in a new user. The very first user who logs in is
    registered as staff member.
+
+.. _Meetling:
+
+Meetling
+--------
+
+Meetling :ref:`Application`.
 
 .. http:post:: /api/meetings
 

@@ -425,6 +425,47 @@ class AuthRequest(Object):
             del json['code']
         return json
 
+class EventFeed(Object):
+    def __init__(self, id, trashed, app, subscribers):
+        super().__init__(id=id, trashed=trashed, app=app)
+        self._subscribers = subscribers
+
+    @property
+    def subscribers(self):
+        return self.app.r.omget(self._subscribers)
+
+    def publish_event(self, event):
+        for subscriber in self.subscribers:
+            if subscriber is event.user:
+                continue
+            self.app.handle_notification(event, subscriber, self)
+
+    def subscribe(self):
+        if self.app.user.id in self._subscribers:
+            raise ValueError('already_subscribed')
+        self._subscribers.append(self.app.user.id)
+        self.app.r.oset(self.id, self)
+
+    def unsubscribe(self):
+        try:
+            self._subscribers.remove(self.app.user.id)
+        except builtins.ValueError:
+            raise ValueError('not_subscribed')
+        self.app.r.oset(self.id, self)
+
+    def json(self, restricted=False, include_users=True):
+        # TODO: should subscribers be private?
+        json = super().json(attrs={'subscribers': self._subscribers})
+        if include_users:
+            json['subscribers'] = [s.json(restricted=restricted) for s in self.subscribers]
+        return json
+
+class Event:
+    def __init__(self, type, user, args={}):
+        self.type = type
+        self.user = user
+        self.args = args
+
 class ValueError(builtins.ValueError):
     """See :ref:`ValueError`.
 

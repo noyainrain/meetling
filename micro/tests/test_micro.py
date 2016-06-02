@@ -18,7 +18,7 @@ from redis import RedisError
 from tornado.testing import AsyncTestCase
 
 import micro
-from micro import Application, Object, Editable, Settings
+from micro import Application, Object, Editable, Settings, EventFeed, Event
 
 class MicroTestCase(AsyncTestCase):
     def setUp(self):
@@ -88,6 +88,46 @@ class UserTest(MicroTestCase):
     def test_edit(self):
         self.user.edit(name='Happy')
         self.assertEqual(self.user.name, 'Happy')
+
+class EventFeedTest(MicroTestCase):
+    def setUp(self):
+        super().setUp()
+        self.feed = EventFeed(id='Feed', trashed=False, app=self.app, subscribers=[])
+
+    def test_publish_event(self):
+        called = []
+        def _foo(event, user, feed):
+            called.append((event, user, feed))
+        self.app.handle_notification = _foo
+
+        # Subscribe as user and staff member
+        self.feed.subscribe()
+        self.app.user = self.staff_member
+        self.feed.subscribe()
+
+        event = Event('test', self.user)
+        self.feed.publish_event(event)
+        self.assertEqual(called, [(event, self.staff_member, self.feed)])
+
+    def test_subscribe(self):
+        self.feed.subscribe()
+        self.assertIn(self.user, self.feed.subscribers)
+
+    def test_subscribe_already(self):
+        # TODO
+        self.feed.subscribe()
+        with self.assertRaisesRegex(ValueError, '.*'):
+            self.feed.subscribe()
+
+    def test_unsubscribe(self):
+        self.feed.subscribe()
+        self.feed.unsubscribe()
+        self.assertNotIn(self.user, self.feed.subscribers)
+
+    def test_unsubscribe_not(self):
+        # TODO
+        with self.assertRaisesRegex(ValueError, '.*'):
+            self.feed.unsubscribe()
 
 class CatApp(Application):
     def __init__(self, redis_url=''):

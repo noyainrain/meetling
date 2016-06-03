@@ -18,7 +18,7 @@ from redis import RedisError
 from tornado.testing import AsyncTestCase
 
 import micro
-from micro import Application, Object, Editable, Settings, EventFeed, Event
+from micro import Application, Object, Editable, Settings, Feed, Event
 
 class MicroTestCase(AsyncTestCase):
     def setUp(self):
@@ -89,10 +89,10 @@ class UserTest(MicroTestCase):
         self.user.edit(name='Happy')
         self.assertEqual(self.user.name, 'Happy')
 
-class EventFeedTest(MicroTestCase):
+class FeedTest(MicroTestCase):
     def setUp(self):
         super().setUp()
-        self.feed = EventFeed(id='Feed', trashed=False, app=self.app, subscribers=[])
+        self.feed = Feed(id='Feed', trashed=False, app=self.app, subscribers=[])
 
     def test_publish_event(self):
         called = []
@@ -105,7 +105,7 @@ class EventFeedTest(MicroTestCase):
         self.app.user = self.staff_member
         self.feed.subscribe()
 
-        event = Event('test', self.user)
+        event = Event('FeedTest.test_publish_event', self, self.user)
         self.feed.publish_event(event)
         self.assertEqual(called, [(event, self.staff_member, self.feed)])
 

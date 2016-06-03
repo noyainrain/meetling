@@ -18,6 +18,5 @@ micro is based on Redis and thus any method may raise a :exc:`RedisError` if the
 communicating with the Redis server.
 """
 
-from micro.micro import (Application, Object, Editable, User, Settings, AuthRequest, EventFeed,
-                         Event, ValueError, InputError, AuthenticationError, PermissionError,
-                         EmailError)
+from micro.micro import (Application, Object, Editable, User, Settings, AuthRequest, Feed, Event,
+                         ValueError, InputError, AuthenticationError, PermissionError, EmailError)

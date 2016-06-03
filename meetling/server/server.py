@@ -99,6 +99,8 @@ class MeetlingServer(HTTPServer):
             (r'/api/users/([^/]+)/remove-email$', _UserRemoveEmailEndpoint),
             (r'/api/settings$', _SettingsEndpoint),
             (r'/api/meetings/([^/]+)$', _MeetingEndpoint),
+            (r'/api/meetings/([^/]+)/subscribe$', _MeetingSubscribeEndpoint),
+            (r'/api/meetings/([^/]+)/unsubscribe$', _MeetingUnsubscribeEndpoint),
             (r'/api/meetings/([^/]+)/items(/trashed)?$', _MeetingItemsEndpoint),
             (r'/api/meetings/([^/]+)/trash-agenda-item$', _MeetingTrashAgendaItemEndpoint),
             (r'/api/meetings/([^/]+)/restore-agenda-item$', _MeetingRestoreAgendaItemEndpoint),
@@ -121,6 +123,9 @@ class MeetlingServer(HTTPServer):
         self._message_templates = DictLoader(meetling.server.templates.MESSAGE_TEMPLATES,
                                              autoescape=None)
 
+        # TODO
+        self.app.handle_notification = self._notify
+
     def initialize(self, *args, **kwargs):
         # Configurable classes call initialize() instead of __init__()
         self.__init__(*args, **kwargs)
@@ -137,6 +142,28 @@ class MeetlingServer(HTTPServer):
                                 server=self).decode()
         return '\n\n'.join([filter_whitespace('oneline', p.strip()) for p in
                             re.split(r'\n{2,}', msg)])
+
+    def _notify(self, event, subscriber, feed):
+        print('NOTIFY', event, subscriber, feed)
+        name = event.type
+        if name == 'editable-edit':
+            name = {Meeting: 'meeting-edit', AgendaItem: 'agenda-item-edit'}[type(event.object)]
+        #table = {
+        #    ('editable-edit', Meeting): 'meeting-edit'
+        #}
+        #template = templates.load(table[(event.type, type(event.object))])
+        template = templates.load(name)
+        template.render(event=event, subscriber=subscriber, feed=feed)
+
+    # ALTERNATIVE, but only if complex view logic is needed
+    #def _editable_edit_notification(self, event, subscriber, feed):
+    #   if isinstance(event.object, Meeting):
+    #       # ...
+    #   else:
+    #       # ...
+    #def _meeting_edit_notification(self, event, subscriber, feed):
+    #    self.render_notification('meeting-edit', subscriber=subscriber, feed=feed,
+    #                             meeting=event.object)
 
 class _UI(RequestHandler):
     def get(self):
@@ -386,6 +413,16 @@ class _MeetingEndpoint(Endpoint):
         meeting = self.app.meetings[id]
         meeting.edit(**args)
         self.write(meeting.json(restricted=True, include_users=True))
+
+class _MeetingSubscribeEndpoint(Endpoint):
+    def post(self, id):
+        meeting = self.app.meetings[id]
+        meeting.subscribe()
+
+class _MeetingUnsubscribeEndpoint(Endpoint):
+    def post(self, id):
+        meeting = self.app.meetings[id]
+        meeting.unsubscribe()
 
 class _MeetingItemsEndpoint(Endpoint):
     def get(self, id, set):

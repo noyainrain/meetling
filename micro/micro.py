@@ -208,8 +208,9 @@ class Editable:
     """
     # pylint: disable=no-member; mixin
 
-    def __init__(self, authors):
+    def __init__(self, authors, feed=None):
         self._authors = authors
+        self._editable_feed = feed
 
     @property
     def authors(self):
@@ -228,6 +229,9 @@ class Editable:
         if not self.app.user.id in self._authors:
             self._authors.append(self.app.user.id)
         self.app.r.oset(self.id, self)
+
+        if self._editable_feed:
+            self._editable_feed.publish_event(Event('editable-edit', self, self.app.user))
 
     def do_edit(self, **attrs):
         """Subclass API: Perform the edit operation.
@@ -425,7 +429,7 @@ class AuthRequest(Object):
             del json['code']
         return json
 
-class EventFeed(Object):
+class Feed(Object):
     def __init__(self, id, trashed, app, subscribers):
         super().__init__(id=id, trashed=trashed, app=app)
         self._subscribers = subscribers
@@ -441,30 +445,41 @@ class EventFeed(Object):
             self.app.handle_notification(event, subscriber, self)
 
     def subscribe(self):
+        if not self.app.user:
+            raise PermissionError()
+
         if self.app.user.id in self._subscribers:
             raise ValueError('already_subscribed')
         self._subscribers.append(self.app.user.id)
         self.app.r.oset(self.id, self)
 
     def unsubscribe(self):
+        if not self.app.user:
+            raise PermissionError()
+
         try:
             self._subscribers.remove(self.app.user.id)
         except builtins.ValueError:
             raise ValueError('not_subscribed')
         self.app.r.oset(self.id, self)
 
-    def json(self, restricted=False, include_users=True):
-        # TODO: should subscribers be private?
+    def json(self, restricted=False):
         json = super().json(attrs={'subscribers': self._subscribers})
-        if include_users:
-            json['subscribers'] = [s.json(restricted=restricted) for s in self.subscribers]
+        if restricted:
+            del json['subscribers']
         return json
 
 class Event:
-    def __init__(self, type, user, args={}):
+    def __init__(self, type, object, user, detail={}):
         self.type = type
+        self.object = object
         self.user = user
-        self.args = args
+        self.detail = detail
+
+    def __str__(self):
+        return '<{} {} on {} by {}>'.format(type(self).__name__, self.type, self.object.id,
+                                            self.user.id)
+    __repr__ = __str__
 
 class ValueError(builtins.ValueError):
     """See :ref:`ValueError`.

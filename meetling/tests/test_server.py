@@ -69,6 +69,10 @@ class MeetlingServerTest(AsyncTestCase):
         yield self.request(
             '/api/meetings/' + self.meeting.id, method='POST',
             body='{{"title": "Awesome cat hangout", "time": "{}Z"}}'.format(now.isoformat()))
+        yield self.request('/api/meetings/{}/unsubscribe'.format(self.meeting.id), method='POST',
+                           body='')
+        yield self.request('/api/meetings/{}/subscribe'.format(self.meeting.id), method='POST',
+                           body='')
         yield self.request('/api/meetings/{}/items'.format(self.meeting.id))
         yield self.request('/api/meetings/{}/items'.format(self.meeting.id), method='POST',
                            body='{"title": "Purring"}')

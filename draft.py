@@ -1,6 +1,88 @@
+class Meeting(Feed):
+    """
+    Is a :ref:`Feed`.
+    """
+
+class Application:
+    """
+    .. attribute:: handle_notification
+
+       TODO.
+    """
+
+class Feed(Object):
+    """
+    Feed of events related to a common topic/context.
+
+    Users can subscribe to the feed to retreive notifications about events published to it.
+
+    ----
+
+    .. attribute:: subscribers
+
+       List of :class:`Users` s who subscribed to the feed.
+    """
+
+    def publish_event(self, event):
+        """Publish an *event* to the feed.
+
+        All :attr:`subscribers` (except the user who triggered the *event*) are notified about the
+        *event*.
+        """
+
+    def subscribe(self):
+        """
+        .. http:post:: /api/(object-url)/subscribe
+
+           Subscribe to the feed.
+
+           If the current user is already subscribed, a TODO is returned.
+
+           Permission: Authenticated users.
+        """
+
+    def unsubscribe(self):
+        """
+        .. http:post:: /api/(object-url)/unsubscribe
+
+           Unsubscribe from the feed.
+
+           If the current user is not subscribed, a TODO is returned.
+
+           Permission: Authenticated users.
+        """
+
+class Event:
+    """Event about an action on an *object* by an *user*.
+
+    .. attribute:: type
+
+       Name of the event.
+
+    .. attribute:: object
+
+       :class:`Object` the event happened to.
+
+    .. attribute:: user
+
+       :class:`User` who triggered the event.
+
+    .. attribute:: detail
+
+       Dictionary with additonal details about the event.
+    """
+
+    def __init__(self, type, object, user, detail={}):
+        self.type = type
+        self.object = object
+        self.user = user
+        self.detail = detail
+
+# ------
+
 # NOTE: where there is a subscribe, imagine also a unsubscribe...
 
-# TODO: naming: Feed/Stream/EventSource/Channel/Topic
+# TODO: naming: Feed/Stream/Target/Channel/Topic
 #               Event/Action/Activity
 
 # NOTE: with the channel thinking is nice:

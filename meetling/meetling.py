@@ -17,7 +17,8 @@
 from datetime import datetime, timedelta
 from itertools import chain
 
-from micro import Application, Object, Editable, Settings, ValueError, InputError, PermissionError
+from micro import (Application, Object, Editable, Settings, Feed, Event, ValueError, InputError,
+                   PermissionError)
 from micro.jsonredis import JSONRedis, JSONRedisMapping
 from micro.util import parse_isotime, randstr, str_or_none
 
@@ -93,6 +94,18 @@ class Meetling(Application):
             r.omset({u['id']: u for u in users})
             r.set('version', 5)
 
+        if db_version < 6:
+            meetings = r.omget(r.lrange('meetings', 0, -1))
+            for meeting in meetings:
+                meeting['subscribers'] = []
+                items = r.omget(r.lrange(meeting['id'] + '.items', 0, -1) +
+                                r.lrange(meeting['id'] + '.trashed_items', 0, -1))
+                for item in items:
+                    item['meeting'] = meeting['id']
+                r.omset({i['id']: i for i in items})
+            r.omset({m['id']: m for m in meetings})
+            r.set('version', 6)
+
     def create_meeting(self, title, time=None, location=None, description=None):
         """See :http:post:`/api/meetings`."""
         if not self.user:
@@ -104,8 +117,9 @@ class Meetling(Application):
         e.trigger()
 
         meeting = Meeting(
-            id='Meeting:' + randstr(), trashed=False, app=self, authors=[self.user.id], title=title,
-            time=time, location=str_or_none(location), description=str_or_none(description))
+            id='Meeting:' + randstr(), trashed=False, app=self, authors=[self.user.id],
+            subscribers=[self.user.id], title=title, time=time, location=str_or_none(location),
+            description=str_or_none(description))
         self.r.oset(meeting.id, meeting)
         self.r.rpush('meetings', meeting.id)
         return meeting
@@ -126,7 +140,7 @@ class Meetling(Application):
                                    description='When and where will our next meeting be?')
         return meeting
 
-class Meeting(Object, Editable):
+class Meeting(Feed, Editable):
     """See :ref:`Meeting`.
 
     .. attribute:: items
@@ -138,9 +152,9 @@ class Meeting(Object, Editable):
        Ordered map of trashed (deleted) :class:`AgendaItem` s.
     """
 
-    def __init__(self, id, trashed, app, authors, title, time, location, description):
-        super().__init__(id=id, trashed=trashed, app=app)
-        Editable.__init__(self, authors=authors)
+    def __init__(self, id, trashed, app, subscribers, authors, title, time, location, description):
+        super().__init__(id=id, trashed=trashed, app=app, subscribers=subscribers)
+        Editable.__init__(self, authors=authors, feed=self)
         self.title = title
         self.time = time
         self.location = location
@@ -181,29 +195,48 @@ class Meeting(Object, Editable):
 
         item = AgendaItem(
             id='AgendaItem:' + randstr(), trashed=False, app=self.app, authors=[self.app.user.id],
-            title=title, duration=duration, description=description)
+            title=title, duration=duration, description=description, meeting=self.id)
         self.app.r.oset(item.id, item)
         self.app.r.rpush(self._items_key, item.id)
+
+        self.publish_event(Event('meeting-create-agenda-item', self, self.app.user, {'item': item}))
         return item
 
     def trash_agenda_item(self, item):
         """See :http:post:`/api/meetings/(id)/trash-agenda-item`."""
+        # TODO: doc
+        if not self.app.user:
+            raise PermissionError()
+
         if not self.app.r.lrem(self._items_key, 1, item.id):
             raise ValueError('item_not_found')
         self.app.r.rpush(self._trashed_items_key, item.id)
         item.trashed = True
         self.app.r.oset(item.id, item)
 
+        self.publish_event(Event('meeting-trash-agenda-item', self, self.app.user, {'item': item}))
+
     def restore_agenda_item(self, item):
         """See :http:post:`/api/meetings/(id)/restore-agenda-item`."""
+        # TODO: doc
+        if not self.app.user:
+            raise PermissionError()
+
         if not self.app.r.lrem(self._trashed_items_key, 1, item.id):
             raise ValueError('item_not_found')
         self.app.r.rpush(self._items_key, item.id)
         item.trashed = False
         self.app.r.oset(item.id, item)
 
+        self.publish_event(Event('meeting-restore-agenda-item', self, self.app.user,
+                                 {'item': item}))
+
     def move_agenda_item(self, item, to):
         """See :http:post:`/api/meetings/(id)/move-agenda-item`."""
+        # TODO: doc
+        if not self.app.user:
+            raise PermissionError()
+
         if to:
             if to.id not in self.items:
                 raise ValueError('to_not_found')
@@ -217,19 +250,25 @@ class Meeting(Object, Editable):
         else:
             self.app.r.lpush(self._items_key, item.id)
 
+        # TODO: frm & to?
+        # TODO: OQ: consolidate individual move events into a meeting-reorder/sort-agenda event?
+        # maybe later?
+        self.publish_event(Event('meeting-move-agenda-item', self, self.app.user, {'item': item}))
+
     def json(self, restricted=False, include_users=False, include_items=False):
         """See :meth:`Object.json`.
 
         If *include_items* is ``True``, *items* and *trashed_items* are included.
         """
         # pylint: disable=arguments-differ; extended signature
-        json = super().json(attrs={
+        json = super().json(restricted=restricted)
+        json.update(Editable.json(self, restricted=restricted, include_users=include_users))
+        json.update({
             'title': self.title,
             'time': self.time.isoformat() + 'Z' if self.time else None,
             'location': self.location,
             'description': self.description
         })
-        json.update(Editable.json(self, restricted=restricted, include_users=include_users))
         if include_items:
             json['items'] = [i.json(restricted=restricted, include_users=include_users)
                              for i in self.items.values()]
@@ -240,12 +279,17 @@ class Meeting(Object, Editable):
 class AgendaItem(Object, Editable):
     """See :ref:`AgendaItem`."""
 
-    def __init__(self, id, trashed, app, authors, title, duration, description):
+    def __init__(self, id, trashed, app, authors, title, duration, description, meeting):
         super().__init__(id=id, trashed=trashed, app=app)
-        Editable.__init__(self, authors=authors)
         self.title = title
         self.duration = duration
         self.description = description
+        self._meeting_id = meeting
+        Editable.__init__(self, authors=authors, feed=self.meeting)
+
+    @property
+    def meeting(self):
+        return self.app.r.oget(self._meeting_id)
 
     def do_edit(self, **attrs):
         e = InputError()
@@ -266,7 +310,8 @@ class AgendaItem(Object, Editable):
         json = super().json(attrs={
             'title': self.title,
             'duration': self.duration,
-            'description': self.description
+            'description': self.description,
+            'meeting': self._meeting_id
         })
         json.update(Editable.json(self, restricted=restricted, include_users=include_users))
         return json

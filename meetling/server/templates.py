@@ -12,7 +12,12 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-"""Server templates."""
+"""Server templates.
+
+.. data:: MESSAGE_TEMPLATES
+
+   TODO.
+"""
 
 MESSAGE_TEMPLATES = {
     'email_auth': """
@@ -33,5 +38,86 @@ MESSAGE_TEMPLATES = {
         If you did not request to add an email address to {{ app.settings.title }}, someone else may
         have entered your email address by mistake. In that case, please ignore this message, we
         will not bother you again.
+    """
+
+    'notification': """\
+        Subject: [{{app.settings.title}}] {% block subject %}{% end %}
+
+        Hi {{user.name}}!
+
+        {% block content %}{% end %}
+
+        ---
+
+        You received this notification because you have subscribed to updates about
+        "{% block feed-title %}{% end %}". You can unsubscribe any time at
+        {{ server.origin }}{% block feed-url %}{% end %} .
+    """,
+
+    'editable-edit': """\
+        {% extends 'notification' %}
+        {% block subject %}
+            {% set meeting = event.object.meeting if event.object.__class__.__name__ == 'AgendaItem' else event.object %}
+            {% if type(event.object).__name__ == 'Meeting' %}
+                "{{ meeting.title }}" edited
+            {% else %}
+                Agenda item of "{{ meeting.title }}" edited
+            {% end %}
+        {% end %}
+        {% block content %}
+            {% if type(event.object).__name__ == 'Meeting' %}
+                "{{ meeting.title }}" was edited by {{ event.user.name }}.
+            {% else %}
+                The agenda item "{{ event.detail['item'].title }}" of "{{ meeting.title }}" was
+                edited by {{ event.user.name }}.
+            {% end %}
+
+            For details, see {{ server.origin }}/meetings/{{ meeting.id }} .
+        {% end%}
+        {% block feed-title %}{{ meeting.title }}{% end %}
+        {% block feed-url %}/meetings/{{ meeting.id }}{% end %}
+    """,
+
+    'meeting-create_agenda_item': """\
+        {% extends 'notification' %}
+        {% block subject %}Agenda item proposed for {{ event.object.title }}{% end %}
+        {% block content %}
+            The agenda item "{{ event.detail.item.title }}" was proposed for "{{ event.object.title
+            }}" by {{ event.user.name }}.
+        {% end %}
+        {% block feed-title %}event.object.title{% end %}
+        {% block feed-url %}/meetings/{{ event.object.id }}{% end %}
+    """,
+
+    'meeting-trash-agenda-item': """\
+        {% extends 'notification' %}
+        {% block subject %}Agenda item of "{{ event.object.title }}" trashed{% end %}
+        {% block content %}
+            The agenda item "{{ event.detail.item.title }}" of "{{ event.object.title }}" was
+            trashed by {{ event.user.name }}.
+        {% end %}
+        {% block feed-title %}event.object.title{% end %}
+        {% block feed-url %}/meetings/{{ event.object.id }}{% end %}
+    """,
+
+    'meeting-restore-agenda-item': """\
+        {% extends 'notification' %}
+        {% block subject %}Agenda item of "{{ event.object.title }}" restored{% end %}
+        {% block content %}
+            The agenda item "{{ event.detail.item.title }}" of "{{ event.object.title }}" was
+            restored by {{ event.user.name }}.
+        {% block feed-name %}event.object.title{% end %}
+        {% block feed-url %}/meetings/{{ event.object.id }}{% end %}
+    """,
+
+    'meeting-move-agenda-item': """\
+        {% extends 'notification' %}
+        {% block subject %}Agenda item of "{{ event.object.title }}" moved{% end %}
+        {% block content %}
+            The agenda item "{{ event.detail['item'].title }}" of "{{ event.object.title }}" was moved
+            by {{ event.user.name }}.
+        {% end %}
+        {% block feed-name %}{{ event.object.title }}{% end %}
+        {% block feed-url %}/meetings/{{ event.object.id }}{% end %}
     """
 }

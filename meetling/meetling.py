@@ -289,6 +289,7 @@ class AgendaItem(Object, Editable):
 
     @property
     def meeting(self):
+        """TODO."""
         return self.app.r.oget(self._meeting_id)
 
     def do_edit(self, **attrs):

@@ -125,6 +125,10 @@ class MeetlingServer(HTTPServer):
 
         # TODO
         self.app.handle_notification = self._notify
+        self.notification_templates = DictLoader(templates.notification_templates, autoescape=None,
+                                                 whitespace='all')
+
+        self.origin = 'http://localhost:{}'.format(port)
 
     def initialize(self, *args, **kwargs):
         # Configurable classes call initialize() instead of __init__()
@@ -143,17 +147,25 @@ class MeetlingServer(HTTPServer):
         return '\n\n'.join([filter_whitespace('oneline', p.strip()) for p in
                             re.split(r'\n{2,}', msg)])
 
-    def _notify(self, event, subscriber, feed):
-        print('NOTIFY', event, subscriber, feed)
-        name = event.type
-        if name == 'editable-edit':
-            name = {Meeting: 'meeting-edit', AgendaItem: 'agenda-item-edit'}[type(event.object)]
-        #table = {
-        #    ('editable-edit', Meeting): 'meeting-edit'
-        #}
-        #template = templates.load(table[(event.type, type(event.object))])
-        template = templates.load(name)
-        template.render(event=event, subscriber=subscriber, feed=feed)
+    def _notify(self, event, user, feed):
+        print('NOTIFY', event, user, feed)
+        print('fxx')
+        template = self.notification_templates.load(event.type)
+        print('oink')
+        msg = template.generate(event=event, user=user, feed=feed, app=self.app,
+                                server=self).decode()
+        subject, body = msg.split('\n\n', 1)
+        import re
+        from textwrap import wrap, fill, dedent
+        ps = re.split(r'\n{2,}', body)
+        ps = [fill(p.strip()) for p in ps]
+        ps = '\n\n'.join(ps)
+        #print(fill(dedent(msg)))
+        print(dedent(subject)[9:])
+        print()
+        print(ps)
+        #print('foo')
+        #print('bar')
 
     # ALTERNATIVE, but only if complex view logic is needed
     #def _editable_edit_notification(self, event, subscriber, feed):

@@ -1,5 +1,12 @@
 # Contributing to Meetling
 
+## Requirements
+
+The following software is required for the UI tests and must be set up on your system:
+
+* Firefox (current) or Chrome (current)
+* geckodriver (current) or ChromeDriver (current)
+
 ## Installing development dependencies
 
 To install the development dependencies for Meetling, type:

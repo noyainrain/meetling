@@ -2,5 +2,10 @@
     "private": true,
     "dependencies": {
         "bower": "^1.5"
+    },
+    "devDependencies": {
+        "mocha": "^2.5",
+        "chai": "^3.5",
+        "selenium-webdriver": "^2.53"
     }
 }

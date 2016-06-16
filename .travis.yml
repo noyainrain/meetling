@@ -1,9 +1,33 @@
+dist: trusty
 language: python
-python:
-    - "3.4"
-    - "3.5"
-services: redis-server
+matrix:
+    include:
+        - python: "3.4"
+          env: UI_TEST=true
+        - python: "3.5"
+services:
+    - redis-server
+addons:
+    apt:
+        packages:
+            - google-chrome-stable
+    firefox: latest
+before_install:
+    # Work around https://github.com/travis-ci/travis-ci/issues/4978
+    - sudo sh -c "echo 127.0.0.1 localhost > /etc/hosts"
+    - nvm install 4.4
+    - GECKODRIVER_URL=https://github.com/mozilla/geckodriver/releases/download/v0.8.0/geckodriver-0.8.0-linux64.gz
+    - CHROMEDRIVER_URL=http://chromedriver.storage.googleapis.com/2.22/chromedriver_linux64.zip
+    - if [ "$UI_TEST" = true ]; then wget -O - $GECKODRIVER_URL | gunzip > wires &&
+                                     chmod +x wires; fi
+    - if [ "$UI_TEST" = true ]; then wget $CHROMEDRIVER_URL && unzip chromedriver_linux64.zip; fi
 install:
     - make deps
     - make deps-dev
-script: make check
+script:
+    - make test
+    - make lint
+    - if [ "$UI_TEST" = true ]; then xvfb-run -s "-screen 0 1280x1024x8" make test-ui
+                                                                         BROWSER=firefox; fi
+    - if [ "$UI_TEST" = true ]; then xvfb-run -s "-screen 0 1280x1024x8" make test-ui
+                                                                         BROWSER=chrome; fi

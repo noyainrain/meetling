@@ -12,22 +12,28 @@ test:
 test-ext:
 	$(PYTHON) -m unittest discover -p "ext_test*.py"
 
+.PHONY: test-ui
+test-ui:
+	node_modules/.bin/mocha "**/ui_test*.js"
+
 .PHONY: lint
 lint:
 	pylint -j 0 meetling micro
 
 .PHONY: check
-check: test test-ext lint
+check: test test-ext lint test-ui
 
 .PHONY: deps
 deps:
 	$(PIP) install $(PIPFLAGS) -r requirements.txt
-	$(NPM) update
+	$(NPM) update --prod
 	node_modules/.bin/bower update
 
 .PHONY: deps-dev
 deps-dev:
 	$(PIP) install $(PIPFLAGS) -r requirements-dev.txt
+	# there is no --dev
+	$(NPM) update
 
 .PHONY: doc
 doc:
@@ -41,6 +47,7 @@ sample:
 help:
 	@echo "test:     Run all unit tests"
 	@echo "test-ext: Run all extended/integration tests"
+	@echo "test-ui:  Run all UI tests."
 	@echo "lint:     Lint and check the style of the code"
 	@echo "check:    Run all code quality checks (test and lint)"
 	@echo "deps:     Update the dependencies"

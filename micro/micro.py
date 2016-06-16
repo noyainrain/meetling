@@ -439,7 +439,7 @@ class Feed(Object):
         return self.app.r.omget(self._subscribers)
 
     def publish_event(self, event):
-        print(event, self, self.subscribers)
+        #print(event, self, self.subscribers)
         for subscriber in self.subscribers:
             if subscriber is event.user:
                 continue

@@ -166,6 +166,43 @@ class MeetlingServer(HTTPServer):
         print(ps)
         #print('foo')
         #print('bar')
+        self.send_mail('todo@example.org', user.email, subject, body)
+
+    # TODO: move to micro
+    def send_mail(self, frm, to, subject, content):
+        """TODO."""
+        from email.message import EmailMessage
+
+        # TODO: set policy?
+        msg = EmailMessage()
+        msg['Subject'] = subject
+        msg['From'] = frm
+        msg['To'] = to
+        msg.set_content(content)
+        print(msg)
+        print(self.origin)
+        return
+
+        #import email.charset
+        #from email.charset import Charset
+        #from email.message import Message
+        #from email.mime.text import MIMEText
+
+        #txt = 'foobar\u00dc'
+
+        #charset = Charset('utf-8')
+        #charset.header_encoding = email.charset.QP
+        #charset.body_encoding = email.charset.QP
+
+        #msg = Message()
+        #msg['Subject'] = txt
+        #msg['From'] = 'ui'
+        #msg['To'] = 'aiaiai'
+        #msg.set_payload(txt, charset)
+        ## TODO: send here, for now log
+        #xx
+        #print(msg)
+
 
     # ALTERNATIVE, but only if complex view logic is needed
     #def _editable_edit_notification(self, event, subscriber, feed):

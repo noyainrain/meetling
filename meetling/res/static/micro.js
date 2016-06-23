@@ -50,14 +50,14 @@ micro.APIError.prototype = Object.create(Error.prototype);
  * rejects with a :class:`TypeError`.
  */
 micro.call = function(method, url, args) {
-    options = {method: method, credentials: 'include'};
+    var options = {method: method, credentials: 'include'};
     if (args) {
         options.headers = {'Content-Type': 'application/json'};
         options.body = JSON.stringify(args);
     }
 
     return fetch(url, options).then(function(response) {
-        if (response.status > 500) {
+        if (response.status >= 500) {
             // Consider server errors IO errors
             throw new TypeError();
         }

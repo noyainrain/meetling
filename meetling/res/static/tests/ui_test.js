@@ -23,6 +23,8 @@ var expect = require('chai').expect;
 var Builder = require('selenium-webdriver').Builder;
 var until = require('selenium-webdriver/lib/until');
 
+var WebAPIClient = require('../micro/webapi').WebAPIClient;
+
 var TIMEOUT = 1000;
 
 describe('UI scenarios', function() {
@@ -77,7 +79,7 @@ describe('UI scenarios', function() {
         }
     });
 
-    it('User creates meeting', function() {
+    xit('User creates meeting', function() {
         // Start to create meeting
         // TODO: Either use Sauce Connect or TUNNEL env variable
         browser.get('http://localhost:8080/');
@@ -122,5 +124,32 @@ describe('UI scenarios', function() {
         return browser.findElement({css: '.meetling-simple-notification-content'}).getText().then(text => {
             expect(text).to.contain('To share');
         });
+    });
+
+    it('User subscribes to meeting', function() {
+        browser.get('http://localhost:8080/');
+        var button = browser.wait(until.elementLocated({css: '.meetling-start-create-example-meeting'}), TIMEOUT);
+        button.click();
+
+        browser.wait(until.elementLocated({css: 'meetling-meeting-page'}), TIMEOUT);
+
+        var api = new WebAPIClient('http://localhost:8080/api');
+        var meetingID = null;
+
+        browser.getCurrentUrl().then(url => {
+            console.log(url);
+            meetingID = url.split('/').pop();
+            console.log(meetingID);
+            return api.call('POST', '/login');
+        }).then(user => {
+            console.log(user);
+            // TODO api.headers['COOKIEFOO'] = user.auth_secret;
+            return api.call('POST', `/meetings/${meetingID}/items`, {title: 'oink'});
+        }).then(item => {
+            console.log(item);
+        }).catch(e => {
+            console.log(e);
+        });
+        return browser.sleep(1);
     });
 });

@@ -129,6 +129,7 @@ class MeetlingServer(HTTPServer):
                                                  whitespace='all')
 
         self.origin = 'http://localhost:{}'.format(port)
+        self.url = self.origin
 
     def initialize(self, *args, **kwargs):
         # Configurable classes call initialize() instead of __init__()
@@ -148,24 +149,22 @@ class MeetlingServer(HTTPServer):
                             re.split(r'\n{2,}', msg)])
 
     def _notify(self, event, user, feed):
-        print('NOTIFY', event, user, feed)
-        print('fxx')
+        #print('NOTIFY', event, user, feed)
+        from tornado.template import filter_whitespace
+        from textwrap import TextWrapper, wrap, fill, dedent
+        import re
+
         template = self.notification_templates.load(event.type)
-        print('oink')
         msg = template.generate(event=event, user=user, feed=feed, app=self.app,
                                 server=self).decode()
-        subject, body = msg.split('\n\n', 1)
-        import re
-        from textwrap import wrap, fill, dedent
-        ps = re.split(r'\n{2,}', body)
-        ps = [fill(p.strip()) for p in ps]
-        ps = '\n\n'.join(ps)
-        #print(fill(dedent(msg)))
-        print(dedent(subject)[9:])
-        print()
-        print(ps)
-        #print('foo')
-        #print('bar')
+
+        # 78 as suggested by mime spec
+        wrapper = TextWrapper(width=78, replace_whitespace=False, break_long_words=False,
+                              break_on_hyphens=False)
+        ps = [filter_whitespace('oneline', p.strip()) for p in re.split(r'\n{2,}', msg)]
+        subject = ps.pop(0)[9:]
+        body = '\n\n'.join([wrapper.fill(p) for p in ps])
+
         self.send_mail('todo@example.org', user.email, subject, body)
 
     # TODO: move to micro
@@ -175,14 +174,15 @@ class MeetlingServer(HTTPServer):
 
         # TODO: set policy?
         msg = EmailMessage()
-        msg['Subject'] = subject
-        msg['From'] = frm
         msg['To'] = to
+        msg['From'] = frm
+        msg['Subject'] = subject
         msg.set_content(content)
-        print(msg)
         print(self.origin)
-        return
 
+        from smtplib import SMTP
+        with SMTP(host='localhost', port='2525') as smtp:
+            smtp.send_message(msg)
         #import email.charset
         #from email.charset import Charset
         #from email.message import Message

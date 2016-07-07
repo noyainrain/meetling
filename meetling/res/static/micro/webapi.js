@@ -10,8 +10,11 @@ if (typeof exports === 'undefined') {
 /**
  * TODO
  */
-exports.WebAPIClient = function(url) {
-    this.url = url;
+exports.WebAPIClient = function(options) {
+    options = Object.assign({url: null, headers: {}}, options);
+
+    this.url = options.url;
+    this.headers = options.headers;
 };
 
 Object.defineProperties(exports.WebAPIClient.prototype, {
@@ -31,18 +34,19 @@ Object.defineProperties(exports.WebAPIClient.prototype, {
             hostname: components.hostname,
             port: components.port,
             method: method,
-            path: components.path + url
+            path: components.path + url,
+            headers: this.headers
         };
 
         if (args) {
-            options.headers = {'Content-Type': 'application/json'};
+            options.headers['Content-Type'] = 'application/json';
         }
 
         return new Promise(function(resolve, reject) {
             var request = http.request(options, function(response) {
                 // TODO: or do we have to reject with the error?
                 if (response.statusCode > 500) {
-                    throw new TypeError();
+                    return reject(new TypeError());
                 }
 
                 var body = '';
@@ -55,9 +59,9 @@ Object.defineProperties(exports.WebAPIClient.prototype, {
                         var result = JSON.parse(body);
                     } catch(e) {
                         if (e instanceof SyntaxError) {
-                            throw new TypeError();
+                            return reject(new TypeError());
                         } else {
-                            throw e;
+                            return reject(e);
                         }
                     }
 

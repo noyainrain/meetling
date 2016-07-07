@@ -259,6 +259,7 @@ class User(Object, Editable):
         self.name = name
         self.email = email
         self.auth_secret = auth_secret
+        self.email = 'foo@example.org' # TODO: implement
 
     def store_email(self, email):
         """Update the user's *email* address.

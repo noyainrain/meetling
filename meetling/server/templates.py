@@ -40,84 +40,93 @@ MESSAGE_TEMPLATES = {
         will not bother you again.
     """
 
-    'notification': """\
-        Subject: [{{app.settings.title}}] {% block subject %}{% end %}
+    'notification': """
+        Subject: [{{ app.settings.title }}] {% block subject %}{% end %}
 
-        Hi {{user.name}}!
+        Hi {{ user.name }}!
 
         {% block content %}{% end %}
 
         ---
 
-        You received this notification because you have subscribed to updates about
-        "{% block feed-title %}{% end %}". You can unsubscribe any time at
-        {{ server.origin }}{% block feed-url %}{% end %} .
+        You received this notification because you are subscribed to updates about
+        {% block feed-outline %}{% end %}. You can unsubscribe any time at:
+        {{ server.url }}{% block feed-url %}{% end %}
     """,
 
-    'editable-edit': """\
+    'editable-edit': """
         {% extends 'notification' %}
-        {% block subject %}
-            {% set meeting = event.object.meeting if event.object.__class__.__name__ == 'AgendaItem' else event.object %}
-            {% if type(event.object).__name__ == 'Meeting' %}
-                "{{ meeting.title }}" edited
-            {% else %}
-                Agenda item of "{{ meeting.title }}" edited
-            {% end %}
+        {% block subject %}\
+            {% set meeting = event.object.meeting if type(event.object).__name__ == 'AgendaItem' else event.object %}\
+            {% if type(event.object).__name__ == 'Meeting' %}\
+                "{{ meeting.title }}" edited\
+            {% else %}\
+                Agenda item of "{{ meeting.title }}" edited\
+            {% end %}\
         {% end %}
         {% block content %}
             {% if type(event.object).__name__ == 'Meeting' %}
                 "{{ meeting.title }}" was edited by {{ event.user.name }}.
             {% else %}
-                The agenda item "{{ event.detail['item'].title }}" of "{{ meeting.title }}" was
-                edited by {{ event.user.name }}.
+                The agenda item "{{ event.object.title }}" of "{{ meeting.title }}" was edited by
+                {{ event.user.name }}.
             {% end %}
 
-            For details, see {{ server.origin }}/meetings/{{ meeting.id }} .
+            For details, see: {{ server.url }}/meetings/{{ meeting.id }}
         {% end%}
-        {% block feed-title %}{{ meeting.title }}{% end %}
+        {% block feed-outline %}"{{ meeting.title }}"{% end %}
         {% block feed-url %}/meetings/{{ meeting.id }}{% end %}
     """,
 
-    'meeting-create_agenda_item': """\
+    'meeting-create-agenda-item': """
         {% extends 'notification' %}
-        {% block subject %}Agenda item proposed for {{ event.object.title }}{% end %}
+        {% block subject %}Agenda item proposed for "{{ event.object.title }}"{% end %}
         {% block content %}
-            The agenda item "{{ event.detail.item.title }}" was proposed for "{{ event.object.title
-            }}" by {{ event.user.name }}.
+            The new agenda item "{{ event.detail['item'].title }}" was proposed for
+            "{{ event.object.title }}" by {{ event.user.name }}.
+
+            For details, see: {{ server.url }}/meetings/{{ event.object.id }}
         {% end %}
-        {% block feed-title %}event.object.title{% end %}
+        {% block feed-outline %}"{{ event.object.title }}"{% end %}
         {% block feed-url %}/meetings/{{ event.object.id }}{% end %}
     """,
 
-    'meeting-trash-agenda-item': """\
+    'meeting-trash-agenda-item': """
         {% extends 'notification' %}
         {% block subject %}Agenda item of "{{ event.object.title }}" trashed{% end %}
         {% block content %}
-            The agenda item "{{ event.detail.item.title }}" of "{{ event.object.title }}" was
+            The agenda item "{{ event.detail['item'].title }}" of "{{ event.object.title }}" was
             trashed by {{ event.user.name }}.
+
+            For details, see: {{ server.url }}/meetings/{{ event.object.id }}
         {% end %}
-        {% block feed-title %}event.object.title{% end %}
+        {% block feed-outline %}"{{ event.object.title }}"{% end %}
         {% block feed-url %}/meetings/{{ event.object.id }}{% end %}
     """,
 
-    'meeting-restore-agenda-item': """\
+    'meeting-restore-agenda-item': """
         {% extends 'notification' %}
         {% block subject %}Agenda item of "{{ event.object.title }}" restored{% end %}
         {% block content %}
-            The agenda item "{{ event.detail.item.title }}" of "{{ event.object.title }}" was
+            The agenda item "{{ event.detail['item'].title }}" of "{{ event.object.title }}" was
             restored by {{ event.user.name }}.
-        {% block feed-name %}event.object.title{% end %}
+
+            For details, see: {{ server.url }}/meetings/{{ event.object.id }}
+        {% end %}
+        {% block feed-outline %}"{{ event.object.title }}"{% end %}
         {% block feed-url %}/meetings/{{ event.object.id }}{% end %}
     """,
 
-    'meeting-move-agenda-item': """\
+    'meeting-move-agenda-item': """
         {% extends 'notification' %}
         {% block subject %}Agenda item of "{{ event.object.title }}" moved{% end %}
         {% block content %}
-            The agenda item "{{ event.detail['item'].title }}" of "{{ event.object.title }}" was moved
-            by {{ event.user.name }}.
+            The agenda item "{{ event.detail['item'].title }}" of "{{ event.object.title }}" was
+            moved by {{ event.user.name }}.
+
+            For details, see: {{ server.url }}/meetings/{{ event.object.id }}
         {% end %}
-        {% block feed-name %}{{ event.object.title }}{% end %}
+        {% block feed-outline %}"{{ event.object.title }}"{% end %}
         {% block feed-url %}/meetings/{{ event.object.id }}{% end %}
     """
 }

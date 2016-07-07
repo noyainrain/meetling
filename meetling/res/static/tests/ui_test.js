@@ -22,6 +22,7 @@ var spawn = require('child_process').spawn;
 var expect = require('chai').expect;
 var Builder = require('selenium-webdriver').Builder;
 var until = require('selenium-webdriver/lib/until');
+var SMTPServer = require('smtp-server').SMTPServer;
 
 var WebAPIClient = require('../micro/webapi').WebAPIClient;
 
@@ -127,29 +128,99 @@ describe('UI scenarios', function() {
     });
 
     it('User subscribes to meeting', function() {
+        var mailboxes = {};
+        var server = new SMTPServer({
+            disabledCommands: ['AUTH'],
+            onData: function(stream, session, callback) {
+                var mail = '';
+                stream.setEncoding('utf8');
+                stream.on('data', data => {
+                    mail += data;
+                });
+                stream.on('end', () => {
+                    for (var rcptTo of session.envelope.rcptTo) {
+                        if (!(rcptTo.address in mailboxes)) {
+                            mailboxes[rcptTo.address] = [];
+                        }
+                        mailboxes[rcptTo.address].push(mail);
+                    }
+                    callback();
+                });
+            }
+        }).listen(2525);
+
+        /*simplesmtp.createSimpleServer({}, function(req) {
+            req.pipe(process.stdout);
+            req.accept();
+            done();
+        }).listen(2222);*/
+
         browser.get('http://localhost:8080/');
+
+        //browser.wait(until.elementLocated({css: '.micro-ui-header meetling-user'}), TIMEOUT).click();
+        browser.wait(until.elementLocated({css: '.meetling-ui-menu button.link'}), TIMEOUT).click();
+        browser.findElement({css: '.meetling-ui-edit-user'}).click();
+
+        var form = browser.wait(until.elementLocated({css: 'meetling-edit-user-page form'}), TIMEOUT);
+        var nameInput = form.findElement({name: 'name'});
+        nameInput.clear();
+        nameInput.sendKeys('Grumpy');
+        form.findElement({css: 'button'}).click();
+
         var button = browser.wait(until.elementLocated({css: '.meetling-start-create-example-meeting'}), TIMEOUT);
         button.click();
 
         browser.wait(until.elementLocated({css: 'meetling-meeting-page'}), TIMEOUT);
 
-        var api = new WebAPIClient('http://localhost:8080/api');
-        var meetingID = null;
+        var api = new WebAPIClient({url: 'http://localhost:8080/api'});
+        var meetingID;
+        var items;
 
         browser.getCurrentUrl().then(url => {
-            console.log(url);
             meetingID = url.split('/').pop();
-            console.log(meetingID);
             return api.call('POST', '/login');
         }).then(user => {
-            console.log(user);
-            // TODO api.headers['COOKIEFOO'] = user.auth_secret;
-            return api.call('POST', `/meetings/${meetingID}/items`, {title: 'oink'});
+            api.headers['Cookie'] = `auth_secret=${user.auth_secret}`;
+            return api.call('POST', `/users/${user.id}`, {name: 'Hover'});
+        }).then(() => {
+            return api.call('GET', `/meetings/${meetingID}/items`);
+        }).then(itms => {
+            items = itms;
+            return api.call('POST', `/meetings/${meetingID}`, {title: 'Management meeting'});
+        }).then(() => {
+            return api.call('POST', `/meetings/${meetingID}/items`, {title: 'Office decoration'});
         }).then(item => {
-            console.log(item);
-        }).catch(e => {
-            console.log(e);
+            items.push(item);
+            return api.call('POST', `/meetings/${meetingID}/move-agenda-item`,
+                            {item_id: items[3].id, to_id: items[1].id});
+        }).then(() => {
+            return api.call('POST', `/meetings/${meetingID}/trash-agenda-item`, {item_id: items[2].id});
+        }).then(() => {
+            return api.call('POST', `/meetings/${meetingID}/restore-agenda-item`, {item_id: items[2].id});
+        }).then(() => {
+            return api.call('POST', `/meetings/${meetingID}/items/${items[2].id}`, {duration: 10});
         });
+
+        // Check mail
+        var mailbox;
+        browser.wait(() => 'foo@example.org' in mailboxes && mailboxes['foo@example.org'].length === 6, TIMEOUT).then(() => {
+            mailbox = mailboxes['foo@example.org'];
+            //console.log(mailbox);
+            for (var mail of mailbox) {
+                console.log(mail, '\n');
+            }
+            // In every notification: a) name of subscriber b) name of acting user c) meeting name
+            // (feed)
+            expect(mailbox[0]).to.contain('Grumpy').and.to.contain('Hover').match(/Management\s+meeting/);
+
+            expect(mailbox[0]).to.contain('edited');
+            expect(mailbox[1]).to.contain('proposed').and.match(/Office\s+decoration/);
+            expect(mailbox[2]).to.contain('moved').and.match(/Office\s+decoration/);
+            expect(mailbox[3]).to.contain('trashed').and.match(/Next\s+meeting/);
+            expect(mailbox[4]).to.contain('restored').and.match(/Next\s+meeting/);
+            expect(mailbox[5]).to.contain('edited').match(/Next\s+meeting/);
+        });
+
         return browser.sleep(1);
     });
 });

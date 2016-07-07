@@ -225,10 +225,10 @@ class MeetlingServer(HTTPServer):
     def update(self):
         self.telegram.update()
 
-        from meetling.micro import Notification
-        user = self.app.users['User:ripsppycnvbsakxx']
+        from micro import Event
+        user = self.app.users['User:ikilkxrutqhewiyo']
         print('TESTING NOTIFY')
-        yield self.telegram.notify(Notification(None, user))
+        yield self.telegram.notify(user)
         print('TESTING CONNECT')
         self.telegram.connect(user)
 

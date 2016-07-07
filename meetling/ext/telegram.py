@@ -31,10 +31,10 @@ class Telegram:
         print('https://telegram.me/meetlingorgbot?start=' + secret)
 
     @coroutine
-    def notify(self, notification):
-        chat_id = self.app.r.hget('telegram', notification.subscriber.id)
+    def notify(self, subscriber):
+        chat_id = self.app.r.hget('telegram', subscriber.id)
         print(chat_id)
         if not chat_id:
             return
         chat_id = chat_id.decode()
-        self.api.call('POST', 'sendMessage', {'chat_id': chat_id, 'text': 'FIRST NOTIFICATION'})
+        return self.api.call('POST', 'sendMessage', {'chat_id': chat_id, 'text': 'FIRST NOTIFICATION'})

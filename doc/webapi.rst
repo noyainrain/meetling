@@ -22,6 +22,43 @@ If user authentication with the given secret fails, an :ref:`AuthenticationError
 any endpoint, a :ref:`PermissionError` is returned if the current user is not allowed to perform the
 action.
 
+Usage examples
+--------------
+
+A new :ref:`User` is created and logged in with the following request::
+
+    $ curl -d "" https://meetling.org/api/login
+    {
+        "__type__": "User",
+        "id": "abcd",
+        "auth_secret": "wxyz",
+        ...
+    }
+
+To authenticate further API calls, the returned *auth_secret* is set as cookie.
+
+Setting a user's *email* address requires multiple steps. First::
+
+    $ curl -b "auth_secret=wxyz" -d '{"email": "happy@example.org"}' \
+           https://meetling.org/api/users/abcd/set-email
+    {
+        "__type__": "AuthRequest",
+        "id": "efgh"
+    }
+
+This triggers a third party authentication via the email provider (as layed out in
+:ref:`AuthRequest`). The resulting authentication code (here ``stuv``) is then verified to finish
+setting the email address::
+
+    $ curl -b "auth_secret=wxyz" -d '{"auth_request_id": "efgh", "auth": "stuv"}' \
+           https://meetling.org/api/users/abcd/finish-set-email
+    {
+        "__type__": "User",
+        "id": "abcd",
+        "email": "happy@example.org",
+        ...
+    }
+
 .. _Application:
 
 Application
@@ -40,6 +77,21 @@ Social micro web app.
 
    If *code* is ``null``, create and log in a new user. The very first user who logs in is
    registered as staff member.
+
+.. _AuthRequest:
+
+AuthRequest
+-----------
+
+Third party authentication request.
+
+To set an :ref:`User` 's email address, a third party authentication via the email provider is
+performed to proof ownership over the address: First an email message containing a secret
+authentication code is sent to the user. The email provider authenticates the user by login to their
+mailbox, where they retrieve the code. Finally the code is passed back to and verified by the
+application.
+
+AuthRequest is an :ref:`Object`.
 
 .. _Meetling:
 
@@ -69,7 +121,7 @@ Meetling :ref:`Application`.
 Object
 ------
 
-Object in the Meetling universe.
+Object in the application universe.
 
 .. attribute:: id
 
@@ -109,13 +161,15 @@ a :ref:`Meeting` with the *id* ``abc``.
 User
 ----
 
-Meetling user.
-
 User is an :ref:`Object` and :ref:`Editable` by the user oneself.
 
 .. describe:: name
 
    Name or nick name.
+
+.. describe:: email
+
+   Email address, being a single line string. May be ``None``. Visible only to the user oneself.
 
 .. describe:: auth_secret
 
@@ -124,6 +178,39 @@ User is an :ref:`Object` and :ref:`Editable` by the user oneself.
 .. http:get:: /api/users/(id)
 
    Get the user given by *id*.
+
+.. http:post:: /api/users/(id)/set-email
+
+   {"email"}
+
+   Start to set the user's *email* address.
+
+   A third party authentication via the email provider (as layed out in :ref:`AuthRequest`) is
+   triggered and a corresponding :ref:`AuthRequest` is returned. To finish setting the email address
+   use :http:post:`/api/users/(id)/finish-set-email`.
+
+   Permission: The user oneself.
+
+.. http:post:: /api/users/(id)/finish-set-email
+
+   {"auth_request_id", "auth"}
+
+   Finish setting the user's *email* address and return the user.
+
+   *auth* is the authentication code, resulting from the :ref:`AuthRequest` with *auth_request_id*,
+   to be verified. If the verification fails, a :ref:`ValueError` (``auth_invalid``) is returned. If
+   the given email address is already associated with another user, a :ref:`ValueError`
+   (``email_duplicate``) is returned.
+
+   Permission: The user oneself.
+
+.. http:post:: /api/users/(id)/remove-email
+
+   Remove the user's current *email* address and return the user.
+
+   If the user's *email* is not set, a :ref:`ValueError` (``user_no_email``) is returned.
+
+   Permission: The user oneself.
 
 .. _Settings:
 

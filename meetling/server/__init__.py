@@ -12,11 +12,6 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-"""Toolkit for social micro web apps.
+"""Meetling server."""
 
-micro is based on Redis and thus any method may raise a :exc:`RedisError` if there is a problem
-communicating with the Redis server.
-"""
-
-from micro.micro import (Application, Object, Editable, User, Settings, AuthRequest, ValueError,
-                         InputError, AuthenticationError, PermissionError, EmailError)
+from meetling.server.server import MeetlingServer, Endpoint

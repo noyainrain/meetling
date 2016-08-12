@@ -15,22 +15,27 @@
 # pylint: disable=abstract-method; Tornado handlers define a semi-abstract data_received()
 # pylint: disable=arguments-differ; Tornado handler arguments are defined by URLs
 
-"""Meetling server."""
+"""Meetling server core."""
 
 from collections import Mapping
 import http.client
 import json
 import logging
 import os
+import re
+from urllib.parse import urlparse
 
 import micro
+from micro import AuthRequest
 from micro.util import str_or_none, parse_isotime
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
+from tornado.template import DictLoader, filter_whitespace
 from tornado.web import Application, RequestHandler, HTTPError
 
 import meetling
 from meetling import Meetling
+import meetling.server.templates
 
 _CLIENT_ERROR_LOG_TEMPLATE = """\
 Client error occurred
@@ -54,6 +59,10 @@ class MeetlingServer(HTTPServer):
 
        See ``--port`` command line option.
 
+    .. attribute:: url
+
+       See ``--url`` command line option.
+
     .. attribute:: debug
 
        See ``--debug`` command line option.
@@ -62,9 +71,19 @@ class MeetlingServer(HTTPServer):
     by it are passed through.
     """
 
-    def __init__(self, port=8080, debug=False, **args):
+    def __init__(self, port=8080, url=None, debug=False, **args):
         # pylint: disable=super-init-not-called; Configurable classes use initialize() instead of
         #                                        __init__()
+        url = url or 'http://localhost:{}'.format(port)
+        try:
+            urlparts = urlparse(url)
+        except ValueError:
+            raise ValueError('url_invalid')
+        not_allowed = {'username', 'password', 'path', 'params', 'query', 'fragment'}
+        if not (urlparts.scheme in {'http', 'https'} and urlparts.hostname and
+                not any(getattr(urlparts, k) for k in not_allowed)):
+            raise ValueError('url_invalid')
+
         handlers = [
             # UI
             (r'/log-client-error$', _LogClientErrorEndpoint),
@@ -75,6 +94,9 @@ class MeetlingServer(HTTPServer):
             (r'/api/meetings$', _MeetingsEndpoint),
             (r'/api/create-example-meeting$', _CreateExampleMeetingEndpoint),
             (r'/api/users/([^/]+)$', _UserEndpoint),
+            (r'/api/users/([^/]+)/set-email$', _UserSetEmailEndpoint),
+            (r'/api/users/([^/]+)/finish-set-email$', _UserFinishSetEmailEndpoint),
+            (r'/api/users/([^/]+)/remove-email$', _UserRemoveEmailEndpoint),
             (r'/api/settings$', _SettingsEndpoint),
             (r'/api/meetings/([^/]+)$', _MeetingEndpoint),
             (r'/api/meetings/([^/]+)/items(/trashed)?$', _MeetingItemsEndpoint),
@@ -91,8 +113,13 @@ class MeetlingServer(HTTPServer):
         super().initialize(application)
 
         self.port = port
+        self.url = url
         self.debug = debug
-        self.app = Meetling(**args)
+        self.app = Meetling(email='bot@' + urlparts.hostname,
+                            render_email_auth_message=self._render_email_auth_message, **args)
+
+        self._message_templates = DictLoader(meetling.server.templates.MESSAGE_TEMPLATES,
+                                             autoescape=None)
 
     def initialize(self, *args, **kwargs):
         # Configurable classes call initialize() instead of __init__()
@@ -103,6 +130,13 @@ class MeetlingServer(HTTPServer):
         self.app.update()
         self.listen(self.port)
         IOLoop.instance().start()
+
+    def _render_email_auth_message(self, email, auth_request, auth):
+        template = self._message_templates.load('email_auth')
+        msg = template.generate(email=email, auth_request=auth_request, auth=auth, app=self.app,
+                                server=self).decode()
+        return '\n\n'.join([filter_whitespace('oneline', p.strip()) for p in
+                            re.split(r'\n{2,}', msg)])
 
 class _UI(RequestHandler):
     def get(self):
@@ -289,9 +323,32 @@ class _UserEndpoint(Endpoint):
         self.write(self.app.users[id].json(restricted=True))
 
     def post(self, id):
-        args = self.check_args({'name': (str, 'opt')})
         user = self.app.users[id]
+        args = self.check_args({'name': (str, 'opt')})
         user.edit(**args)
+        self.write(user.json(restricted=True))
+
+class _UserSetEmailEndpoint(Endpoint):
+    def post(self, id):
+        user = self.app.users[id]
+        args = self.check_args({'email': str})
+        auth_request = user.set_email(**args)
+        self.write(auth_request.json(restricted=True))
+
+class _UserFinishSetEmailEndpoint(Endpoint):
+    def post(self, id):
+        user = self.app.users[id]
+        args = self.check_args({'auth_request_id': str, 'auth': str})
+        args['auth_request'] = self.app.get_object(args.pop('auth_request_id'), None)
+        if not isinstance(args['auth_request'], AuthRequest):
+            raise micro.ValueError('auth_request_not_found')
+        user.finish_set_email(**args)
+        self.write(user.json(restricted=True))
+
+class _UserRemoveEmailEndpoint(Endpoint):
+    def post(self, id):
+        user = self.app.users[id]
+        user.remove_email()
         self.write(user.json(restricted=True))
 
 class _SettingsEndpoint(Endpoint):

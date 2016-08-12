@@ -8,12 +8,16 @@ PIPFLAGS=$$([ -z "$$VIRTUAL_ENV" ] && echo --user) -U
 test:
 	$(PYTHON) -m unittest
 
+.PHONY: test-ext
+test-ext:
+	$(PYTHON) -m unittest discover -p "ext_test*.py"
+
 .PHONY: lint
 lint:
 	pylint -j 0 meetling micro
 
 .PHONY: check
-check: test lint
+check: test test-ext lint
 
 .PHONY: deps
 deps:
@@ -36,6 +40,7 @@ sample:
 .PHONY: help
 help:
 	@echo "test:     Run all unit tests"
+	@echo "test-ext: Run all extended/integration tests"
 	@echo "lint:     Lint and check the style of the code"
 	@echo "check:    Run all code quality checks (test and lint)"
 	@echo "deps:     Update the dependencies"

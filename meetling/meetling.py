@@ -29,8 +29,10 @@ class Meetling(Application):
        Map of all :class:`Meeting` s.
     """
 
-    def __init__(self, redis_url=''):
-        super().__init__(redis_url=redis_url)
+    def __init__(self, redis_url='', email='bot@localhost', smtp_url='',
+                 render_email_auth_message=None):
+        super().__init__(redis_url=redis_url, email=email, smtp_url=smtp_url,
+                         render_email_auth_message=render_email_auth_message)
         def _meeting(time, **kwargs):
             return Meeting(time=parse_isotime(time) if time else time, **kwargs)
         self.types.update({'Meeting': _meeting, 'AgendaItem': AgendaItem})
@@ -42,7 +44,7 @@ class Meetling(Application):
             settings = Settings(id='Settings', trashed=False, app=self, authors=[],
                                 title='My Meetling', icon=None, favicon=None, staff=[])
             self.r.oset(settings.id, settings)
-            self.r.set('version', 4)
+            self.r.set('version', 5)
             return
 
         db_version = int(db_version)
@@ -83,6 +85,13 @@ class Meetling(Application):
                 object['trashed'] = False
             r.omset({o['id']: o for o in objects})
             r.set('version', 4)
+
+        if db_version < 5:
+            users = r.omget(r.lrange('users', 0, -1))
+            for user in users:
+                user['email'] = None
+            r.omset({u['id']: u for u in users})
+            r.set('version', 5)
 
     def create_meeting(self, title, time=None, location=None, description=None):
         """See :http:post:`/api/meetings`."""

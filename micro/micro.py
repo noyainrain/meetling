@@ -15,12 +15,15 @@
 """Core parts of micro."""
 
 import builtins
-from urllib.parse import ParseResult, urlparse, urljoin
+from email.message import EmailMessage
+import re
+from smtplib import SMTP
+from urllib.parse import urlparse
 
 from redis import StrictRedis
 
 from micro.jsonredis import JSONRedis, JSONRedisMapping
-from micro.util import randstr, str_or_none
+from micro.util import check_email, randstr, str_or_none
 
 class Application:
     """See :ref:`Application`.
@@ -37,32 +40,47 @@ class Application:
 
        See ``--redis-url`` command line option.
 
+    .. attribute:: email
+
+       Sender email address to use for outgoing email. Defaults to ``bot@localhost``.
+
+    .. attribute:: smtp_url
+
+       See ``--smtp-url`` command line option.
+
+    .. attribute:: render_email_auth_message
+
+       Hook function of the form *render_email_auth_message(email, auth_request, auth)*, responsible
+       for rendering an email message for the authentication request *auth_request*. *email* is the
+       email address to authenticate and *auth* is the secret authentication code.
+
     .. attribute:: r
 
        :class:`Redis` database. More precisely a :class:`JSONRedis` instance.
     """
 
-    def __init__(self, redis_url=''):
-        e = InputError()
+    def __init__(self, redis_url='', email='bot@localhost', smtp_url='',
+                 render_email_auth_message=None):
+        check_email(email)
         try:
-            components = urlparse(redis_url)
             # pylint: disable=pointless-statement; port errors are only triggered on access
-            components.port
+            urlparse(smtp_url).port
         except builtins.ValueError:
-            e.errors['redis_url'] = 'invalid'
-        if e.errors:
-            raise e
+            raise ValueError('smtp_url_invalid')
 
         self.redis_url = redis_url
-        components = ParseResult(
-            'redis', '{}:{}'.format(components.hostname or 'localhost', components.port or '6379'),
-            urljoin('/', components.path or '0'), '', '', '')
-        self.r = StrictRedis(components.hostname, components.port, components.path.lstrip('/'))
+        try:
+            self.r = StrictRedis.from_url(self.redis_url)
+        except builtins.ValueError:
+            raise ValueError('redis_url_invalid')
         self.r = JSONRedis(self.r, self._encode, self._decode)
 
-        self.types = {'User': User, 'Settings': Settings}
+        self.types = {'User': User, 'Settings': Settings, 'AuthRequest': AuthRequest}
         self.user = None
         self.users = JSONRedisMapping(self.r, 'users')
+        self.email = email
+        self.smtp_url = smtp_url
+        self.render_email_auth_message = render_email_auth_message
 
     @property
     def settings(self):
@@ -105,7 +123,7 @@ class Application:
 
         else:
             id = 'User:' + randstr()
-            user = User(id=id, trashed=False, app=self, authors=[id], name='Guest',
+            user = User(id=id, trashed=False, app=self, authors=[id], name='Guest', email=None,
                         auth_secret=randstr())
             self.r.oset(user.id, user)
             self.r.rpush('users', user.id)
@@ -119,6 +137,19 @@ class Application:
                 self.r.oset(settings.id, settings)
 
         return self.authenticate(user.auth_secret)
+
+    def get_object(self, id, default=KeyError):
+        """Get the :class:`Object` given by *id*.
+
+        *default* is the value to return if no object with *id* is found. If it is an
+        :exc:`Exception`, it is raised instead.
+        """
+        object = self.r.oget(id)
+        if object is None:
+            object = default
+        if isinstance(object, Exception):
+            raise object
+        return object
 
     @staticmethod
     def _encode(object):
@@ -218,11 +249,79 @@ class Editable:
 class User(Object, Editable):
     """See :ref:`User`."""
 
-    def __init__(self, id, trashed, app, authors, name, auth_secret):
+    def __init__(self, id, trashed, app, authors, name, email, auth_secret):
         super().__init__(id=id, trashed=trashed, app=app)
         Editable.__init__(self, authors=authors)
         self.name = name
+        self.email = email
         self.auth_secret = auth_secret
+
+    def store_email(self, email):
+        """Update the user's *email* address.
+
+        If *email* is already associated with another user, a :exc:`ValueError`
+        (``email_duplicate``) is raised.
+        """
+        check_email(email)
+        id = self.app.r.hget('user_email_map', email)
+        if id and id.decode() != self.id:
+            raise ValueError('email_duplicate')
+
+        if self.email:
+            self.app.r.hdel('user_email_map', self.email)
+        self.email = email
+        self.app.r.oset(self.id, self)
+        self.app.r.hset('user_email_map', self.email, self.id)
+
+    def set_email(self, email):
+        """See :http:post:`/api/users/(id)/set-email`."""
+        if self.app.user != self:
+            raise PermissionError()
+        check_email(email)
+
+        code = randstr()
+        auth_request = AuthRequest(id='AuthRequest:' + randstr(), trashed=False, app=self.app,
+                                   email=email, code=code)
+        self.app.r.oset(auth_request.id, auth_request)
+        self.app.r.expire(auth_request.id, 10 * 60)
+        if self.app.render_email_auth_message:
+            self._send_email(email, self.app.render_email_auth_message(email, auth_request, code))
+        return auth_request
+
+    def finish_set_email(self, auth_request, auth):
+        """See :http:post:`/api/users/(id)/finish-set-email`."""
+        # pylint: disable=protected-access; auth_request is a friend
+        if self.app.user != self:
+            raise PermissionError()
+        if auth != auth_request._code:
+            raise ValueError('auth_invalid')
+
+        self.app.r.delete(auth_request.id)
+        self.store_email(auth_request._email)
+
+    def remove_email(self):
+        """See :http:post:`/api/users/(id)/remove-email`."""
+        if self.app.user != self:
+            raise PermissionError()
+        if not self.email:
+            raise ValueError('user_no_email')
+
+        self.app.r.hdel('user_email_map', self.email)
+        self.email = None
+        self.app.r.oset(self.id, self)
+
+    def send_email(self, msg):
+        """Send an email message to the user.
+
+        *msg* is the message string of the following form: It starts with a line containing the
+        subject prefixed with ``Subject: ``, followed by a blank line, followed by the body.
+
+        If the user's ::attr:`email` is not set, a :exception:`ValueError` (``user_no_email``) is
+        raised. If communication with the SMTP server fails, an :ref:`EmailError` is raised.
+        """
+        if not self.email:
+            raise ValueError('user_no_email')
+        self._send_email(self.email, msg)
 
     def do_edit(self, **attrs):
         if self.app.user != self:
@@ -238,12 +337,33 @@ class User(Object, Editable):
 
     def json(self, restricted=False, include_users=False):
         """See :meth:`Object.json`."""
-        # pylint: disable=arguments-differ; extended signature
-        json = super().json(attrs={'name': self.name, 'auth_secret': self.auth_secret})
+        json = super().json(restricted=restricted)
+        json.update({'name': self.name, 'email': self.email, 'auth_secret': self.auth_secret})
         json.update(Editable.json(self, restricted=restricted, include_users=include_users))
         if restricted and not self.app.user == self:
+            del json['email']
             del json['auth_secret']
         return json
+
+    def _send_email(self, to, msg):
+        match = re.fullmatch(r'Subject: ([^\n]+)\n\n(.+)', msg, re.DOTALL)
+        if not match:
+            raise ValueError('msg_invalid')
+
+        msg = EmailMessage()
+        msg['To'] = to
+        msg['From'] = self.app.email
+        msg['Subject'] = match.group(1)
+        msg.set_content(match.group(2))
+
+        components = urlparse(self.app.smtp_url)
+        host = components.hostname or 'localhost'
+        port = components.port or 25
+        try:
+            with SMTP(host=host, port=port) as smtp:
+                smtp.send_message(msg)
+        except OSError:
+            raise EmailError()
 
 class Settings(Object, Editable):
     """See :ref:`Settings`."""
@@ -289,6 +409,22 @@ class Settings(Object, Editable):
             json['staff'] = [u.json(restricted=restricted) for u in self.staff]
         return json
 
+class AuthRequest(Object):
+    """See :ref:`AuthRequest`."""
+
+    def __init__(self, id, trashed, app, email, code):
+        super().__init__(id=id, trashed=trashed, app=app)
+        self._email = email
+        self._code = code
+
+    def json(self, restricted=False, attrs={}):
+        json = super().json(restricted=restricted, attrs=attrs)
+        json.update({'email': self._email, 'code': self._code})
+        if restricted:
+            del json['email']
+            del json['code']
+        return json
+
 class ValueError(builtins.ValueError):
     """See :ref:`ValueError`.
 
@@ -331,4 +467,8 @@ class AuthenticationError(Exception):
 
 class PermissionError(Exception):
     """See :ref:`PermissionError`."""
+    pass
+
+class EmailError(Exception):
+    """Raised if communication with the SMTP server fails."""
     pass

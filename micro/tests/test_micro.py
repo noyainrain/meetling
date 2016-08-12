@@ -31,7 +31,7 @@ class MicroTestCase(AsyncTestCase):
 
 class ApplicationTest(MicroTestCase):
     def test_init_redis_url_invalid(self):
-        with self.assertRaises(micro.InputError):
+        with self.assertRaisesRegex(micro.ValueError, 'redis_url_invalid'):
             CatApp(redis_url='//localhost:foo')
 
     def test_authenticate(self):

@@ -46,8 +46,6 @@ h1 {
 section h1 { font-size: 1.66rem; }
 section section h1 { font-size: 1.33rem; }
 
-header h1,
-footer h1,
 li h1 {
     border-bottom: none;
 }
@@ -174,6 +172,10 @@ select {
 
 input:focus {
     outline: none;
+}
+
+input:invalid {
+    box-shadow: none;
 }
 
 label {
@@ -367,6 +369,7 @@ label > small + small {
 }
 
 .meetling-ui-logo {
+    border-bottom: none;
     margin: 0;
     font-size: 1rem;
 }
@@ -510,6 +513,41 @@ main {
 
 .meetling-start-create-meeting {
     font-size: 1.5rem;
+}
+
+/* ---- EditUserPage ---- */
+
+.meetling-edit-user-email header {
+    align-items: flex-end;
+}
+
+.meetling-edit-user-email header h1 {
+    flex: auto;
+}
+
+meetling-edit-user-page:not(.meetling-edit-user-has-email) .meetling-edit-user-remove-email {
+    display: none;
+}
+
+.meetling-edit-user-has-email .meetling-edit-user-set-email-1 {
+    display: none;
+}
+
+.meetling-edit-user-set-email-2 {
+    display: none;
+}
+
+.meetling-edit-user-set-email-2 h1 {
+    border-bottom: none;
+    font-size: 1rem;
+}
+
+meetling-edit-user-page:not(.meetling-edit-user-has-email) .meetling-edit-user-email-value {
+    display: none;
+}
+
+.meetling-edit-user-email small {
+    color: #888;
 }
 
 /* ---- MeetingPage ---- */

@@ -12,14 +12,11 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-"""Application for collaboratively preparing meetings.
+"""Toolkit for social micro web apps.
 
-Most of the functionality is documented in :doc:`webapi`; please have a look at it. The focus of
-this documentation is on the differences and additions to the Web API.
+micro is based on Redis and thus any method may raise a :exc:`RedisError` if there is a problem
+communicating with the Redis server.
 """
 
-import os
-
-from meetling.meetling import Meetling, Meeting, AgendaItem
-
-_RES_PATH = os.path.join(os.path.dirname(__file__), 'res')
+from micro.micro import (Application, Object, Editable, User, Settings, AuthRequest, ValueError,
+                         InputError, AuthenticationError, PermissionError, EmailError)

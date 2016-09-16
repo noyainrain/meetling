@@ -12,4 +12,26 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-"""Included external modules."""
+"""Server templates."""
+
+MESSAGE_TEMPLATES = {
+    'email_auth': """
+        Subject: [{{ app.settings.title }}] Add email address
+
+        Hi there!
+
+        To add your email address {{ email }} to {{ app.settings.title }}, simply open this link:
+
+        {{ server.url }}/user/edit#set-email={{ auth_request.id[12:] }}:{{ auth }}
+
+        Or copy and paste the following code into the app:
+
+        {{ auth }}
+
+        ---
+
+        If you did not request to add an email address to {{ app.settings.title }}, someone else may
+        have entered your email address by mistake. In that case, please ignore this message, we
+        will not bother you again.
+    """
+}

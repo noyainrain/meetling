@@ -203,7 +203,7 @@ meetling.UI = document.registerElement('meetling-ui',
             {url: '^/$', page: 'meetling-start-page'},
             {url: '^/about$', page: 'meetling-about-page'},
             {url: '^/create-meeting$', page: 'meetling-edit-meeting-page'},
-            {url: '^/users/([^/]+)/edit$', page: this._makeEditUserPage.bind(this)},
+            {url: '^/(?:users/([^/]+)|user)/edit$', page: this._makeEditUserPage.bind(this)},
             {url: '^/settings/edit$', page: this._makeEditSettingsPage.bind(this)},
             {url: '^/meetings/([^/]+)$', page: this._makeMeetingPage.bind(this)},
             {url: '^/meetings/([^/]+)/edit$', page: this._makeEditMeetingPage.bind(this)}
@@ -309,8 +309,6 @@ meetling.UI = document.registerElement('meetling-ui',
         }
 
         this.querySelector('.micro-ui-header meetling-user').user = this.user;
-        this.querySelector('.meetling-ui-edit-user .action').href = `/users/${this.user.id}/edit`;
-
         this.querySelector('.meetling-ui-edit-settings').style.display = this.staff ? '' : 'none';
     }},
 
@@ -327,6 +325,7 @@ meetling.UI = document.registerElement('meetling-ui',
     }},
 
     _makeEditUserPage: {value: function(url, id) {
+        id = id || this.user.id;
         return micro.call('GET', `/api/users/${id}`).then(function(user) {
             if (!(this.user.id === user.id)) {
                 return document.createElement('micro-forbidden-page');
@@ -493,6 +492,55 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
             ui.querySelector('.meetling-edit-user-page-template').content, true));
         this._form = this.querySelector('form');
         this.querySelector(".meetling-edit-user-edit").addEventListener("submit", this);
+
+        this._setEmail1 = this.querySelector('.meetling-edit-user-set-email-1');
+        this._setEmailForm = this.querySelector('.meetling-edit-user-set-email-1 form');
+        this._setEmail2 = this.querySelector('.meetling-edit-user-set-email-2');
+        this._emailP = this.querySelector('.meetling-edit-user-email-value');
+        this._setEmailAction = this.querySelector('.meetling-edit-user-set-email-1 form button');
+        this._cancelSetEmailAction = this.querySelector('.meetling-edit-user-set-email-2 button');
+        this._removeEmailAction = this.querySelector('.meetling-edit-user-remove-email button');
+        this._removeEmailAction.addEventListener('click', this);
+        this._setEmailAction.addEventListener('click', this);
+        this._cancelSetEmailAction.addEventListener('click', this);
+        this._setEmailForm.addEventListener('submit', function(e) { e.preventDefault(); });
+    }},
+
+    attachedCallback: {value: function() {
+        var match = /^#set-email=([^:]+):([^:]+)$/.exec(location.hash);
+        if (match) {
+            history.replaceState(null, null, location.pathname);
+            var authRequestID = 'AuthRequest:' + match[1];
+            var authRequest = JSON.parse(localStorage.authRequest || null);
+            if (!authRequest || authRequestID != authRequest.id) {
+                ui.notify(
+                    'The email link was not opened on the same browser/device on which the email address was entered (or the email link is outdated).');
+                return;
+            }
+
+            this._showSetEmailPanel2(true);
+            micro.call('POST', `/api/users/${this._user.id}/finish-set-email`, {
+                auth_request_id: authRequest.id,
+                auth: match[2]
+            }).then(function(user) {
+                delete localStorage.authRequest;
+                this.user = user;
+                this._hideSetEmailPanel2();
+            }.bind(this), function(e) {
+                if (e.error.code === 'auth_invalid') {
+                    this._showSetEmailPanel2();
+                    ui.notify('The email link was modified. Please try again.');
+                } else {
+                    delete localStorage.authRequest;
+                    this._hideSetEmailPanel2();
+                    ui.notify({
+                        auth_request_not_found: 'The email link is expired. Please try again.',
+                        email_duplicate:
+                            'The given email address is already in use by another user.'
+                    }[e.error.code]);
+                }
+            }.bind(this));
+        }
     }},
 
     /**
@@ -504,12 +552,60 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
         },
         set: function(value) {
             this._user = value;
+            this.classList.toggle('meetling-edit-user-has-email', this._user.email);
             this._form.elements['name'].value = this._user.name;
+            this._emailP.textContent = this._user.email;
         }
     },
 
-    attachedCallback: {value: function() {
-        this._form.elements['name'].focus();
+    _setEmail: {value: function() {
+        if (!this._setEmailForm.checkValidity()) {
+            return;
+        }
+
+        micro.call('POST', `/api/users/${this.user.id}/set-email`, {
+            "email": this._setEmailForm.elements['email'].value
+        }).then(function(authRequest) {
+            localStorage.authRequest = JSON.stringify(authRequest);
+            this._setEmailForm.reset();
+            this._showSetEmailPanel2();
+        }.bind(this));
+    }},
+
+    _cancelSetEmail: {value: function() {
+        this._hideSetEmailPanel2();
+    }},
+
+    _removeEmail: {value: function() {
+        micro.call('POST', `/api/users/${this.user.id}/remove-email`).then(function(user) {
+            this.user = user;
+        }.bind(this), function(e) {
+            // If the email address has already been removed, we just update the UI
+            this.user.email = null;
+            this.user = this.user;
+        }.bind(this));
+    }},
+
+    _showSetEmailPanel2: {value: function(progress) {
+        progress = progress || false;
+        var progressP = this.querySelector('.meetling-edit-user-set-email-2 .micro-progress');
+        var actions = this.querySelector('.meetling-edit-user-set-email-2 .actions');
+        this._emailP.style.display = 'none';
+        this._setEmail1.style.display = 'none';
+        this._setEmail2.style.display = 'block';
+        if (progress) {
+            progressP.style.display = '';
+            actions.style.display = 'none';
+        } else {
+            progressP.style.display = 'none';
+            actions.style.display = '';
+        }
+    }},
+
+    _hideSetEmailPanel2: {value: function() {
+        this._emailP.style.display = '';
+        this._setEmail1.style.display = '';
+        this._setEmail2.style.display = '';
     }},
 
     handleEvent: {value: function(event) {
@@ -518,7 +614,6 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
             micro.call('POST', `/api/users/${this._user.id}`, {
                 name: this._form.elements['name'].value
             }).then(function(user) {
-                ui.navigate('/');
                 ui.dispatchEvent(new CustomEvent('user-edit', {detail: {user: user}}));
             }, function(e) {
                 if (e instanceof micro.APIError) {
@@ -527,6 +622,13 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
                     throw e;
                 }
             }.bind(this));
+
+        } else if (event.currentTarget === this._setEmailAction && event.type === 'click') {
+            this._setEmail();
+        } else if (event.currentTarget === this._cancelSetEmailAction && event.type === 'click') {
+            this._cancelSetEmail();
+        } else if (event.currentTarget === this._removeEmailAction && event.type === 'click') {
+            this._removeEmail();
         }
     }}
 })});

@@ -44,3 +44,10 @@ def parse_isotime(isotime):
         return datetime(*(int(t) for t in re.split(r'\D', isotime)[:6]))
     except (TypeError, ValueError):
         raise ValueError('isotime_bad_format')
+
+def check_email(email):
+    """Check the *email* address."""
+    if not str_or_none(email):
+        raise ValueError('email_empty')
+    if len(email.splitlines()) > 1:
+        raise ValueError('email_newline')

@@ -15,21 +15,27 @@
 # pylint: disable=abstract-method; Tornado handlers define a semi-abstract data_received()
 # pylint: disable=arguments-differ; Tornado handler arguments are defined by URLs
 
-"""Meetling server."""
+"""Meetling server core."""
 
 from collections import Mapping
 import http.client
 import json
 import logging
 import os
+import re
+from urllib.parse import urlparse
 
+import micro
+from micro import AuthRequest
+from micro.util import str_or_none, parse_isotime
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
+from tornado.template import DictLoader, filter_whitespace
 from tornado.web import Application, RequestHandler, HTTPError
 
 import meetling
 from meetling import Meetling
-from meetling.util import str_or_none, parse_isotime
+import meetling.server.templates
 
 _CLIENT_ERROR_LOG_TEMPLATE = """\
 Client error occurred
@@ -53,6 +59,10 @@ class MeetlingServer(HTTPServer):
 
        See ``--port`` command line option.
 
+    .. attribute:: url
+
+       See ``--url`` command line option.
+
     .. attribute:: debug
 
        See ``--debug`` command line option.
@@ -61,9 +71,19 @@ class MeetlingServer(HTTPServer):
     by it are passed through.
     """
 
-    def __init__(self, port=8080, debug=False, **args):
+    def __init__(self, port=8080, url=None, debug=False, **args):
         # pylint: disable=super-init-not-called; Configurable classes use initialize() instead of
         #                                        __init__()
+        url = url or 'http://localhost:{}'.format(port)
+        try:
+            urlparts = urlparse(url)
+        except ValueError:
+            raise ValueError('url_invalid')
+        not_allowed = {'username', 'password', 'path', 'params', 'query', 'fragment'}
+        if not (urlparts.scheme in {'http', 'https'} and urlparts.hostname and
+                not any(getattr(urlparts, k) for k in not_allowed)):
+            raise ValueError('url_invalid')
+
         handlers = [
             # UI
             (r'/log-client-error$', _LogClientErrorEndpoint),
@@ -74,6 +94,9 @@ class MeetlingServer(HTTPServer):
             (r'/api/meetings$', _MeetingsEndpoint),
             (r'/api/create-example-meeting$', _CreateExampleMeetingEndpoint),
             (r'/api/users/([^/]+)$', _UserEndpoint),
+            (r'/api/users/([^/]+)/set-email$', _UserSetEmailEndpoint),
+            (r'/api/users/([^/]+)/finish-set-email$', _UserFinishSetEmailEndpoint),
+            (r'/api/users/([^/]+)/remove-email$', _UserRemoveEmailEndpoint),
             (r'/api/settings$', _SettingsEndpoint),
             (r'/api/meetings/([^/]+)$', _MeetingEndpoint),
             (r'/api/meetings/([^/]+)/items(/trashed)?$', _MeetingItemsEndpoint),
@@ -90,8 +113,13 @@ class MeetlingServer(HTTPServer):
         super().initialize(application)
 
         self.port = port
+        self.url = url
         self.debug = debug
-        self.app = Meetling(**args)
+        self.app = Meetling(email='bot@' + urlparts.hostname,
+                            render_email_auth_message=self._render_email_auth_message, **args)
+
+        self._message_templates = DictLoader(meetling.server.templates.MESSAGE_TEMPLATES,
+                                             autoescape=None)
 
     def initialize(self, *args, **kwargs):
         # Configurable classes call initialize() instead of __init__()
@@ -102,6 +130,13 @@ class MeetlingServer(HTTPServer):
         self.app.update()
         self.listen(self.port)
         IOLoop.instance().start()
+
+    def _render_email_auth_message(self, email, auth_request, auth):
+        template = self._message_templates.load('email_auth')
+        msg = template.generate(email=email, auth_request=auth_request, auth=auth, app=self.app,
+                                server=self).decode()
+        return '\n\n'.join([filter_whitespace('oneline', p.strip()) for p in
+                            re.split(r'\n{2,}', msg)])
 
 class _UI(RequestHandler):
     def get(self):
@@ -150,20 +185,20 @@ class Endpoint(RequestHandler):
         if issubclass(exc_info[0], KeyError):
             self.set_status(int(http.client.NOT_FOUND))
             self.write({'__type__': 'NotFoundError'})
-        elif issubclass(exc_info[0], meetling.AuthenticationError):
+        elif issubclass(exc_info[0], micro.AuthenticationError):
             self.set_status(int(http.client.BAD_REQUEST))
             self.write({'__type__': exc_info[0].__name__})
-        elif issubclass(exc_info[0], meetling.PermissionError):
+        elif issubclass(exc_info[0], micro.PermissionError):
             self.set_status(int(http.client.FORBIDDEN))
             self.write({'__type__': exc_info[0].__name__})
-        elif issubclass(exc_info[0], meetling.InputError):
+        elif issubclass(exc_info[0], micro.InputError):
             self.set_status(int(http.client.BAD_REQUEST))
             self.write({
                 '__type__': exc_info[0].__name__,
                 'code': exc_info[1].code,
                 'errors': exc_info[1].errors
             })
-        elif issubclass(exc_info[0], meetling.ValueError):
+        elif issubclass(exc_info[0], micro.ValueError):
             self.set_status(int(http.client.BAD_REQUEST))
             self.write({'__type__': exc_info[0].__name__, 'code': exc_info[1].code})
         else:
@@ -171,8 +206,8 @@ class Endpoint(RequestHandler):
 
     def log_exception(self, typ, value, tb):
         # These errors are handled specially and there is no need to log them as exceptions
-        if issubclass(typ, (KeyError, meetling.AuthenticationError, meetling.PermissionError,
-                            meetling.ValueError)):
+        if issubclass(typ, (KeyError, micro.AuthenticationError, micro.PermissionError,
+                            micro.ValueError)):
             return
         super().log_exception(typ, value, tb)
 
@@ -193,7 +228,7 @@ class Endpoint(RequestHandler):
         """
         args = {k: v for k, v in self.args.items() if k in type_info.keys()}
 
-        e = meetling.InputError()
+        e = micro.InputError()
         for arg, types in type_info.items():
             # Normalize
             if not isinstance(types, tuple):
@@ -216,7 +251,7 @@ class Endpoint(RequestHandler):
 class _LogClientErrorEndpoint(Endpoint):
     def post(self):
         if not self.app.user:
-            raise meetling.PermissionError()
+            raise micro.PermissionError()
 
         args = self.check_args({
             'type': str,
@@ -224,7 +259,7 @@ class _LogClientErrorEndpoint(Endpoint):
             'url': str,
             'message': (str, None, 'opt')
         })
-        e = meetling.InputError()
+        e = micro.InputError()
         if str_or_none(args['type']) is None:
             e.errors['type'] = 'empty'
         if str_or_none(args['stack']) is None:
@@ -250,7 +285,7 @@ class _ReplaceAuthEndpoint(RequestHandler):
         if auth_secret:
             try:
                 app.authenticate(auth_secret)
-            except meetling.AuthenticationError:
+            except micro.AuthenticationError:
                 pass
             self.clear_cookie('auth_secret')
         self.write(app.user.json(restricted=True) if app.user else 'null')
@@ -273,7 +308,7 @@ class _MeetingsEndpoint(Endpoint):
             try:
                 args['time'] = parse_isotime(args['time'])
             except ValueError:
-                raise meetling.InputError({'time': 'bad_type'})
+                raise micro.InputError({'time': 'bad_type'})
 
         meeting = self.app.create_meeting(**args)
         self.write(meeting.json(restricted=True, include_users=True))
@@ -288,9 +323,32 @@ class _UserEndpoint(Endpoint):
         self.write(self.app.users[id].json(restricted=True))
 
     def post(self, id):
-        args = self.check_args({'name': (str, 'opt')})
         user = self.app.users[id]
+        args = self.check_args({'name': (str, 'opt')})
         user.edit(**args)
+        self.write(user.json(restricted=True))
+
+class _UserSetEmailEndpoint(Endpoint):
+    def post(self, id):
+        user = self.app.users[id]
+        args = self.check_args({'email': str})
+        auth_request = user.set_email(**args)
+        self.write(auth_request.json(restricted=True))
+
+class _UserFinishSetEmailEndpoint(Endpoint):
+    def post(self, id):
+        user = self.app.users[id]
+        args = self.check_args({'auth_request_id': str, 'auth': str})
+        args['auth_request'] = self.app.get_object(args.pop('auth_request_id'), None)
+        if not isinstance(args['auth_request'], AuthRequest):
+            raise micro.ValueError('auth_request_not_found')
+        user.finish_set_email(**args)
+        self.write(user.json(restricted=True))
+
+class _UserRemoveEmailEndpoint(Endpoint):
+    def post(self, id):
+        user = self.app.users[id]
+        user.remove_email()
         self.write(user.json(restricted=True))
 
 class _SettingsEndpoint(Endpoint):
@@ -323,7 +381,7 @@ class _MeetingEndpoint(Endpoint):
             try:
                 args['time'] = parse_isotime(args['time'])
             except ValueError:
-                raise meetling.InputError({'time': 'bad_type'})
+                raise micro.InputError({'time': 'bad_type'})
 
         meeting = self.app.meetings[id]
         meeting.edit(**args)
@@ -354,7 +412,7 @@ class _MeetingTrashAgendaItemEndpoint(Endpoint):
         try:
             args['item'] = meeting.items[args.pop('item_id')]
         except KeyError:
-            raise meetling.ValueError('item_not_found')
+            raise micro.ValueError('item_not_found')
 
         meeting.trash_agenda_item(**args)
         self.write(json.dumps(None))
@@ -366,7 +424,7 @@ class _MeetingRestoreAgendaItemEndpoint(Endpoint):
         try:
             args['item'] = meeting.trashed_items[args.pop('item_id')]
         except KeyError:
-            raise meetling.ValueError('item_not_found')
+            raise micro.ValueError('item_not_found')
 
         meeting.restore_agenda_item(**args)
         self.write(json.dumps(None))
@@ -378,13 +436,13 @@ class _MeetingMoveAgendaItemEndpoint(Endpoint):
         try:
             args['item'] = meeting.items[args.pop('item_id')]
         except KeyError:
-            raise meetling.ValueError('item_not_found')
+            raise micro.ValueError('item_not_found')
         args['to'] = args.pop('to_id')
         if args['to'] is not None:
             try:
                 args['to'] = meeting.items[args['to']]
             except KeyError:
-                raise meetling.ValueError('to_not_found')
+                raise micro.ValueError('to_not_found')
 
         meeting.move_agenda_item(**args)
         self.write(json.dumps(None))

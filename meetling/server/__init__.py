@@ -12,14 +12,6 @@
 # You should have received a copy of the GNU General Public License along with this program. If not,
 # see <http://www.gnu.org/licenses/>.
 
-"""Application for collaboratively preparing meetings.
+"""Meetling server."""
 
-Most of the functionality is documented in :doc:`webapi`; please have a look at it. The focus of
-this documentation is on the differences and additions to the Web API.
-"""
-
-import os
-
-from meetling.meetling import Meetling, Meeting, AgendaItem
-
-_RES_PATH = os.path.join(os.path.dirname(__file__), 'res')
+from meetling.server.server import MeetlingServer, Endpoint

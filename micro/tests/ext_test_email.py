@@ -30,6 +30,7 @@ class EmailTest(MicroTestCase):
         self.thread.start()
 
     def tearDown(self):
+        super().tearDown()
         self.smtpd.close()
         self.thread.join()
 

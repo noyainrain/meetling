@@ -111,7 +111,7 @@ class MeetlingServer(HTTPServer):
         ]
 
         # TODO
-        url = 'https://tun.inrain.org' # TODO: get from some config file
+        #url = 'https://tun.inrain.org' # TODO: get from some config file
         token = '188662197:AAHtgXkiB6qBq2_KLYYs7pi9l3uVAvA8xrc' # TODO: get from some config
         hook_path = '/telegram-update-hook/' + token
         handlers.insert(2, (hook_path + r'$', _TelegramUpdateHook))

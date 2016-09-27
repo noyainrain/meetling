@@ -38,7 +38,7 @@ MESSAGE_TEMPLATES = {
         If you did not request to add an email address to {{ app.settings.title }}, someone else may
         have entered your email address by mistake. In that case, please ignore this message, we
         will not bother you again.
-    """
+    """,
 
     'notification': """
         Subject: [{{ app.settings.title }}] {% block subject %}{% end %}

@@ -59,7 +59,7 @@ describe('UI scenarios', function() {
 
     beforeEach(function() {
         execSync('make sample');
-        server = spawn('python3', ['-m', 'meetling']);
+        server = spawn('python3', ['-m', 'meetling', '--smtp-url', '//localhost:2525']);
         server.on('err', err => {
             throw err;
         });
@@ -167,6 +167,18 @@ describe('UI scenarios', function() {
         nameInput.sendKeys('Grumpy');
         form.findElement({css: 'button'}).click();
 
+        form = browser.findElement({css: '.meetling-edit-user-set-email-1'});
+        form.findElement({name: 'email'}).sendKeys('foo@example.org');
+        form.findElement({css: 'button'}).click();
+
+        browser.wait(() => 'foo@example.org' in mailboxes, TIMEOUT).then(() => {
+            var mailbox = mailboxes['foo@example.org'];
+            var match = /^http.+$/m.exec(mailbox[0]);
+            browser.get(match[0]);
+        });
+
+        browser.findElement({css: '.meetling-ui-logo'}).click();
+
         var button = browser.wait(until.elementLocated({css: '.meetling-start-create-example-meeting'}), TIMEOUT);
         button.click();
 
@@ -203,7 +215,7 @@ describe('UI scenarios', function() {
 
         // Check mail
         var mailbox;
-        browser.wait(() => 'foo@example.org' in mailboxes && mailboxes['foo@example.org'].length === 6, TIMEOUT).then(() => {
+        browser.wait(() => mailboxes['foo@example.org'].length === 7, TIMEOUT).then(() => {
             mailbox = mailboxes['foo@example.org'];
             //console.log(mailbox);
             for (var mail of mailbox) {
@@ -211,14 +223,14 @@ describe('UI scenarios', function() {
             }
             // In every notification: a) name of subscriber b) name of acting user c) meeting name
             // (feed)
-            expect(mailbox[0]).to.contain('Grumpy').and.to.contain('Hover').match(/Management\s+meeting/);
+            expect(mailbox[1]).to.contain('Grumpy').and.to.contain('Hover').match(/Management\s+meeting/);
 
-            expect(mailbox[0]).to.contain('edited');
-            expect(mailbox[1]).to.contain('proposed').and.match(/Office\s+decoration/);
-            expect(mailbox[2]).to.contain('moved').and.match(/Office\s+decoration/);
-            expect(mailbox[3]).to.contain('trashed').and.match(/Next\s+meeting/);
-            expect(mailbox[4]).to.contain('restored').and.match(/Next\s+meeting/);
-            expect(mailbox[5]).to.contain('edited').match(/Next\s+meeting/);
+            expect(mailbox[1]).to.contain('edited');
+            expect(mailbox[2]).to.contain('proposed').and.match(/Office\s+decoration/);
+            expect(mailbox[3]).to.contain('moved').and.match(/Office\s+decoration/);
+            expect(mailbox[4]).to.contain('trashed').and.match(/Next\s+meeting/);
+            expect(mailbox[5]).to.contain('restored').and.match(/Next\s+meeting/);
+            expect(mailbox[6]).to.contain('edited').match(/Next\s+meeting/);
         });
 
         return browser.sleep(1);

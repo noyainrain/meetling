@@ -125,11 +125,6 @@ class MeetlingServer(HTTPServer):
 
         # TODO
         self.app.handle_notification = self._notify
-        self.notification_templates = DictLoader(templates.notification_templates, autoescape=None,
-                                                 whitespace='all')
-
-        self.origin = 'http://localhost:{}'.format(port)
-        self.url = self.origin
 
     def initialize(self, *args, **kwargs):
         # Configurable classes call initialize() instead of __init__()
@@ -148,13 +143,14 @@ class MeetlingServer(HTTPServer):
         return '\n\n'.join([filter_whitespace('oneline', p.strip()) for p in
                             re.split(r'\n{2,}', msg)])
 
+    # TODO: refactor to render_notification_message
     def _notify(self, event, user, feed):
         #print('NOTIFY', event, user, feed)
         from tornado.template import filter_whitespace
         from textwrap import TextWrapper, wrap, fill, dedent
         import re
 
-        template = self.notification_templates.load(event.type)
+        template = self._message_templates.load(event.type)
         msg = template.generate(event=event, user=user, feed=feed, app=self.app,
                                 server=self).decode()
 
@@ -167,7 +163,7 @@ class MeetlingServer(HTTPServer):
 
         self.send_mail('todo@example.org', user.email, subject, body)
 
-    # TODO: move to micro
+    # TODO: see above
     def send_mail(self, frm, to, subject, content):
         """TODO."""
         from email.message import EmailMessage
@@ -178,7 +174,6 @@ class MeetlingServer(HTTPServer):
         msg['From'] = frm
         msg['Subject'] = subject
         msg.set_content(content)
-        print(self.origin)
 
         from smtplib import SMTP
         with SMTP(host='localhost', port='2525') as smtp:

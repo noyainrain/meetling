@@ -68,6 +68,16 @@
     cursor: move;
 }
 
+/* ---- BootPage ---- */
+
+.micro-boot-page {
+    text-align: center;
+}
+
+.micro-boot-page h1 {
+    color: #f00;
+}
+
 /* ---- NotFoundPage ---- */
 
 micro-not-found-page {

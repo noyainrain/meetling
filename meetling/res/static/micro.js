@@ -20,7 +20,7 @@
 
 "use strict;"
 
-var micro = {};
+var micro = micro || {};
 
 /**
  * Thrown for HTTP JSON REST API errors.
@@ -133,6 +133,11 @@ micro.UI = document.registerElement('micro-ui',
 
         // Register UI as global
         ui = this;
+
+        // Cancel launch if platform checks failed
+        if (!micro.launch) {
+            return;
+        }
 
         // Go!
         this._progressElem.style.display = 'block';

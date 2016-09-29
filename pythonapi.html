@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>3. Python API &mdash; Meetling 0.11.2 documentation</title>
+    <title>3. Python API &mdash; Meetling 0.12.1 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.11.2',
+        VERSION:     '0.12.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,15 +24,17 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.png"/>
-    <link rel="top" title="Meetling 0.11.2 documentation" href="index.html" />
+    <link rel="top" title="Meetling 0.12.1 documentation" href="contents.html" />
     <link rel="next" title="4. Contributing" href="contributing.html" />
     <link rel="prev" title="2. Web API" href="webapi.html" />
    
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body role="document">  
+  <body role="document">
+  
 
     <div class="document">
       <div class="documentwrapper">
@@ -41,53 +43,290 @@
             
   <div class="section" id="python-api">
 <h1>3. Python API<a class="headerlink" href="#python-api" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-meetling">
-<span id="meetling"></span><h2>3.1. meetling<a class="headerlink" href="#module-meetling" title="Permalink to this headline">¶</a></h2>
-<p>Application for collaboratively preparing meetings.</p>
-<p>Most of the functionality is documented in <a class="reference internal" href="webapi.html"><em>Web API</em></a>; please have a look at it. The focus of
-this documentation is on the differences and additions to the Web API.</p>
-<p>Meetling is based on Redis and thus any method may raise a <code class="xref py py-exc docutils literal"><span class="pre">RedisError</span></code> if there is a problem
+<div class="section" id="module-micro">
+<span id="micro"></span><h2>3.1. micro<a class="headerlink" href="#module-micro" title="Permalink to this headline">¶</a></h2>
+<p>Toolkit for social micro web apps.</p>
+<p>micro is based on Redis and thus any method may raise a <code class="xref py py-exc docutils literal"><span class="pre">RedisError</span></code> if there is a problem
 communicating with the Redis server.</p>
 <dl class="class">
-<dt id="meetling.Meetling">
-<em class="property">class </em><code class="descclassname">meetling.</code><code class="descname">Meetling</code><span class="sig-paren">(</span><em>redis_url=''</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Meetling" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#meetling"><span>Meetling</span></a>.</p>
+<dt id="micro.Application">
+<em class="property">class </em><code class="descclassname">micro.</code><code class="descname">Application</code><span class="sig-paren">(</span><em>redis_url=''</em>, <em>email='bot&#64;localhost'</em>, <em>smtp_url=''</em>, <em>render_email_auth_message=None</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Application" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#application"><span class="std std-ref">Application</span></a>.</p>
 <dl class="attribute">
-<dt id="meetling.Meetling.user">
-<code class="descname">user</code><a class="headerlink" href="#meetling.Meetling.user" title="Permalink to this definition">¶</a></dt>
-<dd><p>Current <a class="reference internal" href="#meetling.User" title="meetling.User"><code class="xref py py-class docutils literal"><span class="pre">User</span></code></a>. <code class="docutils literal"><span class="pre">None</span></code> means anonymous access.</p>
+<dt id="micro.Application.user">
+<code class="descname">user</code><a class="headerlink" href="#micro.Application.user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current <a class="reference internal" href="#micro.User" title="micro.User"><code class="xref py py-class docutils literal"><span class="pre">User</span></code></a>. <code class="docutils literal"><span class="pre">None</span></code> means anonymous access.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="meetling.Meetling.users">
-<code class="descname">users</code><a class="headerlink" href="#meetling.Meetling.users" title="Permalink to this definition">¶</a></dt>
-<dd><p>Map of all <a class="reference internal" href="#meetling.User" title="meetling.User"><code class="xref py py-class docutils literal"><span class="pre">User</span></code></a> s.</p>
+<dt id="micro.Application.users">
+<code class="descname">users</code><a class="headerlink" href="#micro.Application.users" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map of all <a class="reference internal" href="#micro.User" title="micro.User"><code class="xref py py-class docutils literal"><span class="pre">User</span></code></a> s.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="meetling.Meetling.meetings">
-<code class="descname">meetings</code><a class="headerlink" href="#meetling.Meetling.meetings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Map of all <a class="reference internal" href="#meetling.Meeting" title="meetling.Meeting"><code class="xref py py-class docutils literal"><span class="pre">Meeting</span></code></a> s.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="meetling.Meetling.redis_url">
-<code class="descname">redis_url</code><a class="headerlink" href="#meetling.Meetling.redis_url" title="Permalink to this definition">¶</a></dt>
+<dt id="micro.Application.redis_url">
+<code class="descname">redis_url</code><a class="headerlink" href="#micro.Application.redis_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <code class="docutils literal"><span class="pre">--redis-url</span></code> command line option.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="meetling.Meetling.r">
-<code class="descname">r</code><a class="headerlink" href="#meetling.Meetling.r" title="Permalink to this definition">¶</a></dt>
+<dt id="micro.Application.email">
+<code class="descname">email</code><a class="headerlink" href="#micro.Application.email" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sender email address to use for outgoing email. Defaults to <code class="docutils literal"><span class="pre">bot&#64;localhost</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="micro.Application.smtp_url">
+<code class="descname">smtp_url</code><a class="headerlink" href="#micro.Application.smtp_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <code class="docutils literal"><span class="pre">--smtp-url</span></code> command line option.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="micro.Application.render_email_auth_message">
+<code class="descname">render_email_auth_message</code><a class="headerlink" href="#micro.Application.render_email_auth_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook function of the form <em>render_email_auth_message(email, auth_request, auth)</em>, responsible
+for rendering an email message for the authentication request <em>auth_request</em>. <em>email</em> is the
+email address to authenticate and <em>auth</em> is the secret authentication code.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="micro.Application.r">
+<code class="descname">r</code><a class="headerlink" href="#micro.Application.r" title="Permalink to this definition">¶</a></dt>
 <dd><p><code class="xref py py-class docutils literal"><span class="pre">Redis</span></code> database. More precisely a <code class="xref py py-class docutils literal"><span class="pre">JSONRedis</span></code> instance.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="meetling.Meetling.authenticate">
-<code class="descname">authenticate</code><span class="sig-paren">(</span><em>secret</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Meetling.authenticate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Authenticate an <a class="reference internal" href="#meetling.User" title="meetling.User"><code class="xref py py-class docutils literal"><span class="pre">User</span></code></a> (device) with <em>secret</em>.</p>
+<dt id="micro.Application.authenticate">
+<code class="descname">authenticate</code><span class="sig-paren">(</span><em>secret</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Application.authenticate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Authenticate an <a class="reference internal" href="#micro.User" title="micro.User"><code class="xref py py-class docutils literal"><span class="pre">User</span></code></a> (device) with <em>secret</em>.</p>
 <p>The identified user is set as current <em>user</em> and returned. If the authentication fails, an
 <code class="xref py py-exc docutils literal"><span class="pre">AuthenticationError</span></code> is raised.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="micro.Application.get_object">
+<code class="descname">get_object</code><span class="sig-paren">(</span><em>id</em>, <em>default=&lt;class 'KeyError'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Application.get_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the <a class="reference internal" href="#micro.Object" title="micro.Object"><code class="xref py py-class docutils literal"><span class="pre">Object</span></code></a> given by <em>id</em>.</p>
+<p><em>default</em> is the value to return if no object with <em>id</em> is found. If it is an
+<code class="xref py py-exc docutils literal"><span class="pre">Exception</span></code>, it is raised instead.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="micro.Application.login">
+<code class="descname">login</code><span class="sig-paren">(</span><em>code=None</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Application.login" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-login" title="POST /api/login"><code class="xref http http-post docutils literal"><span class="pre">POST</span> <span class="pre">/api/login</span></code></a>.</p>
+<p>The logged-in user is set as current <em>user</em>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="micro.Application.settings">
+<code class="descname">settings</code><a class="headerlink" href="#micro.Application.settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>App <a class="reference internal" href="#micro.Settings" title="micro.Settings"><code class="xref py py-class docutils literal"><span class="pre">Settings</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="micro.Application.update">
+<code class="descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#micro.Application.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the database.</p>
+<p>If the database is fresh, it will be initialized. If the database is already up-to-date,
+nothing will be done. It is thus safe to call <a class="reference internal" href="#micro.Application.update" title="micro.Application.update"><code class="xref py py-meth docutils literal"><span class="pre">update()</span></code></a> without knowing if an update is
+necessary or not.</p>
+<p>Subclass API: Must be implemented by subclass.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="micro.Object">
+<em class="property">class </em><code class="descclassname">micro.</code><code class="descname">Object</code><span class="sig-paren">(</span><em>id</em>, <em>trashed</em>, <em>app</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Object" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#object"><span class="std std-ref">Object</span></a>.</p>
+<dl class="attribute">
+<dt id="micro.Object.app">
+<code class="descname">app</code><a class="headerlink" href="#micro.Object.app" title="Permalink to this definition">¶</a></dt>
+<dd><p>Context <a class="reference internal" href="#micro.Application" title="micro.Application"><code class="xref py py-class docutils literal"><span class="pre">Application</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="micro.Object.json">
+<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>attrs={}</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Object.json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a JSON object representation of the object.</p>
+<p>The name of the object type is included as <code class="docutils literal"><span class="pre">__type__</span></code>.</p>
+<p>By default, all attributes are included. If <em>restricted</em> is <code class="docutils literal"><span class="pre">True</span></code>, a restricted view of
+the object is returned, i.e. attributes that should not be available to the current
+<code class="xref py py-attr docutils literal"><span class="pre">Meetling.user</span></code> are excluded.</p>
+<p>Subclass API: May be overridden by subclass. The default implementation returns the
+attributes of <a class="reference internal" href="#micro.Object" title="micro.Object"><code class="xref py py-class docutils literal"><span class="pre">Object</span></code></a>. <em>restricted</em> is ignored.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="micro.Editable">
+<em class="property">class </em><code class="descclassname">micro.</code><code class="descname">Editable</code><span class="sig-paren">(</span><em>authors</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Editable" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#editable"><span class="std std-ref">Editable</span></a>.</p>
+<p>The <a class="reference internal" href="#micro.Object.json" title="micro.Object.json"><code class="xref py py-meth docutils literal"><span class="pre">Object.json()</span></code></a> method of editable objects accepts an additional argument
+<em>include_users</em>. If it is <code class="docutils literal"><span class="pre">True</span></code>, <a class="reference internal" href="#micro.User" title="micro.User"><code class="xref py py-class docutils literal"><span class="pre">User</span></code></a> s are included as JSON objects (instead of
+IDs).</p>
+<dl class="method">
+<dt id="micro.Editable.do_edit">
+<code class="descname">do_edit</code><span class="sig-paren">(</span><em>**attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Editable.do_edit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subclass API: Perform the edit operation.</p>
+<p>More precisely, validate and then set the given <em>attrs</em>.</p>
+<p>Must be overridden by host. Called by <a class="reference internal" href="#micro.Editable.edit" title="micro.Editable.edit"><code class="xref py py-meth docutils literal"><span class="pre">edit()</span></code></a>, which takes care of basic permission
+checking, managing <em>authors</em> and storing the updated object in the database.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="micro.Editable.edit">
+<code class="descname">edit</code><span class="sig-paren">(</span><em>**attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Editable.edit" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-(object-url)" title="POST /api/(object-url)"><code class="xref http http-post docutils literal"><span class="pre">POST</span> <span class="pre">/api/(object-url)</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="micro.Editable.json">
+<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include_users=False</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Editable.json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subclass API: Return a JSON object representation of the editable part of the object.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="micro.User">
+<em class="property">class </em><code class="descclassname">micro.</code><code class="descname">User</code><span class="sig-paren">(</span><em>id</em>, <em>trashed</em>, <em>app</em>, <em>authors</em>, <em>name</em>, <em>email</em>, <em>auth_secret</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.User" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#user"><span class="std std-ref">User</span></a>.</p>
+<dl class="method">
+<dt id="micro.User.finish_set_email">
+<code class="descname">finish_set_email</code><span class="sig-paren">(</span><em>auth_request</em>, <em>auth</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.User.finish_set_email" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-users-(id)-finish-set-email" title="POST /api/users/(id)/finish-set-email"><code class="xref http http-post docutils literal"><span class="pre">POST</span> <span class="pre">/api/users/(id)/finish-set-email</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="micro.User.json">
+<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include_users=False</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.User.json" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="#micro.Object.json" title="micro.Object.json"><code class="xref py py-meth docutils literal"><span class="pre">Object.json()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="micro.User.remove_email">
+<code class="descname">remove_email</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#micro.User.remove_email" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-users-(id)-remove-email" title="POST /api/users/(id)/remove-email"><code class="xref http http-post docutils literal"><span class="pre">POST</span> <span class="pre">/api/users/(id)/remove-email</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="micro.User.send_email">
+<code class="descname">send_email</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.User.send_email" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send an email message to the user.</p>
+<p><em>msg</em> is the message string of the following form: It starts with a line containing the
+subject prefixed with <a href="#id1"><span class="problematic" id="id2">``</span></a>Subject: <a href="#id3"><span class="problematic" id="id4">``</span></a>, followed by a blank line, followed by the body.</p>
+<p>If the user&#8217;s :<code class="xref py py-attr docutils literal"><span class="pre">email</span></code> is not set, a <a href="#id5"><span class="problematic" id="id6">:exception:`ValueError`</span></a> (<code class="docutils literal"><span class="pre">user_no_email</span></code>) is
+raised. If communication with the SMTP server fails, an <span class="xref std std-ref">EmailError</span> is raised.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="micro.User.set_email">
+<code class="descname">set_email</code><span class="sig-paren">(</span><em>email</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.User.set_email" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#post--api-users-(id)-set-email" title="POST /api/users/(id)/set-email"><code class="xref http http-post docutils literal"><span class="pre">POST</span> <span class="pre">/api/users/(id)/set-email</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="micro.User.store_email">
+<code class="descname">store_email</code><span class="sig-paren">(</span><em>email</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.User.store_email" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the user&#8217;s <em>email</em> address.</p>
+<p>If <em>email</em> is already associated with another user, a <a class="reference internal" href="#micro.ValueError" title="micro.ValueError"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code></a>
+(<code class="docutils literal"><span class="pre">email_duplicate</span></code>) is raised.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="micro.Settings">
+<em class="property">class </em><code class="descclassname">micro.</code><code class="descname">Settings</code><span class="sig-paren">(</span><em>id</em>, <em>trashed</em>, <em>app</em>, <em>authors</em>, <em>title</em>, <em>icon</em>, <em>favicon</em>, <em>staff</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#settings"><span class="std std-ref">Settings</span></a>.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="micro.ValueError">
+<em class="property">exception </em><code class="descclassname">micro.</code><code class="descname">ValueError</code><a class="headerlink" href="#micro.ValueError" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#valueerror"><span class="std std-ref">ValueError</span></a>.</p>
+<p>The first item of <em>args</em> is also available as <em>code</em>.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="micro.InputError">
+<em class="property">exception </em><code class="descclassname">micro.</code><code class="descname">InputError</code><span class="sig-paren">(</span><em>errors={}</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.InputError" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#inputerror"><span class="std std-ref">InputError</span></a>.</p>
+<p>To raise an <a class="reference internal" href="#micro.InputError" title="micro.InputError"><code class="xref py py-exc docutils literal"><span class="pre">InputError</span></code></a>, apply the following pattern:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">meow</span><span class="p">(</span><span class="n">volume</span><span class="p">):</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">InputError</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">volume</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">errors</span><span class="p">[</span><span class="s1">&#39;volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;out_of_range&#39;</span>
+    <span class="n">e</span><span class="o">.</span><span class="n">trigger</span><span class="p">()</span>
+    <span class="c1"># ...</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="micro.InputError.trigger">
+<code class="descname">trigger</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#micro.InputError.trigger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trigger the error, i.e. raise it if any <em>errors</em> are present.</p>
+<p>If <em>errors</em> is empty, do nothing.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="micro.PermissionError">
+<em class="property">exception </em><code class="descclassname">micro.</code><code class="descname">PermissionError</code><a class="headerlink" href="#micro.PermissionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#permissionerror"><span class="std std-ref">PermissionError</span></a>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-micro.util">
+<span id="micro-util"></span><h2>3.2. micro.util<a class="headerlink" href="#module-micro.util" title="Permalink to this headline">¶</a></h2>
+<p>Various utilities.</p>
+<dl class="function">
+<dt id="micro.util.str_or_none">
+<code class="descclassname">micro.util.</code><code class="descname">str_or_none</code><span class="sig-paren">(</span><em>str</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.util.str_or_none" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <em>str</em> unmodified if it has content, otherwise return <code class="docutils literal"><span class="pre">None</span></code>.</p>
+<p>A string is considered to have content if it contains at least one non-whitespace character.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="micro.util.randstr">
+<code class="descclassname">micro.util.</code><code class="descname">randstr</code><span class="sig-paren">(</span><em>length=16</em>, <em>charset='abcdefghijklmnopqrstuvwxyz'</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.util.randstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a random string.</p>
+<p>The string will have the given <em>length</em> and consist of characters from <em>charset</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="micro.util.parse_isotime">
+<code class="descclassname">micro.util.</code><code class="descname">parse_isotime</code><span class="sig-paren">(</span><em>isotime</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.util.parse_isotime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse an ISO 8601 time string into a naive <code class="xref py py-class docutils literal"><span class="pre">datetime.datetime</span></code>.</p>
+<p>Note that this rudimentary parser makes bold assumptions about the format: The first six
+components are always interpreted as year, month, day and optionally hour, minute and second.
+Everything else, i.e. microsecond and time zone information, is ignored.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="micro.util.check_email">
+<code class="descclassname">micro.util.</code><code class="descname">check_email</code><span class="sig-paren">(</span><em>email</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.util.check_email" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check the <em>email</em> address.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-meetling">
+<span id="meetling"></span><h2>3.3. meetling<a class="headerlink" href="#module-meetling" title="Permalink to this headline">¶</a></h2>
+<p>Application for collaboratively preparing meetings.</p>
+<p>Most of the functionality is documented in <a class="reference internal" href="webapi.html"><span class="doc">Web API</span></a>; please have a look at it. The focus of
+this documentation is on the differences and additions to the Web API.</p>
+<dl class="class">
+<dt id="meetling.Meetling">
+<em class="property">class </em><code class="descclassname">meetling.</code><code class="descname">Meetling</code><span class="sig-paren">(</span><em>redis_url=''</em>, <em>email='bot&#64;localhost'</em>, <em>smtp_url=''</em>, <em>render_email_auth_message=None</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Meetling" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="webapi.html#meetling"><span class="std std-ref">Meetling</span></a>.</p>
+<dl class="attribute">
+<dt id="meetling.Meetling.meetings">
+<code class="descname">meetings</code><a class="headerlink" href="#meetling.Meetling.meetings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map of all <a class="reference internal" href="#meetling.Meeting" title="meetling.Meeting"><code class="xref py py-class docutils literal"><span class="pre">Meeting</span></code></a> s.</p>
 </dd></dl>
 
 <dl class="method">
@@ -102,106 +341,12 @@ communicating with the Redis server.</p>
 <dd><p>See <a class="reference internal" href="webapi.html#post--api-meetings" title="POST /api/meetings"><code class="xref http http-post docutils literal"><span class="pre">POST</span> <span class="pre">/api/meetings</span></code></a>.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="meetling.Meetling.login">
-<code class="descname">login</code><span class="sig-paren">(</span><em>code=None</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Meetling.login" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#post--api-login" title="POST /api/login"><code class="xref http http-post docutils literal"><span class="pre">POST</span> <span class="pre">/api/login</span></code></a>.</p>
-<p>The logged-in user is set as current <em>user</em>.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="meetling.Meetling.settings">
-<code class="descname">settings</code><a class="headerlink" href="#meetling.Meetling.settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>App <a class="reference internal" href="#meetling.Settings" title="meetling.Settings"><code class="xref py py-class docutils literal"><span class="pre">Settings</span></code></a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="meetling.Meetling.update">
-<code class="descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Meetling.update" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update the Meetling database.</p>
-<p>If the database is fresh, it will be initialized. If the database is already up-to-date,
-nothing will be done. It is thus safe to call <a class="reference internal" href="#meetling.Meetling.update" title="meetling.Meetling.update"><code class="xref py py-meth docutils literal"><span class="pre">update()</span></code></a> without knowing if an update is
-necessary or not.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="meetling.Object">
-<em class="property">class </em><code class="descclassname">meetling.</code><code class="descname">Object</code><span class="sig-paren">(</span><em>id</em>, <em>trashed</em>, <em>app</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Object" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#object"><span>Object</span></a>.</p>
-<dl class="attribute">
-<dt id="meetling.Object.app">
-<code class="descname">app</code><a class="headerlink" href="#meetling.Object.app" title="Permalink to this definition">¶</a></dt>
-<dd><p>Context <a class="reference internal" href="#meetling.Meetling" title="meetling.Meetling"><code class="xref py py-class docutils literal"><span class="pre">Meetling</span></code></a> application.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="meetling.Object.json">
-<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>attrs={}</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Object.json" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a JSON object representation of the object.</p>
-<p>The name of the object type is included as <code class="docutils literal"><span class="pre">__type__</span></code>.</p>
-<p>By default, all attributes are included. If <em>restricted</em> is <code class="docutils literal"><span class="pre">True</span></code>, a restricted view of
-the object is returned, i.e. attributes that should not be available to the current
-<a class="reference internal" href="#meetling.Meetling.user" title="meetling.Meetling.user"><code class="xref py py-attr docutils literal"><span class="pre">Meetling.user</span></code></a> are excluded.</p>
-<p>Subclass API: May be overridden by subclass. The default implementation returns the
-attributes of <a class="reference internal" href="#meetling.Object" title="meetling.Object"><code class="xref py py-class docutils literal"><span class="pre">Object</span></code></a>. <em>restricted</em> is ignored.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="meetling.Editable">
-<em class="property">class </em><code class="descclassname">meetling.</code><code class="descname">Editable</code><span class="sig-paren">(</span><em>authors</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Editable" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#editable"><span>Editable</span></a>.</p>
-<p>The <a class="reference internal" href="#meetling.Object.json" title="meetling.Object.json"><code class="xref py py-meth docutils literal"><span class="pre">Object.json()</span></code></a> method of editable objects accepts an additional argument
-<em>include_users</em>. If it is <code class="docutils literal"><span class="pre">True</span></code>, <a class="reference internal" href="#meetling.User" title="meetling.User"><code class="xref py py-class docutils literal"><span class="pre">User</span></code></a> s are included as JSON objects (instead of
-IDs).</p>
-<dl class="method">
-<dt id="meetling.Editable.do_edit">
-<code class="descname">do_edit</code><span class="sig-paren">(</span><em>**attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Editable.do_edit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Subclass API: Perform the edit operation.</p>
-<p>More precisely, validate and then set the given <em>attrs</em>.</p>
-<p>Must be overridden by host. Called by <a class="reference internal" href="#meetling.Editable.edit" title="meetling.Editable.edit"><code class="xref py py-meth docutils literal"><span class="pre">edit()</span></code></a>, which takes care of basic permission
-checking, managing <em>authors</em> and storing the updated object in the database.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="meetling.Editable.edit">
-<code class="descname">edit</code><span class="sig-paren">(</span><em>**attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Editable.edit" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#post--api-(object-url)" title="POST /api/(object-url)"><code class="xref http http-post docutils literal"><span class="pre">POST</span> <span class="pre">/api/(object-url)</span></code></a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="meetling.Editable.json">
-<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include_users=False</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Editable.json" title="Permalink to this definition">¶</a></dt>
-<dd><p>Subclass API: Return a JSON object representation of the editable part of the object.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="meetling.User">
-<em class="property">class </em><code class="descclassname">meetling.</code><code class="descname">User</code><span class="sig-paren">(</span><em>id</em>, <em>trashed</em>, <em>app</em>, <em>authors</em>, <em>name</em>, <em>auth_secret</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.User" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#user"><span>User</span></a>.</p>
-<dl class="method">
-<dt id="meetling.User.json">
-<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include_users=False</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.User.json" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="#meetling.Object.json" title="meetling.Object.json"><code class="xref py py-meth docutils literal"><span class="pre">Object.json()</span></code></a>.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="meetling.Settings">
-<em class="property">class </em><code class="descclassname">meetling.</code><code class="descname">Settings</code><span class="sig-paren">(</span><em>id</em>, <em>trashed</em>, <em>app</em>, <em>authors</em>, <em>title</em>, <em>icon</em>, <em>favicon</em>, <em>staff</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#settings"><span>Settings</span></a>.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="meetling.Meeting">
 <em class="property">class </em><code class="descclassname">meetling.</code><code class="descname">Meeting</code><span class="sig-paren">(</span><em>id</em>, <em>trashed</em>, <em>app</em>, <em>authors</em>, <em>title</em>, <em>time</em>, <em>location</em>, <em>description</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Meeting" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#meeting"><span>Meeting</span></a>.</p>
+<dd><p>See <a class="reference internal" href="webapi.html#meeting"><span class="std std-ref">Meeting</span></a>.</p>
 <dl class="attribute">
 <dt id="meetling.Meeting.items">
 <code class="descname">items</code><a class="headerlink" href="#meetling.Meeting.items" title="Permalink to this definition">¶</a></dt>
@@ -223,7 +368,7 @@ checking, managing <em>authors</em> and storing the updated object in the databa
 <dl class="method">
 <dt id="meetling.Meeting.json">
 <code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include_users=False</em>, <em>include_items=False</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Meeting.json" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="#meetling.Object.json" title="meetling.Object.json"><code class="xref py py-meth docutils literal"><span class="pre">Object.json()</span></code></a>.</p>
+<dd><p>See <code class="xref py py-meth docutils literal"><span class="pre">Object.json()</span></code>.</p>
 <p>If <em>include_items</em> is <code class="docutils literal"><span class="pre">True</span></code>, <em>items</em> and <em>trashed_items</em> are included.</p>
 </dd></dl>
 
@@ -250,143 +395,16 @@ checking, managing <em>authors</em> and storing the updated object in the databa
 <dl class="class">
 <dt id="meetling.AgendaItem">
 <em class="property">class </em><code class="descclassname">meetling.</code><code class="descname">AgendaItem</code><span class="sig-paren">(</span><em>id</em>, <em>trashed</em>, <em>app</em>, <em>authors</em>, <em>title</em>, <em>duration</em>, <em>description</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.AgendaItem" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#agendaitem"><span>AgendaItem</span></a>.</p>
-</dd></dl>
-
-<dl class="exception">
-<dt id="meetling.InputError">
-<em class="property">exception </em><code class="descclassname">meetling.</code><code class="descname">InputError</code><span class="sig-paren">(</span><em>errors={}</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.InputError" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#inputerror"><span>InputError</span></a>.</p>
-<p>To raise an <a class="reference internal" href="#meetling.InputError" title="meetling.InputError"><code class="xref py py-exc docutils literal"><span class="pre">InputError</span></code></a>, apply the following pattern:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">meow</span><span class="p">(</span><span class="n">volume</span><span class="p">):</span>
-    <span class="n">e</span> <span class="o">=</span> <span class="n">InputError</span><span class="p">()</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">volume</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">e</span><span class="o">.</span><span class="n">errors</span><span class="p">[</span><span class="s1">&#39;volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;out_of_range&#39;</span>
-    <span class="n">e</span><span class="o">.</span><span class="n">trigger</span><span class="p">()</span>
-    <span class="c1"># ...</span>
-</pre></div>
-</div>
-<dl class="method">
-<dt id="meetling.InputError.trigger">
-<code class="descname">trigger</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#meetling.InputError.trigger" title="Permalink to this definition">¶</a></dt>
-<dd><p>Trigger the error, i.e. raise it if any <em>errors</em> are present.</p>
-<p>If <em>errors</em> is empty, do nothing.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="exception">
-<dt id="meetling.PermissionError">
-<em class="property">exception </em><code class="descclassname">meetling.</code><code class="descname">PermissionError</code><a class="headerlink" href="#meetling.PermissionError" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <a class="reference internal" href="webapi.html#permissionerror"><span>PermissionError</span></a>.</p>
-</dd></dl>
-
-</div>
-<div class="section" id="module-meetling.util">
-<span id="util"></span><h2>3.2. util<a class="headerlink" href="#module-meetling.util" title="Permalink to this headline">¶</a></h2>
-<p>Various utilities.</p>
-<dl class="function">
-<dt id="meetling.util.str_or_none">
-<code class="descclassname">meetling.util.</code><code class="descname">str_or_none</code><span class="sig-paren">(</span><em>str</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.util.str_or_none" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return <em>str</em> unmodified if it has content, otherwise return <code class="docutils literal"><span class="pre">None</span></code>.</p>
-<p>A string is considered to have content if it contains at least one non-whitespace character.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="meetling.util.randstr">
-<code class="descclassname">meetling.util.</code><code class="descname">randstr</code><span class="sig-paren">(</span><em>length=16</em>, <em>charset='abcdefghijklmnopqrstuvwxyz'</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.util.randstr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a random string.</p>
-<p>The string will have the given <em>length</em> and consist of characters from <em>charset</em>.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="meetling.util.parse_isotime">
-<code class="descclassname">meetling.util.</code><code class="descname">parse_isotime</code><span class="sig-paren">(</span><em>isotime</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.util.parse_isotime" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parse an ISO 8601 time string into a naive <code class="xref py py-class docutils literal"><span class="pre">datetime.datetime</span></code>.</p>
-<p>Note that this rudimentary parser makes bold assumptions about the format: The first six
-components are always interpreted as year, month, day and optionally hour, minute and second.
-Everything else, i.e. microsecond and time zone information, is ignored.</p>
+<dd><p>See <a class="reference internal" href="webapi.html#agendaitem"><span class="std std-ref">AgendaItem</span></a>.</p>
 </dd></dl>
 
 </div>
 <div class="section" id="module-meetling.server">
-<span id="server"></span><h2>3.3. server<a class="headerlink" href="#module-meetling.server" title="Permalink to this headline">¶</a></h2>
+<span id="server"></span><h2>3.4. server<a class="headerlink" href="#module-meetling.server" title="Permalink to this headline">¶</a></h2>
 <p>Meetling server.</p>
-<dl class="class">
-<dt id="meetling.server.MeetlingServer">
-<em class="property">class </em><code class="descclassname">meetling.server.</code><code class="descname">MeetlingServer</code><span class="sig-paren">(</span><em>port=8080</em>, <em>debug=False</em>, <em>**args</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.server.MeetlingServer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Meetling server.</p>
-<dl class="attribute">
-<dt id="meetling.server.MeetlingServer.app">
-<code class="descname">app</code><a class="headerlink" href="#meetling.server.MeetlingServer.app" title="Permalink to this definition">¶</a></dt>
-<dd><p>Underlying <a class="reference internal" href="#meetling.Meetling" title="meetling.Meetling"><code class="xref py py-class docutils literal"><span class="pre">meetling.Meetling</span></code></a> application.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="meetling.server.MeetlingServer.port">
-<code class="descname">port</code><a class="headerlink" href="#meetling.server.MeetlingServer.port" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <code class="docutils literal"><span class="pre">--port</span></code> command line option.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="meetling.server.MeetlingServer.debug">
-<code class="descname">debug</code><a class="headerlink" href="#meetling.server.MeetlingServer.debug" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <code class="docutils literal"><span class="pre">--debug</span></code> command line option.</p>
-</dd></dl>
-
-<p>Additional <em>args</em> are passed to the <a class="reference internal" href="#meetling.Meetling" title="meetling.Meetling"><code class="xref py py-class docutils literal"><span class="pre">meetling.Meetling</span></code></a> constructor and any errors raised
-by it are passed through.</p>
-<dl class="method">
-<dt id="meetling.server.MeetlingServer.run">
-<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#meetling.server.MeetlingServer.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run the server.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="meetling.server.Endpoint">
-<em class="property">class </em><code class="descclassname">meetling.server.</code><code class="descname">Endpoint</code><span class="sig-paren">(</span><em>application</em>, <em>request</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.server.Endpoint" title="Permalink to this definition">¶</a></dt>
-<dd><p>JSON REST API endpoint.</p>
-<dl class="attribute">
-<dt id="meetling.server.Endpoint.server">
-<code class="descname">server</code><a class="headerlink" href="#meetling.server.Endpoint.server" title="Permalink to this definition">¶</a></dt>
-<dd><p>Context <a class="reference internal" href="#meetling.server.MeetlingServer" title="meetling.server.MeetlingServer"><code class="xref py py-class docutils literal"><span class="pre">MeetlingServer</span></code></a>.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="meetling.server.Endpoint.app">
-<code class="descname">app</code><a class="headerlink" href="#meetling.server.Endpoint.app" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-class docutils literal"><span class="pre">Meetling</span></code> application.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="meetling.server.Endpoint.args">
-<code class="descname">args</code><a class="headerlink" href="#meetling.server.Endpoint.args" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dictionary of JSON arguments passed by the client.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="meetling.server.Endpoint.check_args">
-<code class="descname">check_args</code><span class="sig-paren">(</span><em>type_info</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.server.Endpoint.check_args" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check <em>args</em> for their expected type.</p>
-<p><em>type_info</em> maps argument names to <code class="xref py py-class docutils literal"><span class="pre">type</span></code> s. If multiple types are valid for an
-argument, a tuple can be given. The special keyword <code class="docutils literal"><span class="pre">'opt'</span></code> marks an argument as optional.
-<code class="docutils literal"><span class="pre">None</span></code> is equvialent to <code class="docutils literal"><span class="pre">type(None)</span></code>. An example <em>type_info</em> could look like:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;pattern&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;opt&#39;</span><span class="p">)}</span>
-</pre></div>
-</div>
-<p>If any argument has an unexpected type, an <code class="xref py py-exc docutils literal"><span class="pre">InputError</span></code> with <code class="docutils literal"><span class="pre">bad_type</span></code> is raised. If
-an argument is missing but required, an <code class="xref py py-exc docutils literal"><span class="pre">InputError</span></code> with <code class="docutils literal"><span class="pre">missing</span></code> is raised.</p>
-<p>A filtered subset of <em>args</em> is returned, matching those present in <em>type_info</em>. Thus any
-excess argument passed by the client can safely be ignored.</p>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 <div class="section" id="module-meetling.__main__">
-<span id="main"></span><h2>3.4. __main__<a class="headerlink" href="#module-meetling.__main__" title="Permalink to this headline">¶</a></h2>
+<span id="main"></span><h2>3.5. __main__<a class="headerlink" href="#module-meetling.__main__" title="Permalink to this headline">¶</a></h2>
 <p>Meetling script.</p>
 <dl class="function">
 <dt id="meetling.__main__.main">
@@ -404,18 +422,19 @@ excess argument passed by the client can safely be ignored.</p>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="index.html">
+            <p class="logo"><a href="contents.html">
               <img class="logo" src="_static/icon.svg" alt="Logo"/>
             </a></p>
-<h3><a href="index.html">Table Of Contents</a></h3>
+<h3><a href="contents.html">Table Of Contents</a></h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">1. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="webapi.html">2. Web API</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">3. Python API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#module-meetling">3.1. meetling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-meetling.util">3.2. util</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-meetling.server">3.3. server</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-meetling.__main__">3.4. __main__</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">3. Python API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-micro">3.1. micro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-micro.util">3.2. micro.util</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-meetling">3.3. meetling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-meetling.server">3.4. server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-meetling.__main__">3.5. __main__</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">4. Contributing</a></li>
@@ -423,7 +442,7 @@ excess argument passed by the client can safely be ignored.</p>
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
-  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="contents.html">Documentation overview</a><ul>
       <li>Previous: <a href="webapi.html" title="previous chapter">2. Web API</a></li>
       <li>Next: <a href="contributing.html" title="next chapter">4. Contributing</a></li>
   </ul></li>
@@ -432,14 +451,11 @@ excess argument passed by the client can safely be ignored.</p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -450,8 +466,8 @@ excess argument passed by the client can safely be ignored.</p>
       &copy;2015 Meetling contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
       
       |
       <a href="_sources/pythonapi.txt"

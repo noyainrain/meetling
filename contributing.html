@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>4. Contributing &mdash; Meetling 0.12.2 documentation</title>
+    <title>4. Contributing &mdash; Meetling 0.12.3 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.12.2',
+        VERSION:     '0.12.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.png"/>
-    <link rel="top" title="Meetling 0.12.2 documentation" href="contents.html" />
+    <link rel="top" title="Meetling 0.12.3 documentation" href="contents.html" />
     <link rel="prev" title="3. Python API" href="pythonapi.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -43,6 +43,27 @@
   <div class="section" id="contributing">
 <h1>4. Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h1>
 <div class="highlight-default"><div class="highlight"><pre><span></span># Contributing to Meetling
+
+## How to contribute
+
+1. For any non-trivial contribution:
+   1. [Create an issue](https://github.com/NoyaInRain/meetling/issues) describing the intended
+      change [1]
+   2. A team member reviews your draft. Make the requested changes, if any.
+2. Create a topic branch
+3. Code...
+4. [Create a pull request](https://github.com/NoyaInRain/meetling/pulls)
+5. Travis CI runs the code quality checks. Fix the reported issues, if any.
+6. A team member reviews your contribution. Make the requested changes, if any.
+7. A team member merges your contribution \o/
+
+[1] A good description contains:
+
+* If the API or web API is modified, any method signature (including the return value and possible
+  errors) and object signature (including properties)
+* If the UI is modified, a simple sketch
+* If a new dependency is introduced, a short description of the dependency and possible alternatives
+  and the reason why it is the best option
 
 ## Installing development dependencies
 

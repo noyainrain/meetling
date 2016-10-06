@@ -38,17 +38,15 @@ class Meetling(Application):
         self.types.update({'Meeting': _meeting, 'AgendaItem': AgendaItem})
         self.meetings = JSONRedisMapping(self.r, 'meetings')
 
-    def update(self):
+    def do_update(self):
         db_version = self.r.get('version')
+
+        # If fresh, initialize database
         if not db_version:
-            settings = Settings(id='Settings', trashed=False, app=self, authors=[],
-                                title='My Meetling', icon=None, favicon=None, staff=[])
-            self.r.oset(settings.id, settings)
             self.r.set('version', 5)
             return
 
         db_version = int(db_version)
-        # JSONRedis without en-/decoding and caching
         r = JSONRedis(self.r.r)
         r.caching = False
 
@@ -92,6 +90,10 @@ class Meetling(Application):
                 user['email'] = None
             r.omset({u['id']: u for u in users})
             r.set('version', 5)
+
+    def create_settings(self):
+        return Settings(id='Settings', trashed=False, app=self, authors=[], title='My Meetling',
+                        icon=None, favicon=None, feedback_url=None, staff=[])
 
     def create_meeting(self, title, time=None, location=None, description=None):
         """See :http:post:`/api/meetings`."""

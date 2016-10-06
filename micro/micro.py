@@ -93,8 +93,47 @@ class Application:
         If the database is fresh, it will be initialized. If the database is already up-to-date,
         nothing will be done. It is thus safe to call :meth:`update` without knowing if an update is
         necessary or not.
+        """
+        # Compatibility for databases without micro_version (obsolete since 0.13.0)
+        if not self.r.exists('micro_version') and self.r.exists('Settings'):
+            self.r.set('micro_version', 0)
 
-        Subclass API: Must be implemented by subclass.
+        version = self.r.get('micro_version')
+
+        # If fresh, initialize database
+        if not version:
+            settings = self.create_settings()
+            self.r.oset(settings.id, settings)
+            self.r.set('micro_version', 1)
+            self.do_update()
+            return
+
+        version = int(version)
+        r = JSONRedis(self.r.r)
+        r.caching = False
+
+        if version < 2:
+            settings = r.oget('Settings')
+            settings['feedback_url'] = None
+            r.oset(settings['id'], settings)
+            self.r.set('micro_version', 2)
+
+        self.do_update()
+
+    def do_update(self):
+        """Subclass API: Perform the database update.
+
+        May be overridden by subclass. Called by :meth:`update`, which takes care of updating (or
+        initializing) micro specific data. The default implementation does nothing.
+        """
+        pass
+
+    def create_settings(self):
+        """Subclass API: Create and return the app :class:`Settings`.
+
+        *id* must be set to ``Settings``.
+
+        Must be overridden by subclass. Called by :meth:`update` when initializing the database.
         """
         raise NotImplementedError()
 
@@ -368,12 +407,13 @@ class User(Object, Editable):
 class Settings(Object, Editable):
     """See :ref:`Settings`."""
 
-    def __init__(self, id, trashed, app, authors, title, icon, favicon, staff):
+    def __init__(self, id, trashed, app, authors, title, icon, favicon, feedback_url, staff):
         super().__init__(id=id, trashed=trashed, app=app)
         Editable.__init__(self, authors=authors)
         self.title = title
         self.icon = icon
         self.favicon = favicon
+        self.feedback_url = feedback_url
         self._staff = staff
 
     @property
@@ -396,12 +436,16 @@ class Settings(Object, Editable):
             self.icon = str_or_none(attrs['icon'])
         if 'favicon' in attrs:
             self.favicon = str_or_none(attrs['favicon'])
+        if 'feedback_url' in attrs:
+            self.feedback_url = str_or_none(attrs['feedback_url'])
 
     def json(self, restricted=False, include_users=False):
-        json = super().json(attrs={
+        json = super().json()
+        json.update({
             'title': self.title,
             'icon': self.icon,
             'favicon': self.favicon,
+            'feedback_url': self.feedback_url,
             'staff': self._staff
         })
         json.update(Editable.json(self, restricted=restricted, include_users=include_users))

@@ -359,7 +359,8 @@ class _SettingsEndpoint(Endpoint):
         args = self.check_args({
             'title': (str, 'opt'),
             'icon': (str, None, 'opt'),
-            'favicon': (str, None, 'opt')
+            'favicon': (str, None, 'opt'),
+            'feedback_url': (str, None, 'opt')
         })
         settings = self.app.settings
         settings.edit(**args)

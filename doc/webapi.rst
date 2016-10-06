@@ -233,6 +233,10 @@ Settings is an :ref:`Object` and :ref:`Editable` by staff members.
 
    URL of the site icon optimized for a small size. May be ``null``.
 
+.. describe:: feedback_url
+
+   URL of the feedback site / help desk. May be ``null``.
+
 .. describe:: staff
 
    Staff users.

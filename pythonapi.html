@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>3. Python API &mdash; Meetling 0.12.3 documentation</title>
+    <title>3. Python API &mdash; Meetling 0.13.0 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.12.3',
+        VERSION:     '0.13.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.png"/>
-    <link rel="top" title="Meetling 0.12.3 documentation" href="contents.html" />
+    <link rel="top" title="Meetling 0.13.0 documentation" href="contents.html" />
     <link rel="next" title="4. Contributing" href="contributing.html" />
     <link rel="prev" title="2. Web API" href="webapi.html" />
    
@@ -105,6 +105,22 @@ email address to authenticate and <em>auth</em> is the secret authentication cod
 </dd></dl>
 
 <dl class="method">
+<dt id="micro.Application.create_settings">
+<code class="descname">create_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#micro.Application.create_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subclass API: Create and return the app <a class="reference internal" href="#micro.Settings" title="micro.Settings"><code class="xref py py-class docutils literal"><span class="pre">Settings</span></code></a>.</p>
+<p><em>id</em> must be set to <code class="docutils literal"><span class="pre">Settings</span></code>.</p>
+<p>Must be overridden by subclass. Called by <a class="reference internal" href="#micro.Application.update" title="micro.Application.update"><code class="xref py py-meth docutils literal"><span class="pre">update()</span></code></a> when initializing the database.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="micro.Application.do_update">
+<code class="descname">do_update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#micro.Application.do_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subclass API: Perform the database update.</p>
+<p>May be overridden by subclass. Called by <a class="reference internal" href="#micro.Application.update" title="micro.Application.update"><code class="xref py py-meth docutils literal"><span class="pre">update()</span></code></a>, which takes care of updating (or
+initializing) micro specific data. The default implementation does nothing.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="micro.Application.get_object">
 <code class="descname">get_object</code><span class="sig-paren">(</span><em>id</em>, <em>default=&lt;class 'KeyError'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Application.get_object" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the <a class="reference internal" href="#micro.Object" title="micro.Object"><code class="xref py py-class docutils literal"><span class="pre">Object</span></code></a> given by <em>id</em>.</p>
@@ -132,7 +148,6 @@ email address to authenticate and <em>auth</em> is the secret authentication cod
 <p>If the database is fresh, it will be initialized. If the database is already up-to-date,
 nothing will be done. It is thus safe to call <a class="reference internal" href="#micro.Application.update" title="micro.Application.update"><code class="xref py py-meth docutils literal"><span class="pre">update()</span></code></a> without knowing if an update is
 necessary or not.</p>
-<p>Subclass API: Must be implemented by subclass.</p>
 </dd></dl>
 
 </dd></dl>
@@ -241,7 +256,7 @@ raised. If communication with the SMTP server fails, an <span class="xref std st
 
 <dl class="class">
 <dt id="micro.Settings">
-<em class="property">class </em><code class="descclassname">micro.</code><code class="descname">Settings</code><span class="sig-paren">(</span><em>id</em>, <em>trashed</em>, <em>app</em>, <em>authors</em>, <em>title</em>, <em>icon</em>, <em>favicon</em>, <em>staff</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Settings" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">micro.</code><code class="descname">Settings</code><span class="sig-paren">(</span><em>id</em>, <em>trashed</em>, <em>app</em>, <em>authors</em>, <em>title</em>, <em>icon</em>, <em>favicon</em>, <em>feedback_url</em>, <em>staff</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#settings"><span class="std std-ref">Settings</span></a>.</p>
 </dd></dl>
 

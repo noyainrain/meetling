@@ -14,11 +14,24 @@
 
 # pylint: disable=missing-docstring; test module
 
+from subprocess import check_call
+from tempfile import mkdtemp
+
 from redis import RedisError
 from tornado.testing import AsyncTestCase
 
 import micro
 from micro import Application, Object, Editable, Settings
+
+SETUP_DB_SCRIPT = """\
+from micro.tests.test_micro import CatApp
+app = CatApp(redis_url='15')
+app.r.flushdb()
+app.update()
+# Compatibility for CatApp without sample (obsolete since 0.13.0)
+if hasattr(app, 'sample'):
+    app.sample()
+"""
 
 class MicroTestCase(AsyncTestCase):
     def setUp(self):
@@ -62,6 +75,35 @@ class ApplicationTest(MicroTestCase):
         with self.assertRaisesRegex(micro.ValueError, 'code_invalid'):
             self.app.login(code='foo')
 
+class ApplicationUpdateTest(AsyncTestCase):
+    @staticmethod
+    def setup_db(tag):
+        d = mkdtemp()
+        check_call(['git', '-c', 'advice.detachedHead=false', 'clone', '-q', '--single-branch',
+                    '--branch', tag, '.', d])
+        check_call(['python3', '-c', SETUP_DB_SCRIPT], cwd=d)
+
+    def test_update_db_fresh(self):
+        app = CatApp(redis_url='15')
+        app.r.flushdb()
+        app.update()
+        self.assertEqual(app.settings.title, 'CatApp')
+
+    def test_update_db_version_previous(self):
+        self.setup_db('0.12.3')
+        app = CatApp(redis_url='15')
+        app.update()
+
+        self.assertIsNone(app.settings.feedback_url)
+
+    def test_update_db_version_first(self):
+        self.setup_db('0.12.3')
+        app = CatApp(redis_url='15')
+        app.update()
+
+        # Update to version 2
+        self.assertIsNone(app.settings.feedback_url)
+
 class EditableTest(MicroTestCase):
     def setUp(self):
         super().setUp()
@@ -94,10 +136,14 @@ class CatApp(Application):
         super().__init__(redis_url=redis_url)
         self.types.update({'Cat': Cat})
 
-    def update(self):
-        settings = Settings(id='Settings', trashed=False, app=self, authors=[], title='CatApp',
-                            icon=None, favicon=None, staff=[])
-        self.r.oset(settings.id, settings)
+    def create_settings(self):
+        return Settings(id='Settings', trashed=False, app=self, authors=[], title='CatApp',
+                        icon=None, favicon=None, feedback_url=None, staff=[])
+
+    def sample(self):
+        user = self.login()
+        auth_request = user.set_email('happy@example.org')
+        self.r.set('auth_request', auth_request.id)
 
 class Cat(Object, Editable):
     def __init__(self, id, trashed, app, authors, name):

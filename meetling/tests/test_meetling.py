@@ -16,8 +16,7 @@
 
 from datetime import datetime
 import os
-import subprocess
-from subprocess import check_output
+from subprocess import check_call, check_output
 from tempfile import mkdtemp
 
 import micro
@@ -53,14 +52,15 @@ class MeetlingUpdateTest(AsyncTestCase):
     @staticmethod
     def setup_db(tag):
         d = mkdtemp()
-        check_output(['git', 'clone', '--branch', tag, '.', d], stderr=subprocess.DEVNULL)
+        check_call(['git', '-c', 'advice.detachedHead=false', 'clone', '-q', '--single-branch',
+                    '--branch', tag, '.', d])
 
         # Compatibility for misc/sample.py (obsolete since 0.9.4)
         if os.path.isfile(os.path.join(d, 'misc/sample.py')):
-            check_output(['./misc/sample.py', '--redis-url=15'], stderr=subprocess.DEVNULL, cwd=d)
+            check_output(['./misc/sample.py', '--redis-url=15'], cwd=d)
             return
 
-        check_output(['make', 'sample', 'REDISURL=15'], stderr=subprocess.DEVNULL, cwd=d)
+        check_output(['make', '-s', 'sample', 'REDISURL=15'], cwd=d)
 
     def test_update_db_fresh(self):
         app = Meetling(redis_url='15')
@@ -69,18 +69,13 @@ class MeetlingUpdateTest(AsyncTestCase):
         self.assertEqual(app.settings.title, 'My Meetling')
 
     def test_update_db_version_previous(self):
-        self.setup_db('0.8.2')
+        self.setup_db('0.11.3')
         app = Meetling(redis_url='15')
         app.update()
 
         settings = app.settings
         user = settings.staff[0]
-        meeting = next(m for m in app.meetings.values() if m.title == 'Cat hangout')
-        item = list(meeting.items.values())[0]
-        self.assertFalse(settings.trashed)
-        self.assertFalse(user.trashed)
-        self.assertFalse(meeting.trashed)
-        self.assertFalse(item.trashed)
+        self.assertIsNone(user.email)
 
     def test_update_db_version_first(self):
         self.setup_db('0.5.0')
@@ -91,18 +86,20 @@ class MeetlingUpdateTest(AsyncTestCase):
         user = settings.staff[0]
         meeting = next(m for m in app.meetings.values() if m.title == 'Cat hangout')
         item = list(meeting.items.values())[0]
-        # update to version 2
+        # Update to version 2
         self.assertEqual(user.name, 'Guest')
         self.assertEqual(user.authors, [user])
-        # update to version 3
+        # Update to version 3
         self.assertIsNone(meeting.time)
         self.assertIsNone(meeting.location)
         self.assertIsNone(item.duration)
-        # update to version 4
+        # Update to version 4
         self.assertFalse(settings.trashed)
         self.assertFalse(user.trashed)
         self.assertFalse(meeting.trashed)
         self.assertFalse(item.trashed)
+        # Update to version 5
+        self.assertIsNone(user.email)
 
 class SettingsTest(MeetlingTestCase):
     def test_edit(self):

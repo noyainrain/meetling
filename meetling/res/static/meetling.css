@@ -394,6 +394,10 @@ label > small + small {
     min-width: calc(0.25 * 1.5rem);
 }
 
+body:not(.meetling-ui-settings-have-feedback-url) .meetling-ui-feedback {
+    display: none;
+}
+
 main {
     padding-top: calc(1.5 * 1.5rem);
 }

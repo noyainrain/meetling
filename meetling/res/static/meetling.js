@@ -307,6 +307,8 @@ meetling.UI = document.registerElement('meetling-ui',
         } else {
             img.style.display = 'none';
         }
+        this.classList.toggle('meetling-ui-settings-have-feedback-url', this.settings.feedback_url);
+        this.querySelector('.meetling-ui-feedback a').href = this.settings.feedback_url;
 
         this.querySelector('.micro-ui-header meetling-user').user = this.user;
         this.querySelector('.meetling-ui-edit-settings').style.display = this.staff ? '' : 'none';
@@ -645,7 +647,8 @@ meetling.EditSettingsPage = document.registerElement('meetling-edit-settings-pag
         this._form.elements['title'].value = ui.settings.title;
         this._form.elements['icon'].value = ui.settings.icon || '';
         this._form.elements['favicon'].value = ui.settings.favicon || '';
-        this.querySelector(".meetling-edit-settings-edit").addEventListener("submit", this);
+        this._form.elements['feedback_url'].value = ui.settings.feedback_url || '';
+        this.querySelector('.meetling-edit-settings-edit').addEventListener('submit', this);
     }},
 
     attachedCallback: {value: function() {
@@ -655,19 +658,19 @@ meetling.EditSettingsPage = document.registerElement('meetling-edit-settings-pag
     handleEvent: {value: function(event) {
         if (event.currentTarget === this._form) {
             event.preventDefault();
+            // Cancel submit if validation fails (not all browsers do this automatically)
+            if (!this._form.checkValidity()) {
+                return;
+            }
+
             micro.call('POST', '/api/settings', {
                 title: this._form.elements['title'].value,
                 icon: this._form.elements['icon'].value,
-                favicon: this._form.elements['favicon'].value
+                favicon: this._form.elements['favicon'].value,
+                feedback_url: this._form.elements['feedback_url'].value
             }).then(function(settings) {
                 ui.navigate('/');
                 ui.dispatchEvent(new CustomEvent('settings-edit', {detail: {settings: settings}}));
-            }, function(e) {
-                if (e instanceof micro.APIError) {
-                    ui.notify('The title is missing');
-                } else {
-                    throw e;
-                }
             }.bind(this));
         }
     }}

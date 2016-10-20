@@ -10,248 +10,61 @@
    </cc:Work>
   </rdf:RDF>
  </metadata>
- <g id="layer4" transform="translate(0,-1.5e-6)">
-  <g id="g20184" fill-rule="nonzero">
-   <rect id="rect9127" style="enable-background:accumulate;color:#000000;" height="18" width="13" y="1" x="9" fill="#4d8dd9"/>
-   <rect id="rect8080" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="15" x="15" fill="#333"/>
-   <rect id="rect8082" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="15" x="14" fill="#333"/>
-   <rect id="rect8084" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="15" x="16" fill="#333"/>
-   <rect id="rect8086" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="7" x="12" fill="#333"/>
-   <rect id="rect8088" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="6.9999" x="18" fill="#333"/>
-   <rect id="rect8156" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="14" x="17" fill="#333"/>
-   <rect id="rect8158" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="14" x="13" fill="#333"/>
-   <rect id="rect4772-176-684-3" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="31" x="-22.001" fill="#333"/>
-   <rect id="rect4772-176-684-89" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="30" x="-23.001" fill="#333"/>
-   <rect id="rect4772-176-684-9" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="27" x="-22.001" fill="#333"/>
-   <rect id="rect4772-176-684-2" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="26" x="-23.001" fill="#333"/>
-   <rect id="rect4772-176-684-37" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="27" x="-10.001" fill="#333"/>
-   <rect id="rect4772-176-684-1" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="30" x="-9.0009" fill="#333"/>
-   <rect id="rect4772-176-684-5" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="31" x="-10.001" fill="#333"/>
-   <rect id="rect4772-176-684-82" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="30" x="-22.001" fill="#333"/>
-   <rect id="rect4772-176-684-6" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="26" x="-22.001" fill="#333"/>
-   <rect id="rect4772-176-684-7" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="26" x="-10.001" fill="#333"/>
-   <rect id="rect4772-176-684-35" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="30" x="-10.001" fill="#333"/>
-   <rect id="rect4772-176-684-35-7" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="31" x="-9.0009" fill="#333"/>
-   <rect id="rect4772-176-684-35-2" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="27" x="-9.0009" fill="#333"/>
-   <rect id="rect4772-176-684-35-0" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="27" x="-23.001" fill="#333"/>
-   <rect id="rect4772-176-684-35-9" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="31" x="-23.001" fill="#333"/>
-   <rect id="rect8086-42" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="7" x="11" fill="#333"/>
-   <rect id="rect8086-42-6" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="8" x="10" fill="#333"/>
-   <rect id="rect8086-42-68" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="7" x="19" fill="#333"/>
-   <rect id="rect8086-42-3" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="8" x="20" fill="#333"/>
-   <rect id="rect8086-42-9" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="8" x="13" fill="#333"/>
-   <rect id="rect8086-42-96" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="8" x="17" fill="#333"/>
-   <rect id="rect8130-3" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="23" x="-7.0003" fill="#1a4578"/>
-   <rect id="rect4772-176-684-35-2-7" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="26" x="-9.0009" fill="#333"/>
-   <rect id="rect7934" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="24" x="14.001" fill="#1a4578"/>
-   <rect id="rect7936" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="23" x="14" fill="#1a4578"/>
-   <rect id="rect7938" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="21" x="14" fill="#1a4578"/>
-   <rect id="rect7940" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="22" x="14" fill="#1a4578"/>
-   <rect id="rect7942" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="19" x="13" fill="#1a4578"/>
-   <rect id="rect7944" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="19" x="14" fill="#1a4578"/>
-   <rect id="rect7946" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="20" x="14" fill="#1a4578"/>
-   <rect id="rect7948" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="19" x="16" fill="#1a4578"/>
-   <rect id="rect7950" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="19" x="17" fill="#1a4578"/>
-   <rect id="rect7952" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="19" x="18" fill="#1a4578"/>
-   <rect id="rect7954" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="19" x="19" fill="#1a4578"/>
-   <rect id="rect7956" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="19" x="12" fill="#1a4578"/>
-   <rect id="rect7966" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="19" x="20" fill="#1a4578"/>
-   <rect id="rect7968" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="19" x="21" fill="#1a4578"/>
-   <rect id="rect7972" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="17" x="-24" fill="#1a4578"/>
-   <rect id="rect8006" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="3.9992" x="8.0007" fill="#1a4578"/>
-   <rect id="rect8008" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="1.999" x="8.0009" fill="#1a4578"/>
-   <rect id="rect8014" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="-0.000037841" x="10.001" fill="#1a4578"/>
-   <rect id="rect8020" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="14" x="22" fill="#1a4578"/>
-   <rect id="rect8022" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="12" x="22" fill="#1a4578"/>
-   <rect id="rect8024" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="10" x="22" fill="#1a4578"/>
-   <rect id="rect8026" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="4.9995" x="22" fill="#1a4578"/>
-   <rect id="rect8028" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="3.9994" x="22" fill="#1a4578"/>
-   <rect id="rect8030" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="0.99909" x="22.001" fill="#1a4578"/>
-   <rect id="rect8034" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="-0.000018946" x="11.001" fill="#1a4578"/>
-   <rect id="rect8036" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="0" x="12.001" fill="#1a4578"/>
-   <rect id="rect8038" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="0" x="14.001" fill="#1a4578"/>
-   <rect id="rect8040" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="0" x="13.001" fill="#1a4578"/>
-   <rect id="rect8042" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="0" x="15.001" fill="#1a4578"/>
-   <rect id="rect8044" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="0" x="16.001" fill="#1a4578"/>
-   <rect id="rect8046" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="-0.00012476" x="18.001" fill="#1a4578"/>
-   <rect id="rect8048" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="-0.000025017" x="17.001" fill="#1a4578"/>
-   <rect id="rect8050" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="-0.00020272" x="19.001" fill="#1a4578"/>
-   <rect id="rect8052" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="-0.0010071" x="20.001" fill="#1a4578"/>
-   <rect id="rect8054" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="-0.0010072" x="21.001" fill="#1a4578"/>
-   <rect id="rect8056" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="0.99889" x="8.0007" fill="#1a4578"/>
-   <rect id="rect8058" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="2.9991" x="8.0009" fill="#1a4578"/>
-   <rect id="rect8060" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="1.9992" x="22.001" fill="#1a4578"/>
-   <rect id="rect8062" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="2.9993" x="22.001" fill="#1a4578"/>
-   <rect id="rect8064" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="5.9996" x="22" fill="#1a4578"/>
-   <rect id="rect8066" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="6.9997" x="22" fill="#1a4578"/>
-   <rect id="rect8068" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="7.9998" x="22" fill="#1a4578"/>
-   <rect id="rect8070" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="11" x="22" fill="#1a4578"/>
-   <rect id="rect8076" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="13" x="22" fill="#1a4578"/>
-   <rect id="rect8090" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="17" x="-25" fill="#1a4578"/>
-   <rect id="rect8092" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="17" x="-26" fill="#1a4578"/>
-   <rect id="rect8094" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="15" x="-24" fill="#1a4578"/>
-   <rect id="rect8096" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="14" x="-25" fill="#1a4578"/>
-   <rect id="rect8098" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="12" x="-25" fill="#1a4578"/>
-   <rect id="rect8100" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="13" x="-25" fill="#1a4578"/>
-   <rect id="rect8104" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="15" x="-27" fill="#1a4578"/>
-   <rect id="rect8106" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="16" x="-27" fill="#1a4578"/>
-   <rect id="rect8108" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="14" x="-27" fill="#1a4578"/>
-   <rect id="rect8110" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="13" x="-27" fill="#1a4578"/>
-   <rect id="rect8112" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="12" x="-27" fill="#1a4578"/>
-   <rect id="rect8116" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="7.9995" x="-26" fill="#1a4578"/>
-   <rect id="rect8118" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="15" x="-8.0002" fill="#1a4578"/>
-   <rect id="rect8120" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="16" x="-7.0003" fill="#1a4578"/>
-   <rect id="rect8122" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="17" x="-7.0002" fill="#1a4578"/>
-   <rect id="rect8124" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="18" x="-7.0003" fill="#1a4578"/>
-   <rect id="rect8126" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="19" x="-7.0002" fill="#1a4578"/>
-   <rect id="rect8128" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="20" x="-7.0003" fill="#1a4578"/>
-   <rect id="rect8130" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="21" x="-7.0003" fill="#1a4578"/>
-   <rect id="rect8132" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="22.001" x="-9.0003" fill="#1a4578"/>
-   <rect id="rect8134" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="21.001" x="-9.0003" fill="#1a4578"/>
-   <rect id="rect8142" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="23.001" x="-9.0003" fill="#1a4578"/>
-   <rect id="rect8144" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="22" x="-7.0003" fill="#1a4578"/>
-   <rect id="rect8146" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="25" x="14.001" fill="#1a4578"/>
-   <rect id="rect8152" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="15" x="-25" fill="#1a4578"/>
-   <rect id="rect8160" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="8.9999" x="22" fill="#1a4578"/>
-   <rect id="rect8170" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="18.001" x="-23" fill="#1a4578"/>
-   <rect id="rect8172" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="-0.0012135" x="-10.001" fill="#1a4578"/>
-   <rect id="rect8174" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="-0.0010074" x="-23.001" fill="#1a4578"/>
-   <rect id="rect8176" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="19.001" x="-23" fill="#1a4578"/>
-   <rect id="rect8180" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="24.001" x="-8.0002" fill="#1a4578"/>
-   <rect id="rect8184" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="8.9996" x="-25" fill="#1a4578"/>
-   <rect id="rect8190" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="8.9996" x="-27" fill="#1a4578"/>
-   <rect id="rect8192" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="9" x="-29" fill="#1a4578"/>
-   <rect id="rect8194" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="7.9999" x="-29" fill="#1a4578"/>
-   <rect id="rect8196" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="7" x="-28" fill="#1a4578"/>
-   <rect id="rect8198" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="5.9999" x="-27" fill="#1a4578"/>
-   <rect id="rect4772-176-60" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="29.001" x="-18.001" fill="#1a4578"/>
-   <rect id="rect4772-176-334" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="29" x="-19.001" fill="#1a4578"/>
-   <rect id="rect4772-176-90" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="30" x="-20.001" fill="#1a4578"/>
-   <rect id="rect4772-176-8" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="30" x="-21.001" fill="#1a4578"/>
-   <rect id="rect4772-176-40" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="27" x="-18.001" fill="#1a4578"/>
-   <rect id="rect4772-176-03" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="27" x="-19.001" fill="#1a4578"/>
-   <rect id="rect4772-176-612" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="28" x="-20.001" fill="#1a4578"/>
-   <rect id="rect4772-176-684" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="28" x="-21.001" fill="#1a4578"/>
-   <rect id="rect4772-176-6150" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="29.001" x="-14.001" fill="#1a4578"/>
-   <rect id="rect4772-176-266" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="29" x="-13.001" fill="#1a4578"/>
-   <rect id="rect4772-176-39" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="30" x="-12.001" fill="#1a4578"/>
-   <rect id="rect4772-176-1" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="30" x="-11.001" fill="#1a4578"/>
-   <rect id="rect4772-176-98" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="27" x="-14.001" fill="#1a4578"/>
-   <rect id="rect4772-176-17" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="27" x="-13.001" fill="#1a4578"/>
-   <rect id="rect4772-176-528" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="28" x="-12.001" fill="#1a4578"/>
-   <rect id="rect4772-176-10" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="28" x="-11.001" fill="#1a4578"/>
-   <rect id="rect4772-176-606" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="26" x="-17.001" fill="#1a4578"/>
-   <rect id="rect4772-176-85" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="28" x="-17.001" fill="#1a4578"/>
-   <rect id="rect4772-176-032" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="28" x="-15.001" fill="#1a4578"/>
-   <rect id="rect4772-176-88" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="26" x="-15.001" fill="#1a4578"/>
-   <rect id="rect4772-176-81" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="28" x="-16.001" fill="#1a4578"/>
-   <rect id="rect4772-176-97" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="25" x="-17.001" fill="#1a4578"/>
-   <rect id="rect4772-176-11" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="24" x="-17.001" fill="#1a4578"/>
-   <rect id="rect4772-176-812" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="23" x="-17" fill="#1a4578"/>
-   <rect id="rect4772-176-586" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="22" x="-17" fill="#1a4578"/>
-   <rect id="rect4772-176-56" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="21" x="-17" fill="#1a4578"/>
-   <rect id="rect4772-176-998" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="20" x="-17" fill="#1a4578"/>
-   <rect id="rect4772-176-795" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="26" x="-20.001" fill="#1a4578"/>
-   <rect id="rect4772-176-51" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="26" x="-21.001" fill="#1a4578"/>
-   <rect id="rect4772-176-859" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="25" x="-18.001" fill="#1a4578"/>
-   <rect id="rect4772-176-973" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="25" x="-19.001" fill="#1a4578"/>
-   <rect id="rect4772-176-01" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="24" x="-20.001" fill="#1a4578"/>
-   <rect id="rect4772-176-49" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="24" x="-21.001" fill="#1a4578"/>
-   <rect id="rect4772-176-070" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="25" x="-14.001" fill="#1a4578"/>
-   <rect id="rect4772-176-815" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="25" x="-13.001" fill="#1a4578"/>
-   <rect id="rect4772-176-59" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="26" x="-12.001" fill="#1a4578"/>
-   <rect id="rect4772-176-336" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="26" x="-11.001" fill="#1a4578"/>
-   <rect id="rect4772-176-224" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="24" x="-12.001" fill="#1a4578"/>
-   <rect id="rect4772-176-23" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="24" x="-11.001" fill="#1a4578"/>
-   <rect id="rect4772-176-684-8" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="29" x="-22.001" fill="#1a4578"/>
-   <rect id="rect4772-176-684-84" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="25" x="-22.001" fill="#1a4578"/>
-   <rect id="rect4772-176-684-87" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="25" x="-10.001" fill="#1a4578"/>
-   <rect id="rect4772-176-684-27" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="29" x="-10.001" fill="#1a4578"/>
-   <rect id="rect7978-5" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="17" x="8.0003" fill="#1a4578"/>
-   <rect id="rect8134-9" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="20.001" x="-9.0003" fill="#1a4578"/>
-   <rect id="rect8174-9" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="-0.0012132" x="-9.0007" fill="#1a4578"/>
-   <rect id="rect8194-8" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="6" x="-26" fill="#1a4578"/>
-   <rect id="rect7984-3" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="15" x="22" fill="#1a4578"/>
-   <rect id="rect7984-31" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="17.001" x="22" fill="#1a4578"/>
-   <rect id="rect7984-9" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="14" x="8.0003" fill="#1a4578"/>
-   <rect id="rect8048-3" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="0.99997" x="19.001" fill="#1a4578"/>
-   <rect id="rect8048-4" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="2.0001" x="19.001" fill="#1a4578"/>
-   <rect id="rect8048-8" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="3.0002" x="19.001" fill="#1a4578"/>
-   <rect id="rect8048-0" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="1.0001" x="18.001" fill="#1a4578"/>
-   <rect id="rect8048-9" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="0.9999" x="20.001" fill="#1a4578"/>
-   <rect id="rect8048-06" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="2" x="20.001" fill="#1a4578"/>
-   <rect id="rect8048-92" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="0.99909" x="21.001" fill="#1a4578"/>
-   <rect id="rect7974" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="15" x="8.0003" fill="#1a4578"/>
-   <rect id="rect4772-176-48" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="27" x="-16.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-7" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="27" x="-17.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-6" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="27" x="-15.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-78" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="28" x="-14.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-67" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="28" x="-13.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-9" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="29" x="-12.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-68" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="29" x="-11.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-63" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="28" x="-18.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-79" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="28" x="-19.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-8" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="29" x="-20.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-5" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="29" x="-21.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-4" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="26" x="-18.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-0" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="26" x="-19.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-2" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="25" x="-20.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-65" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="25" x="-21.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-3" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="26" x="-16.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-55" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="25" x="-16.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-44" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="24" x="-16.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-50" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="23" x="-16" fill="#CCC"/>
-   <rect id="rect4772-176-48-42" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="22" x="-16" fill="#CCC"/>
-   <rect id="rect4772-176-48-39" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="21" x="-16" fill="#CCC"/>
-   <rect id="rect4772-176-48-1" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="20" x="-16" fill="#CCC"/>
-   <rect id="rect4772-176-48-98" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="26" x="-14.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-97" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="26" x="-13.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-505" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="25" x="-12.001" fill="#CCC"/>
-   <rect id="rect4772-176-48-36" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="25" x="-11.001" fill="#CCC"/>
-   <rect id="rect8122-3" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="20" x="-8.0003" fill="#4d8dd9"/>
-   <rect id="rect8122-3-9" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="21.001" x="-8.0003" fill="#4d8dd9"/>
-   <rect id="rect8122-3-5" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="22.001" x="-8.0003" fill="#4d8dd9"/>
-   <rect id="rect8122-3-99" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="23.001" x="-8.0003" fill="#4d8dd9"/>
-   <rect id="rect8122-3-1" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="16.001" x="-23" fill="#4d8dd9"/>
-   <rect id="rect8122-3-41" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="16" x="-24" fill="#4d8dd9"/>
-   <rect id="rect8122-3-2" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="16" x="-25" fill="#4d8dd9"/>
-   <rect id="rect8122-3-0" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="16" x="-26" fill="#4d8dd9"/>
-   <rect id="rect8122-3-36" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="14" x="-26" fill="#4d8dd9"/>
-   <rect id="rect8122-3-25" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="15" x="-26" fill="#4d8dd9"/>
-   <rect id="rect8122-3-87" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="13" x="-26" fill="#4d8dd9"/>
-   <rect id="rect8122-3-20" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="12" x="-26" fill="#4d8dd9"/>
-   <rect id="rect8122-3-57" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="11" x="-26" fill="#4d8dd9"/>
-   <rect id="rect8122-3-89" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="9.9997" x="-26" fill="#4d8dd9"/>
-   <rect id="rect8122-3-85" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="8.9996" x="-26" fill="#4d8dd9"/>
-   <rect id="rect4772-176-48-39-4" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="19" x="-16" fill="#CCC"/>
-   <rect id="rect8122-3-0-9-8-15-1-6" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="16" x="-8.0003" fill="#a6c6ec"/>
-   <rect id="rect8122-3-0-9-8-15-1-3" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="17" x="-8.0002" fill="#a6c6ec"/>
-   <rect id="rect8122-3-0-9-8-15-1-4" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="0.99889" x="-10.001" fill="#a6c6ec"/>
-   <rect id="rect8122-3-0-9-8-15-1-33" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="2" x="-10.001" fill="#a6c6ec"/>
-   <rect id="rect8122-3-0-9-8-15-1-4-6" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="3.0001" x="-10.001" fill="#a6c6ec"/>
-   <rect id="rect8122-3-0-9-8-15-1-4-2" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="4.0002" x="-10.001" fill="#a6c6ec"/>
-   <rect id="rect8122-3-0-9-8-15-1-4-5" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="1.0001" x="-11.001" fill="#a6c6ec"/>
-   <rect id="rect8122-3-9-0" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="16" x="-9.0004" fill="#4d8dd9"/>
-   <rect id="rect8122-3-9-05" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="19" x="-8.0002" fill="#4d8dd9"/>
-   <rect id="rect8122-3-9-0-5" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="18" x="-8.0002" fill="#4d8dd9"/>
-   <rect id="rect8184-9" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="9.9997" x="-25" fill="#1a4578"/>
-   <rect id="rect8184-7" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="11" x="-25" fill="#1a4578"/>
-   <rect id="rect8184-95" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="11" x="-27" fill="#1a4578"/>
-   <rect id="rect8184-5" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="9.9997" x="-27" fill="#1a4578"/>
-   <rect id="rect7984-9-4" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="13" x="8.0003" fill="#1a4578"/>
-   <rect id="rect7984-9-6" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="12" x="8.0003" fill="#1a4578"/>
-   <rect id="rect7984-9-42" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="11" x="8.0003" fill="#1a4578"/>
-   <rect id="rect7984-9-9" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="9.9998" x="8.0003" fill="#1a4578"/>
-   <rect id="rect7984-9-5" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="7.9996" x="8.0003" fill="#1a4578"/>
-   <rect id="rect7984-9-69" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="8.9997" x="8.0003" fill="#1a4578"/>
-   <rect id="rect7984-9-43" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="6.9995" x="8.0003" fill="#1a4578"/>
-   <rect id="rect7984-9-45" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="5.9994" x="8.0003" fill="#1a4578"/>
-   <rect id="rect7984-9-67" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="4.9993" x="8.0003" fill="#1a4578"/>
-   <rect id="rect7956-6" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="19" x="11" fill="#1a4578"/>
-   <rect id="rect7956-2" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="19" x="10" fill="#1a4578"/>
-   <rect id="rect7956-7" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="19.001" x="9.0003" fill="#1a4578"/>
-   <rect id="rect7956-1" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="19.001" x="8.0003" fill="#1a4578"/>
-   <rect id="rect7956-68" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="18.001" x="8.0003" fill="#1a4578"/>
+ <g id="g3356" transform="translate(0,-1.5e-6)">
+  <g id="g3358" fill-rule="nonzero">
+   <path id="rect3360" style="enable-background:accumulate;color:#000000;" d="m9,17,0,15-1,0,0,1,1,0,0,2,13,0,0-2,1,0,1,0,1,0,1,0,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1-1,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1-1,0-1,0-1,0,0-15-13,0z" transform="translate(0,-15.999999)" fill="#4d8dd9"/>
+   <path id="rect3362" style="enable-background:accumulate;color:#000000;" d="m14,31,0,1,1,0,1,0,1,0,0-1-1,0-1,0-1,0z" transform="translate(0,-15.999999)" fill="#333"/>
+   <path id="rect3368" style="enable-background:accumulate;color:#000000;" d="m11,23,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#333"/>
+   <path id="rect3370" style="enable-background:accumulate;color:#000000;" d="m18,23,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#333"/>
+   <rect id="rect3372" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="14" x="17" fill="#333"/>
+   <rect id="rect3374" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="14" x="13" fill="#333"/>
+   <path id="rect3376" style="enable-background:accumulate;color:#000000;" d="m21,46,0,1,0,1,1,0,1,0,0-1,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#333"/>
+   <path id="rect3380" style="enable-background:accumulate;color:#000000;" d="m21,42,0,1,0,1,1,0,1,0,0-1,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#333"/>
+   <path id="rect3384" style="enable-background:accumulate;color:#000000;" d="m8,42,0,1,0,1,1,0,1,0,0-1,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#333"/>
+   <path id="rect3386" style="enable-background:accumulate;color:#000000;" d="m8,46,0,1,0,1,1,0,1,0,0-1,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#333"/>
+   <rect id="rect3408" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="8" x="10" fill="#333"/>
+   <rect id="rect3412" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="8" x="20" fill="#333"/>
+   <rect id="rect3414" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="8" x="13" fill="#333"/>
+   <rect id="rect3416" style="enable-background:accumulate;color:#000000;" height="1" width="1" y="8" x="17" fill="#333"/>
+   <path id="rect3418" style="enable-background:accumulate;color:#000000;" d="m6,32,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,0,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <path id="rect3422" style="enable-background:accumulate;color:#000000;" d="m8,33,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,0,0-1,0-1,0-1,0-1,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,1,0,1-1,0-1,0,0,1,1,0,1,0,0,1,1,0,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1-1,0-1,0-1,0-1,0-1,0-1,0,0-1,0-1-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <path id="rect3436" style="enable-background:accumulate;color:#000000;" d="m22,33,0,1,0,1-1,0-1,0-1,0-1,0-1,0-1,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,0,0-1,1,0,1,0,0-1-1,0-1,0,0-1,0-1,0-1,0-1,0-1,1,0,1,0,1,0,1,0,1,0,1,0,0-1,0-1,1,0,1,0,1,0,0-1-1,0-1,0-1,0-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <path id="rect3452" style="enable-background:accumulate;color:#000000;" d="m8,16,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1-1,0,0,1,1,0,1,0,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,1,0,0-1,1,0,0-1,1,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,0,1,0,1,0,0-1,0-1,0-1,0-1,0-1,0-1,0-1-1,0,0,1,0,1,0,1,0,1,0,1,0,1-1,0,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <path id="rect3522" style="enable-background:accumulate;color:#000000;" d="m26,25,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,0,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <rect id="rect3532" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="7.9995" x="-26" fill="#1a4578"/>
+   <rect id="rect3570" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="24.001" x="-8.0002" fill="#1a4578"/>
+   <path id="rect3576" style="enable-background:accumulate;color:#000000;" d="m28,24,0,1,0,1,1,0,0-1,0-1-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <rect id="rect3580" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="7" x="-28" fill="#1a4578"/>
+   <path id="rect3582" style="enable-background:accumulate;color:#000000;" d="m25,22,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <path id="rect3584" style="enable-background:accumulate;color:#000000;" d="m17,45,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <path id="rect3588" style="enable-background:accumulate;color:#000000;" d="m19,46,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <path id="rect3592" style="enable-background:accumulate;color:#000000;" d="m17,43,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <path id="rect3596" style="enable-background:accumulate;color:#000000;" d="m19,44,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <path id="rect3600" style="enable-background:accumulate;color:#000000;" d="m12,45,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <path id="rect3604" style="enable-background:accumulate;color:#000000;" d="m10,46,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <path id="rect3608" style="enable-background:accumulate;color:#000000;" d="m12,43,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <path id="rect3612" style="enable-background:accumulate;color:#000000;" d="m10,44,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <path id="rect3618" style="enable-background:accumulate;color:#000000;" d="m14,44,0,1,1,0,1,0,1,0,0-1-1,0-1,0-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <path id="rect3638" style="enable-background:accumulate;color:#000000;" d="m19,42,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <path id="rect3646" style="enable-background:accumulate;color:#000000;" d="m19,40,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <path id="rect3654" style="enable-background:accumulate;color:#000000;" d="m10,42,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <path id="rect3658" style="enable-background:accumulate;color:#000000;" d="m10,40,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#1a4578"/>
+   <rect id="rect3662" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="29" x="-22.001" fill="#1a4578"/>
+   <rect id="rect3664" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="25" x="-22.001" fill="#1a4578"/>
+   <rect id="rect3666" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="25" x="-10.001" fill="#1a4578"/>
+   <rect id="rect3668" style="enable-background:accumulate;color:#000000;" transform="scale(-1,1)" height="1" width="1" y="29" x="-10.001" fill="#1a4578"/>
+   <path id="rect3700" style="enable-background:accumulate;color:#000000;" d="m15,35,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1-1,0,0,1,1,0,1,0,1,0,0-1-1,0,0-1,0-1,0-1,0-1,0-1,0-1,0-1,0-1-1,0z" transform="translate(0,-15.999999)" fill="#CCC"/>
+   <path id="rect3706" style="enable-background:accumulate;color:#000000;" d="m12,44,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#CCC"/>
+   <path id="rect3710" style="enable-background:accumulate;color:#000000;" d="m10,45,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#CCC"/>
+   <path id="rect3714" style="enable-background:accumulate;color:#000000;" d="m17,44,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#CCC"/>
+   <path id="rect3718" style="enable-background:accumulate;color:#000000;" d="m19,45,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#CCC"/>
+   <path id="rect3722" style="enable-background:accumulate;color:#000000;" d="m17,42,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#CCC"/>
+   <path id="rect3726" style="enable-background:accumulate;color:#000000;" d="m19,41,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#CCC"/>
+   <path id="rect3744" style="enable-background:accumulate;color:#000000;" d="m12,42,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#CCC"/>
+   <path id="rect3748" style="enable-background:accumulate;color:#000000;" d="m10,41,0,1,1,0,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#CCC"/>
+   <path id="rect3784" style="enable-background:accumulate;color:#000000;" d="m7,32,0,1,0,1,1,0,0-1,0-1-1,0z" transform="translate(0,-15.999999)" fill="#a6c6ec"/>
+   <path id="rect3788" style="enable-background:accumulate;color:#000000;" d="m9,17,0,1,0,1,0,1,0,1,1,0,0-1,0-1,0-1,1,0,0-1-1,0-1,0z" transform="translate(0,-15.999999)" fill="#a6c6ec"/>
+   <path id="rect3802" style="enable-background:accumulate;color:#000000;" d="m-8.0002,18,1,0,0,1-1,0zm0.0000172,1.0002,1,0,0,1-1,0zm-0.0000324,4.0011,1,0,0,1-1,0zm0-1.0001,1,0,0,1-1,0zm0-1.0001,1,0,0,1-1,0zm0-1.0008,1,0,0,1-1,0z" transform="scale(-1,1)" fill="#4d8dd9"/>
   </g>
  </g>
 </svg>

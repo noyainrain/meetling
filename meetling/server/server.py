@@ -43,7 +43,7 @@ Client error occurred
 Stack:
 %s
 URL: %s
-User: %s (%s)
+User: %s
 Device info: %s"""
 
 _LOGGER = logging.getLogger(__name__)
@@ -250,9 +250,6 @@ class Endpoint(RequestHandler):
 
 class _LogClientErrorEndpoint(Endpoint):
     def post(self):
-        if not self.app.user:
-            raise micro.PermissionError()
-
         args = self.check_args({
             'type': str,
             'stack': str,
@@ -270,10 +267,10 @@ class _LogClientErrorEndpoint(Endpoint):
 
         message = str_or_none(args.get('message'))
         message_part = ': ' + message if message else ''
+        user = '{} ({})'.format(self.app.user.name, self.app.user.id) if self.app.user else '-'
         _LOGGER.error(
             _CLIENT_ERROR_LOG_TEMPLATE, args['type'], message_part, args['stack'].strip(),
-            args['url'], self.app.user.name, self.app.user.id,
-            self.request.headers.get('user-agent', '-'))
+            args['url'], user, self.request.headers.get('user-agent', '-'))
 
 class _ReplaceAuthEndpoint(RequestHandler):
     # Compatibility for server side authentication (obsolete since 0.10.0)

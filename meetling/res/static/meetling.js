@@ -213,6 +213,8 @@ meetling.UI = document.registerElement('meetling-ui',
         this.addEventListener('user-edit', this);
         this.addEventListener('settings-edit', this);
 
+        throw Error('x');
+
         return Promise.resolve().then(function() {
             // If requested, log in with code
             var match = /^#login=(.+)$/.exec(location.hash);
@@ -254,7 +256,10 @@ meetling.UI = document.registerElement('meetling-ui',
             // available in supported browsers
             if (e instanceof micro.APIError && e.error.__type__ === 'AuthenticationError') {
                 this._storeUser(null);
-                location.reload()
+                location.reload();
+                // quickfix: throw anyway, so init is really canceled, and no further errors are
+                // triggered while the page is reloading
+                throw e;
             } else {
                 throw e;
             }

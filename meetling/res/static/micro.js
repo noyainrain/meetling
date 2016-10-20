@@ -146,7 +146,11 @@ micro.UI = document.registerElement('micro-ui',
         }.bind(this)).then(function() {
             this.querySelector('.micro-ui-header').style.display = 'block';
             return this._route(location.pathname);
-        }.bind(this));
+        }.bind(this)).catch(this.wrap);
+    }},
+
+    wrap: {value: function(e) {
+        setTimeout(function() { throw e; }, 0);
     }},
 
     /**

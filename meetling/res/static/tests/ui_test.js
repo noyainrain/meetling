@@ -26,7 +26,7 @@ var until = require('selenium-webdriver/lib/until');
 var TIMEOUT = 1000;
 
 describe('UI scenarios', function() {
-    this.timeout(60 * 1000);
+    this.timeout(5 * 60 * 1000);
 
     var server;
     var browser;
@@ -61,8 +61,10 @@ describe('UI scenarios', function() {
             throw err;
         });
 
+        // make test-ui SELENIUM_REMOTE_URL="https://{user}:{key}@ondemand.saucelabs.com:443/wd/hub" PLATFORM="OS X 10.11"
         browser = process.env.BROWSER || 'firefox';
-        browser = new Builder().withCapabilities({browserName: browser, marionette: true}).build();
+        var platform = process.env.PLATFORM || null;
+        browser = new Builder().withCapabilities({browserName: browser, platform: platform, marionette: true}).build();
     });
 
     afterEach(function() {
@@ -77,6 +79,7 @@ describe('UI scenarios', function() {
 
     it('User creates meeting', function() {
         // Start to create meeting
+        // TODO: Either use Sauce Connect or TUNNEL env variable
         browser.get('http://localhost:8080/');
         browser.wait(until.elementLocated({css: '.meetling-start-create-meeting'}), TIMEOUT).click();
 

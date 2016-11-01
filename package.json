@@ -6,6 +6,7 @@
     "devDependencies": {
         "mocha": "^2.5",
         "chai": "^3.5",
-        "selenium-webdriver": "^2.53"
+        "selenium-webdriver": "^2.53",
+        "smtp-server": "^1.16"
     }
 }

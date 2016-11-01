@@ -157,6 +157,7 @@ describe('UI scenarios', function() {
 
         browser.get('http://localhost:8080/');
 
+        // TODO: Firefox has problems with hover
         //browser.wait(until.elementLocated({css: '.micro-ui-header meetling-user'}), TIMEOUT).click();
         browser.wait(until.elementLocated({css: '.meetling-ui-menu button.link'}), TIMEOUT).click();
         browser.findElement({css: '.meetling-ui-edit-user'}).click();

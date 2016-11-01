@@ -17,7 +17,7 @@ before_install:
     - sudo sh -c "echo 127.0.0.1 localhost > /etc/hosts"
     - nvm install 4.4
     - GECKODRIVER_URL=https://github.com/mozilla/geckodriver/releases/download/v0.8.0/geckodriver-0.8.0-linux64.gz
-    - CHROMEDRIVER_URL=http://chromedriver.storage.googleapis.com/2.22/chromedriver_linux64.zip
+    - CHROMEDRIVER_URL=http://chromedriver.storage.googleapis.com/2.25/chromedriver_linux64.zip
     - if [ "$UI_TEST" = true ]; then wget -O - $GECKODRIVER_URL | gunzip > wires &&
                                      chmod +x wires; fi
     - if [ "$UI_TEST" = true ]; then wget $CHROMEDRIVER_URL && unzip chromedriver_linux64.zip; fi

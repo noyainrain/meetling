@@ -62,7 +62,7 @@ small {
     margin: 0;
 }
 
-.group > *:nth-child(+2) {
+.group > *:nth-child(n+2) {
     margin-left: calc(0.25 * 1.5rem);
 }
 
@@ -81,6 +81,7 @@ small {
 
 .link {
     display: inline;
+    margin: 0;
     padding: 0;
     border: none;
     color: #d94b1f;
@@ -106,6 +107,7 @@ h1 .link:hover {
 
 .action {
     display: inline-block;
+    margin: 0;
     padding: calc(0.25 * 1.5em);
     border: none;
     border-bottom: 2px solid #225ca0;
@@ -151,11 +153,11 @@ h1 .link:hover {
     border-bottom-right-radius: calc(0.25 * 1.5em);
 }
 
-.actions > .action:nth-child(+2) {
+.actions > .action:nth-child(n+2) {
     border-left: 1px solid #225ca0;
 }
 
-.actions > .action-subtle:nth-child(+2) {
+.actions > .action-subtle:nth-child(n+2) {
     border-left: none;
     margin-left: calc(0.25 * 1.5rem);
 }
@@ -170,17 +172,12 @@ select {
     font: inherit;
 }
 
-input:focus {
-    outline: none;
-}
-
 input:invalid {
     box-shadow: none;
 }
 
 label {
     display: block;
-    margin: 1.5rem 0;
 }
 
 label > input,
@@ -203,7 +200,11 @@ label > small + small {
     color: #888;
 }
 
-.compact label {
+form > label {
+    margin: 1.5rem 0;
+}
+
+.compact form > label {
     margin: calc(0.25 * 1.5rem) 0;
 }
 

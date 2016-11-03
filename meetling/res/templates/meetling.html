@@ -183,6 +183,7 @@
             features.dom4ClassList = 'classList' in document.createElement('div');
             features.dom4QuerySelector = 'querySelector' in document;
             features.es6Promise = 'Promise' in window;
+            features.es6String = 'startsWith' in String.prototype;
             try {
                 eval('var x = `${42}`;');
                 features.es6TemplateLiteral = true;

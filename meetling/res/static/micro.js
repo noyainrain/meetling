@@ -237,7 +237,11 @@ micro.UI = document.registerElement('micro-ui',
         if (event.type === 'click') {
             var a = micro.findAncestor(event.target,
                 function(e) { return e instanceof HTMLAnchorElement; }, this);
-            if (a && a.origin === location.origin) {
+            // NOTE: `a.origin === location.origin` would be more elegant, but Edge does not support
+            // HTMLHyperlinkElementUtils yet (see
+            // https://developer.microsoft.com/en-us/microsoft-edge/platform/documentation/apireference/interfaces/htmlanchorelement/
+            // ).
+            if (a && a.href.startsWith(location.origin)) {
                 event.preventDefault();
                 this.navigate(a.pathname);
             }

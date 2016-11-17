@@ -15,6 +15,7 @@
 """Core parts of micro."""
 
 import builtins
+from datetime import datetime
 from email.message import EmailMessage
 import re
 from smtplib import SMTP
@@ -23,7 +24,7 @@ from urllib.parse import urlparse
 from redis import StrictRedis
 
 from micro.jsonredis import JSONRedis, JSONRedisMapping
-from micro.util import check_email, randstr, str_or_none
+from micro.util import check_email, parse_isotime, randstr, str_or_none
 
 class Application:
     """See :ref:`Application`.
@@ -162,8 +163,8 @@ class Application:
 
         else:
             id = 'User:' + randstr()
-            user = User(id=id, trashed=False, app=self, authors=[id], name='Guest', email=None,
-                        auth_secret=randstr())
+            user = User(id=id, trashed=False, create_time=datetime.utcnow().isoformat() + 'Z',
+                        authors=[id], name='Guest', email=None, auth_secret=randstr(), app=self)
             self.r.oset(user.id, user)
             self.r.rpush('users', user.id)
             self.r.hset('auth_secret_map', user.auth_secret, user.id)
@@ -190,6 +191,132 @@ class Application:
             raise object
         return object
 
+    def stats(self):
+        # two kind of stats
+        # absolute numbers (interesting for users, meetings, ...)
+        # per-time-unit (interesting for requests, actions, ... - where the absolute number is nicht
+        #                aussagekraeftig, high frequency, better to express change)
+        #  ^ for this we must compute the average over the time span
+        #    count(objects, start, end) / ((end - start) * timeunits) eg
+        #    count(requests, monthago, now) / ((now - montago) * 60) to compute the
+        #    requests/minute on average for the last month. requests can be stored as a list or a
+        #    day histogram
+        # for per time unit stuff, the UI must show last month/week/.. instead of one month/week/..
+        # ago
+        # also for per time unit stuff, the peak/maximum value might be interesting also. the
+        # histogram width must be at least the time unit for that (e.g. minute-histogram for
+        # requests/minute)
+
+        stats = {
+            'users': count_users,
+            'meetings': count_meetings,
+            'agenda_items': count_agenda_items,
+            'foo': (COUNT, count_foo), # function gets list of times
+            'requests': (RATE, count_requests, 60), # function gets list of ranges (start, end)
+        }
+
+        counter = Counter()
+        now
+        times = {
+            'now': now,
+            '1d': now - timedelta(days=1),
+            '1w': now - timedelta(days=7),
+            '2w': now - timedelta(days=7 * 2),
+            '1m': now - timedelta(days=30),
+            '2m': now - timedelta(days=30 * 2),
+            '1y': now - timedelta(days=360),
+            '2y': now - timedelta(days=360 * 2)
+        }
+
+        now = datetime.utcnow()
+        deltas = {
+            'now': 0,
+            '-1w': timedelta(days=7),
+            '-1m': timedelta(days=30),
+            '-1y': timedelta(days=360)
+        }
+
+        times = {
+            'now': (now, now - timedelta(days=1)),
+            '1w': (timedelta(days=7), timedelta(days=14)),
+            '1m': (now - timedelta(days=30), timedelta(days=60)),
+            '1y': (now - timedelta(days=360), now - timedelta(days=720))
+        }
+
+        def count_users(self, times):
+            return [len(u for u in self.users.values() if u.create_time <= t) for t in times]
+
+        def count_meetings(self, times):
+            return [len(m for m in self.meetings.values() if m.create_time <= t) for t in times]
+
+        def count_agenda_items(self, times):
+            #return [len(i for m in meetings for i in m.items().values() if i.create_time <= t) for t in times]
+            meetings = self.meetings.values()
+            counts = []
+            for time in times:
+                count = 0
+                for meeting in meetings:
+                    for item in meeting.items().values():
+                        if item.create_time <= time:
+                            count += 1
+                counts.append(count)
+            return counts
+
+        times = {
+            'now': now,
+            '1d': now - timedelta(days=1),
+            '1w': now - timedelta(days=7),
+            '2w': now - timedelta(days=7 * 2),
+            '1m': now - timedelta(days=30),
+            '2m': now - timedelta(days=30 * 2),
+            '1y': now - timedelta(days=360),
+            '2y': now - timedelta(days=360 * 2)
+        }
+
+        # TODO: compute this automatically (use timedeltas, and make a sonderfall for now + yesterday
+        # TODO: and below, convert counts automatically back to dict
+        # TODO: make for all registered stats
+
+        times = [
+            now,
+            now - timedelta(days=1),
+            now - timedelta(days=7),
+            now - timedelta(days=7 * 2),
+            now - timedelta(days=30),
+            now - timedelta(days=30 * 2),
+            now - timedelta(days=360),
+            now - timedelta(days=360 * 2)
+        ]
+
+        counts = count_users(times)
+        stats = [tuple(counts[i:i + 2]) for i in range(0, len(counts), 2)]
+        stats = [(d[0], d[1] - d[0]) for d in stats] # rate of change
+        stats = {
+            'now': stats[0],
+            '1w': stats[1],
+            '1m': stats[2],
+            '1y': statas[3]
+        })
+        print(stats)
+
+        #counts = dict(zip(times, counts))
+        #counts = count_users(times.values())
+        #counts = dict(zip(times, counts))
+
+        #users = self.users.values()
+        #meetings = self.meetings.values()
+        ##agenda_items = chain.from_iterable(m.items.values() for m in meetings)
+        #for user in self.user.values():
+        #    # TODO
+        #for meeting in self.meetings.values():
+        #    for key, time in times.items():
+        #        if meeting.create_time <= time: # < meeting.trash_time:
+        #            counter[key] += 1
+        print(counter)
+        # TODO: include wachstum
+        # counter[key] - counter[nextkey]
+        return {k: v for k, v in counter.items() if k in {'now', '1w', '1m', '1y}}
+
     @staticmethod
     def _encode(object):
         try:
@@ -213,12 +340,13 @@ class Object:
        Context :class:`Application`.
     """
 
-    def __init__(self, id, trashed, app):
+    def __init__(self, id, trashed, create_time, app):
         self.id = id
         self.trashed = trashed
+        self.create_time = parse_isotime(create_time)
         self.app = app
 
-    def json(self, restricted=False, attrs={}):
+    def json(self, restricted=False):
         """Return a JSON object representation of the object.
 
         The name of the object type is included as ``__type__``.
@@ -231,9 +359,12 @@ class Object:
         attributes of :class:`Object`. *restricted* is ignored.
         """
         # pylint: disable=unused-argument; restricted is part of the subclass API
-        json = {'__type__': type(self).__name__, 'id': self.id, 'trashed': self.trashed}
-        json.update(attrs)
-        return json
+        return {
+            '__type__': type(self).__name__,
+            'id': self.id,
+            'trashed': self.trashed,
+            'create_time': self.create_time.isoformat() + 'Z'
+        }
 
     def __repr__(self):
         return '<{}>'.format(self.id)
@@ -288,8 +419,8 @@ class Editable:
 class User(Object, Editable):
     """See :ref:`User`."""
 
-    def __init__(self, id, trashed, app, authors, name, email, auth_secret):
-        super().__init__(id=id, trashed=trashed, app=app)
+    def __init__(self, id, trashed, create_time, authors, name, email, auth_secret, app):
+        super().__init__(id=id, trashed=trashed, create_time=create_time, app=app)
         Editable.__init__(self, authors=authors)
         self.name = name
         self.email = email
@@ -319,8 +450,9 @@ class User(Object, Editable):
         check_email(email)
 
         code = randstr()
-        auth_request = AuthRequest(id='AuthRequest:' + randstr(), trashed=False, app=self.app,
-                                   email=email, code=code)
+        auth_request = AuthRequest(
+            id='AuthRequest:' + randstr(), trashed=False,
+            create_time=datetime.utcnow().isoformat() + 'Z', app=self.app, email=email, code=code)
         self.app.r.oset(auth_request.id, auth_request)
         self.app.r.expire(auth_request.id, 10 * 60)
         if self.app.render_email_auth_message:
@@ -407,8 +539,9 @@ class User(Object, Editable):
 class Settings(Object, Editable):
     """See :ref:`Settings`."""
 
-    def __init__(self, id, trashed, app, authors, title, icon, favicon, feedback_url, staff):
-        super().__init__(id=id, trashed=trashed, app=app)
+    def __init__(self, id, trashed, create_time, authors, title, icon, favicon, feedback_url, staff,
+                 app):
+        super().__init__(id=id, trashed=trashed, create_time=create_time, app=app)
         Editable.__init__(self, authors=authors)
         self.title = title
         self.icon = icon

@@ -14,6 +14,7 @@
 
 # pylint: disable=missing-docstring; test module
 
+from datetime import datetime
 from subprocess import check_call
 from tempfile import mkdtemp
 
@@ -107,7 +108,8 @@ class ApplicationUpdateTest(AsyncTestCase):
 class EditableTest(MicroTestCase):
     def setUp(self):
         super().setUp()
-        self.cat = Cat(id='Cat', trashed=False, app=self.app, authors=[], name=None)
+        self.cat = Cat(id='Cat', trashed=False, create_time=datetime.utcnow().isoformat() + 'Z',
+                       authors=[], name=None, app=self.app)
 
     def test_edit(self):
         self.cat.edit(name='Happy')
@@ -137,8 +139,10 @@ class CatApp(Application):
         self.types.update({'Cat': Cat})
 
     def create_settings(self):
-        return Settings(id='Settings', trashed=False, app=self, authors=[], title='CatApp',
-                        icon=None, favicon=None, feedback_url=None, staff=[])
+        return Settings(
+            id='Settings', trashed=False, create_time=datetime.utcnow().isoformat() + 'Z',
+            authors=[], title='CatApp', icon=None, favicon=None, feedback_url=None, staff=[],
+            app=self)
 
     def sample(self):
         user = self.login()
@@ -146,8 +150,8 @@ class CatApp(Application):
         self.r.set('auth_request', auth_request.id)
 
 class Cat(Object, Editable):
-    def __init__(self, id, trashed, app, authors, name):
-        super().__init__(id=id, trashed=trashed, app=app)
+    def __init__(self, id, trashed, create_time, authors, name, app):
+        super().__init__(id=id, trashed=trashed, create_time=create_time, app=app)
         Editable.__init__(self, authors=authors)
         self.name = name
 
@@ -156,6 +160,7 @@ class Cat(Object, Editable):
             self.name = attrs['name']
 
     def json(self, restricted=False, include_users=False):
-        json = super().json(attrs={'name': self.name})
+        json = super().json()
         json.update(Editable.json(self, restricted=restricted, include_users=include_users))
+        json.update({'name': self.name})
         return json

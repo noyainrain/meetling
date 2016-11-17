@@ -92,8 +92,10 @@ class Meetling(Application):
             r.set('version', 5)
 
     def create_settings(self):
-        return Settings(id='Settings', trashed=False, app=self, authors=[], title='My Meetling',
-                        icon=None, favicon=None, feedback_url=None, staff=[])
+        return Settings(
+            id='Settings', trashed=False, create_time=datetime.utcnow().isoformat() + 'Z',
+            authors=[], title='My Meetling', icon=None, favicon=None, feedback_url=None, staff=[],
+            app=self)
 
     def create_meeting(self, title, time=None, location=None, description=None):
         """See :http:post:`/api/meetings`."""
@@ -106,8 +108,10 @@ class Meetling(Application):
         e.trigger()
 
         meeting = Meeting(
-            id='Meeting:' + randstr(), trashed=False, app=self, authors=[self.user.id], title=title,
-            time=time, location=str_or_none(location), description=str_or_none(description))
+            id='Meeting:' + randstr(), trashed=False,
+            create_time=datetime.utcnow().isoformat() + 'Z', authors=[self.user.id], title=title,
+            time=time, location=str_or_none(location), description=str_or_none(description),
+            app=self)
         self.r.oset(meeting.id, meeting)
         self.r.rpush('meetings', meeting.id)
         return meeting
@@ -140,8 +144,8 @@ class Meeting(Object, Editable):
        Ordered map of trashed (deleted) :class:`AgendaItem` s.
     """
 
-    def __init__(self, id, trashed, app, authors, title, time, location, description):
-        super().__init__(id=id, trashed=trashed, app=app)
+    def __init__(self, id, trashed, create_time, authors, title, time, location, description, app):
+        super().__init__(id=id, trashed=trashed, create_time=create_time, app=app)
         Editable.__init__(self, authors=authors)
         self.title = title
         self.time = time
@@ -182,8 +186,9 @@ class Meeting(Object, Editable):
         e.trigger()
 
         item = AgendaItem(
-            id='AgendaItem:' + randstr(), trashed=False, app=self.app, authors=[self.app.user.id],
-            title=title, duration=duration, description=description)
+            id='AgendaItem:' + randstr(), trashed=False,
+            create_time=datetime.utcnow().isoformat() + 'Z', authors=[self.app.user.id],
+            title=title, duration=duration, description=description, app=self.app)
         self.app.r.oset(item.id, item)
         self.app.r.rpush(self._items_key, item.id)
         return item
@@ -225,13 +230,14 @@ class Meeting(Object, Editable):
         If *include_items* is ``True``, *items* and *trashed_items* are included.
         """
         # pylint: disable=arguments-differ; extended signature
-        json = super().json(attrs={
+        json = super().json()
+        json.update(Editable.json(self, restricted=restricted, include_users=include_users))
+        json.update({
             'title': self.title,
             'time': self.time.isoformat() + 'Z' if self.time else None,
             'location': self.location,
             'description': self.description
         })
-        json.update(Editable.json(self, restricted=restricted, include_users=include_users))
         if include_items:
             json['items'] = [i.json(restricted=restricted, include_users=include_users)
                              for i in self.items.values()]
@@ -242,8 +248,8 @@ class Meeting(Object, Editable):
 class AgendaItem(Object, Editable):
     """See :ref:`AgendaItem`."""
 
-    def __init__(self, id, trashed, app, authors, title, duration, description):
-        super().__init__(id=id, trashed=trashed, app=app)
+    def __init__(self, id, trashed, create_time, authors, title, duration, description, app):
+        super().__init__(id=id, trashed=trashed, create_time=create_time, app=app)
         Editable.__init__(self, authors=authors)
         self.title = title
         self.duration = duration
@@ -265,10 +271,11 @@ class AgendaItem(Object, Editable):
             self.description = str_or_none(attrs['description'])
 
     def json(self, restricted=False, include_users=False):
-        json = super().json(attrs={
+        json = super().json()
+        json.update(Editable.json(self, restricted=restricted, include_users=include_users))
+        json.update({
             'title': self.title,
             'duration': self.duration,
             'description': self.description
         })
-        json.update(Editable.json(self, restricted=restricted, include_users=include_users))
         return json

@@ -14,7 +14,7 @@
 
 # pylint: disable=missing-docstring; test module
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from subprocess import check_call
 from tempfile import mkdtemp
 
@@ -75,6 +75,30 @@ class ApplicationTest(MicroTestCase):
     def test_login_code_invalid(self):
         with self.assertRaisesRegex(micro.ValueError, 'code_invalid'):
             self.app.login(code='foo')
+
+    def test_produce_stats(self):
+        # TODO: the first 2 users have an older timestamp - is this a poblem?
+        now = self.app.now()
+
+        reset_now = self.app.now
+        self.app.now = lambda: now - timedelta(days=361)
+        self.app.login()
+        self.app.now = lambda: now - timedelta(days=31)
+        self.app.login()
+        self.app.now = lambda: now - timedelta(days=8)
+        self.app.login()
+        #self.app.now = lambda: now - timedelta(hours=1)
+        # 2 users are created in setup
+        #self.app.login()
+        self.app.now = reset_now
+
+        self.app.produce_stats()
+        self.assertEqual(self.app.stats, {
+            '1y': (1, 1),
+            '1m': (2, 1),
+            '1w': (3, 1),
+            'now': (5, 2)
+        })
 
 class ApplicationUpdateTest(AsyncTestCase):
     @staticmethod

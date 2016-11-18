@@ -15,7 +15,7 @@
 """Core parts of micro."""
 
 import builtins
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.message import EmailMessage
 import re
 from smtplib import SMTP
@@ -163,7 +163,7 @@ class Application:
 
         else:
             id = 'User:' + randstr()
-            user = User(id=id, trashed=False, create_time=datetime.utcnow().isoformat() + 'Z',
+            user = User(id=id, trashed=False, create_time=self.now().isoformat() + 'Z',
                         authors=[id], name='Guest', email=None, auth_secret=randstr(), app=self)
             self.r.oset(user.id, user)
             self.r.rpush('users', user.id)
@@ -191,7 +191,11 @@ class Application:
             raise object
         return object
 
-    def stats(self):
+    def now(self):
+        # TODO: some better place?
+        return datetime.utcnow()
+
+    def produce_stats(self):
         # two kind of stats
         # absolute numbers (interesting for users, meetings, ...)
         # per-time-unit (interesting for requests, actions, ... - where the absolute number is nicht
@@ -207,50 +211,23 @@ class Application:
         # histogram width must be at least the time unit for that (e.g. minute-histogram for
         # requests/minute)
 
-        stats = {
-            'users': count_users,
-            'meetings': count_meetings,
-            'agenda_items': count_agenda_items,
-            'foo': (COUNT, count_foo), # function gets list of times
-            'requests': (RATE, count_requests, 60), # function gets list of ranges (start, end)
-        }
-
-        counter = Counter()
-        now
-        times = {
-            'now': now,
-            '1d': now - timedelta(days=1),
-            '1w': now - timedelta(days=7),
-            '2w': now - timedelta(days=7 * 2),
-            '1m': now - timedelta(days=30),
-            '2m': now - timedelta(days=30 * 2),
-            '1y': now - timedelta(days=360),
-            '2y': now - timedelta(days=360 * 2)
-        }
-
-        now = datetime.utcnow()
-        deltas = {
-            'now': 0,
-            '-1w': timedelta(days=7),
-            '-1m': timedelta(days=30),
-            '-1y': timedelta(days=360)
-        }
-
-        times = {
-            'now': (now, now - timedelta(days=1)),
-            '1w': (timedelta(days=7), timedelta(days=14)),
-            '1m': (now - timedelta(days=30), timedelta(days=60)),
-            '1y': (now - timedelta(days=360), now - timedelta(days=720))
-        }
+        # TODO: make for all registered stats
+        #stats = {
+        #    'users': count_users,
+        #    'meetings': count_meetings,
+        #    'agenda_items': count_agenda_items,
+        #    'foo': (COUNT, count_foo), # function gets list of times
+        #    'requests': (RATE, count_requests, 60), # function gets list of ranges (start, end)
+        #}
 
         def count_users(self, times):
-            return [len(u for u in self.users.values() if u.create_time <= t) for t in times]
+            return [sum(1 for u in self.users.values() if u.create_time <= t) for t in times]
 
         def count_meetings(self, times):
             return [len(m for m in self.meetings.values() if m.create_time <= t) for t in times]
 
         def count_agenda_items(self, times):
-            #return [len(i for m in meetings for i in m.items().values() if i.create_time <= t) for t in times]
+            #return [sum(1 for m in meetings for i in m.items().values() if i.create_time <= t) for t in times]
             meetings = self.meetings.values()
             counts = []
             for time in times:
@@ -262,60 +239,24 @@ class Application:
                 counts.append(count)
             return counts
 
-        times = {
-            'now': now,
-            '1d': now - timedelta(days=1),
-            '1w': now - timedelta(days=7),
-            '2w': now - timedelta(days=7 * 2),
-            '1m': now - timedelta(days=30),
-            '2m': now - timedelta(days=30 * 2),
-            '1y': now - timedelta(days=360),
-            '2y': now - timedelta(days=360 * 2)
-        }
+        from itertools import chain
 
-        # TODO: compute this automatically (use timedeltas, and make a sonderfall for now + yesterday
-        # TODO: and below, convert counts automatically back to dict
-        # TODO: make for all registered stats
+        now = self.now()
+        deltas = [('1w', timedelta(days=7)), ('1m', timedelta(days=30)), ('1y', timedelta(days=360))]
+        times = ([now, now - timedelta(days=1)] +
+                 list(chain.from_iterable((now - d[1], now - d[1] * 2) for d in deltas)))
+        #print(times)
 
-        times = [
-            now,
-            now - timedelta(days=1),
-            now - timedelta(days=7),
-            now - timedelta(days=7 * 2),
-            now - timedelta(days=30),
-            now - timedelta(days=30 * 2),
-            now - timedelta(days=360),
-            now - timedelta(days=360 * 2)
-        ]
+        counts = count_users(self, times)
+        #stats = [tuple(counts[i:i + 2]) for i in range(0, len(counts), 2)]
+        #stats = [(v[0], v[1] - v[0]) for v in stats] # rate of change
+        xstats = [(counts[i], counts[i] - counts[i + 1]) for i in range(0, len(counts), 2)]
 
-        counts = count_users(times)
-        stats = [tuple(counts[i:i + 2]) for i in range(0, len(counts), 2)]
-        stats = [(d[0], d[1] - d[0]) for d in stats] # rate of change
-        stats = {
-            'now': stats[0],
-            '1w': stats[1],
-            '1m': stats[2],
-            '1y': statas[3]
-        })
-        print(stats)
+        stats = {d[0]: v for d, v in zip(deltas, xstats[1:])}
+        stats['now'] = xstats[0]
 
-        #counts = dict(zip(times, counts))
-        #counts = count_users(times.values())
-        #counts = dict(zip(times, counts))
-
-        #users = self.users.values()
-        #meetings = self.meetings.values()
-        ##agenda_items = chain.from_iterable(m.items.values() for m in meetings)
-        #for user in self.user.values():
-        #    # TODO
-        #for meeting in self.meetings.values():
-        #    for key, time in times.items():
-        #        if meeting.create_time <= time: # < meeting.trash_time:
-        #            counter[key] += 1
-        print(counter)
-        # TODO: include wachstum
-        # counter[key] - counter[nextkey]
-        return {k: v for k, v in counter.items() if k in {'now', '1w', '1m', '1y}}
+        #print(stats)
+        self.stats = stats
 
     @staticmethod
     def _encode(object):
@@ -452,7 +393,7 @@ class User(Object, Editable):
         code = randstr()
         auth_request = AuthRequest(
             id='AuthRequest:' + randstr(), trashed=False,
-            create_time=datetime.utcnow().isoformat() + 'Z', app=self.app, email=email, code=code)
+            create_time=self.app.now().isoformat() + 'Z', email=email, code=code, app=self.app)
         self.app.r.oset(auth_request.id, auth_request)
         self.app.r.expire(auth_request.id, 10 * 60)
         if self.app.render_email_auth_message:

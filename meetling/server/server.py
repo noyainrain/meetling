@@ -18,6 +18,7 @@
 """Meetling server core."""
 
 from collections import Mapping
+from datetime import datetime, timedelta
 import http.client
 import json
 import logging
@@ -129,7 +130,18 @@ class MeetlingServer(HTTPServer):
         """Run the server."""
         self.app.update()
         self.listen(self.port)
+
+        self._stats()
+
         IOLoop.instance().start()
+
+    def _stats(self):
+        _LOGGER.info('STAAATS')
+        self.app.stats()
+        time = (datetime.today() + timedelta(days=1)).replace(hour=0, minute=5, second=0, microsecond=0)
+        #time = datetime.today() + timedelta(seconds=10)
+        print(time)
+        IOLoop.current().call_at(time.timestamp(), self._stats)
 
     def _render_email_auth_message(self, email, auth_request, auth):
         template = self._message_templates.load('email_auth')

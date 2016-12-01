@@ -93,7 +93,7 @@ class ApplicationTest(MicroTestCase):
         self.app.now = reset_now
 
         self.app.produce_stats()
-        self.assertEqual(self.app.stats, {
+        self.assertEqual(self.app.stats.data, {
             '1y': (1, 1),
             '1m': (2, 1),
             '1w': (3, 1),
@@ -115,11 +115,11 @@ class ApplicationUpdateTest(AsyncTestCase):
         self.assertEqual(app.settings.title, 'CatApp')
 
     def test_update_db_version_previous(self):
-        self.setup_db('0.12.3')
+        self.setup_db('0.13.2')
         app = CatApp(redis_url='15')
         app.update()
 
-        self.assertIsNone(app.settings.feedback_url)
+        self.assertLessEqual(app.settings.create_time, app.now())
 
     def test_update_db_version_first(self):
         self.setup_db('0.12.3')
@@ -128,11 +128,13 @@ class ApplicationUpdateTest(AsyncTestCase):
 
         # Update to version 2
         self.assertIsNone(app.settings.feedback_url)
+        # Update to version 3
+        self.assertLessEqual(app.settings.create_time, app.now())
 
 class EditableTest(MicroTestCase):
     def setUp(self):
         super().setUp()
-        self.cat = Cat(id='Cat', trashed=False, create_time=datetime.utcnow().isoformat() + 'Z',
+        self.cat = Cat(id='Cat', trashed=False, create_time=self.app.now().isoformat() + 'Z',
                        authors=[], name=None, app=self.app)
 
     def test_edit(self):
@@ -164,9 +166,8 @@ class CatApp(Application):
 
     def create_settings(self):
         return Settings(
-            id='Settings', trashed=False, create_time=datetime.utcnow().isoformat() + 'Z',
-            authors=[], title='CatApp', icon=None, favicon=None, feedback_url=None, staff=[],
-            app=self)
+            id='Settings', trashed=False, create_time=self.now().isoformat() + 'Z', authors=[],
+            title='CatApp', icon=None, favicon=None, feedback_url=None, staff=[], app=self)
 
     def sample(self):
         user = self.login()

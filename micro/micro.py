@@ -117,7 +117,41 @@ class Application:
             settings = r.oget('Settings')
             settings['feedback_url'] = None
             r.oset(settings['id'], settings)
-            self.r.set('micro_version', 2)
+            r.set('micro_version', 2)
+
+        if version < 3:
+            from collections.abc import Mapping
+            from redis.exceptions import ResponseError
+
+            def objectiter():
+                for key in r.scan_iter():
+                    try:
+                        object = r.oget(key)
+                    except ResponseError:
+                        # TODO: subclass response error to type response error
+                        continue
+                    if not (isinstance(object, Mapping) and '__type__' in object):
+                        continue
+                    type = self.types[object['__type__']]
+                    yield key, object, type
+            #types = [t for self.types if issubclass(t, Object)]
+            #for key in r.scan_iter():
+            #    try:
+            #        object = r.oget(key)
+            #    except ResponseError:
+            #        # TODO: subclass response error to type
+            #        continue
+            #    if not isinstance(object, Mapping):
+            #        continue
+
+            now = self.now().isoformat() + 'Z'
+            for key, object, type in objectiter():
+                # everything in db is object, lol :)
+                #if issubclass(type, Object):
+                object['create_time'] = now
+                r.oset(key, object)
+
+            r.set('micro_version', 3)
 
         self.do_update()
 
@@ -242,9 +276,10 @@ class Application:
         from itertools import chain
 
         now = self.now()
-        deltas = [('1w', timedelta(days=7)), ('1m', timedelta(days=30)), ('1y', timedelta(days=360))]
+        deltas = [('now', timedelta()), ('1w', timedelta(days=7)), ('1m', timedelta(days=30)),
+                  ('1y', timedelta(days=360))]
         times = ([now, now - timedelta(days=1)] +
-                 list(chain.from_iterable((now - d[1], now - d[1] * 2) for d in deltas)))
+                 list(chain.from_iterable((now - d[1], now - d[1] * 2) for d in deltas[1:])))
         #print(times)
 
         counts = count_users(self, times)
@@ -252,11 +287,11 @@ class Application:
         #stats = [(v[0], v[1] - v[0]) for v in stats] # rate of change
         xstats = [(counts[i], counts[i] - counts[i + 1]) for i in range(0, len(counts), 2)]
 
-        stats = {d[0]: v for d, v in zip(deltas, xstats[1:])}
-        stats['now'] = xstats[0]
+        stats = {d[0]: v for d, v in zip(deltas, xstats)}
 
         #print(stats)
-        self.stats = stats
+        self.stats = Stats(id='Stats', trashed=False, create_time=now.isoformat() + 'Z', data=stats,
+                           app=self)
 
     @staticmethod
     def _encode(object):
@@ -527,11 +562,18 @@ class Settings(Object, Editable):
             json['staff'] = [u.json(restricted=restricted) for u in self.staff]
         return json
 
+class Stats(Object):
+    """TODO."""
+
+    def __init__(self, id, trashed, create_time, data, app):
+        super().__init__(id=id, trashed=trashed, create_time=create_time, app=app)
+        self.data = data
+
 class AuthRequest(Object):
     """See :ref:`AuthRequest`."""
 
-    def __init__(self, id, trashed, app, email, code):
-        super().__init__(id=id, trashed=trashed, app=app)
+    def __init__(self, id, trashed, create_time, app, email, code):
+        super().__init__(id=id, trashed=trashed, create_time=create_time, app=app)
         self._email = email
         self._code = code
 

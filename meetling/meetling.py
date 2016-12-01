@@ -33,9 +33,7 @@ class Meetling(Application):
                  render_email_auth_message=None):
         super().__init__(redis_url=redis_url, email=email, smtp_url=smtp_url,
                          render_email_auth_message=render_email_auth_message)
-        def _meeting(time, **kwargs):
-            return Meeting(time=parse_isotime(time) if time else time, **kwargs)
-        self.types.update({'Meeting': _meeting, 'AgendaItem': AgendaItem})
+        self.types.update({'Meeting': Meeting, 'AgendaItem': AgendaItem})
         self.meetings = JSONRedisMapping(self.r, 'meetings')
 
     def do_update(self):
@@ -93,9 +91,8 @@ class Meetling(Application):
 
     def create_settings(self):
         return Settings(
-            id='Settings', trashed=False, create_time=datetime.utcnow().isoformat() + 'Z',
-            authors=[], title='My Meetling', icon=None, favicon=None, feedback_url=None, staff=[],
-            app=self)
+            id='Settings', trashed=False, create_time=self.now().isoformat() + 'Z', authors=[],
+            title='My Meetling', icon=None, favicon=None, feedback_url=None, staff=[], app=self)
 
     def create_meeting(self, title, time=None, location=None, description=None):
         """See :http:post:`/api/meetings`."""
@@ -110,8 +107,8 @@ class Meetling(Application):
         meeting = Meeting(
             id='Meeting:' + randstr(), trashed=False,
             create_time=datetime.utcnow().isoformat() + 'Z', authors=[self.user.id], title=title,
-            time=time, location=str_or_none(location), description=str_or_none(description),
-            app=self)
+            time=time.isoformat() + 'Z' if time else None, location=str_or_none(location),
+            description=str_or_none(description), app=self)
         self.r.oset(meeting.id, meeting)
         self.r.rpush('meetings', meeting.id)
         return meeting
@@ -148,7 +145,7 @@ class Meeting(Object, Editable):
         super().__init__(id=id, trashed=trashed, create_time=create_time, app=app)
         Editable.__init__(self, authors=authors)
         self.title = title
-        self.time = time
+        self.time = parse_isotime(time) if time else None
         self.location = location
         self.description = description
 

@@ -65,6 +65,7 @@ class MeetlingServerTest(AsyncTestCase):
         yield self.request('/api/users/' + self.user.id)
         yield self.request('/api/users/' + self.user.id, method='POST', body='{"name": "Happy"}')
         yield self.request('/api/settings')
+        yield self.request('/api/stats')
         yield self.request('/api/meetings/' + self.meeting.id)
         yield self.request(
             '/api/meetings/' + self.meeting.id, method='POST',

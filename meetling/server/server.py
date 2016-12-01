@@ -99,6 +99,7 @@ class MeetlingServer(HTTPServer):
             (r'/api/users/([^/]+)/finish-set-email$', _UserFinishSetEmailEndpoint),
             (r'/api/users/([^/]+)/remove-email$', _UserRemoveEmailEndpoint),
             (r'/api/settings$', _SettingsEndpoint),
+            (r'/api/stats$', _StatsEndpoint),
             (r'/api/meetings/([^/]+)$', _MeetingEndpoint),
             (r'/api/meetings/([^/]+)/items(/trashed)?$', _MeetingItemsEndpoint),
             (r'/api/meetings/([^/]+)/trash-agenda-item$', _MeetingTrashAgendaItemEndpoint),
@@ -136,8 +137,7 @@ class MeetlingServer(HTTPServer):
         IOLoop.instance().start()
 
     def _stats(self):
-        _LOGGER.info('STAAATS')
-        self.app.stats()
+        self.app.produce_stats()
         time = (datetime.today() + timedelta(days=1)).replace(hour=0, minute=5, second=0, microsecond=0)
         #time = datetime.today() + timedelta(seconds=10)
         print(time)
@@ -377,6 +377,11 @@ class _SettingsEndpoint(Endpoint):
         settings = self.app.settings
         settings.edit(**args)
         self.write(settings.json(restricted=True, include_users=True))
+
+class _StatsEndpoint(Endpoint):
+    def get(self):
+        stats = self.app.stats
+        self.write(stats.json(restricted=True) if stats else json.dumps(None))
 
 class _MeetingEndpoint(Endpoint):
     def get(self, id):

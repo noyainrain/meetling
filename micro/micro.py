@@ -83,6 +83,9 @@ class Application:
         self.smtp_url = smtp_url
         self.render_email_auth_message = render_email_auth_message
 
+        self.stats = None
+        self.stats_meta = {'users': self._count_users}
+
     @property
     def settings(self):
         """App :class:`Settings`."""
@@ -105,7 +108,7 @@ class Application:
         if not version:
             settings = self.create_settings()
             self.r.oset(settings.id, settings)
-            self.r.set('micro_version', 1)
+            self.r.set('micro_version', 3)
             self.do_update()
             return
 
@@ -254,25 +257,6 @@ class Application:
         #    'requests': (RATE, count_requests, 60), # function gets list of ranges (start, end)
         #}
 
-        def count_users(self, times):
-            return [sum(1 for u in self.users.values() if u.create_time <= t) for t in times]
-
-        def count_meetings(self, times):
-            return [len(m for m in self.meetings.values() if m.create_time <= t) for t in times]
-
-        def count_agenda_items(self, times):
-            #return [sum(1 for m in meetings for i in m.items().values() if i.create_time <= t) for t in times]
-            meetings = self.meetings.values()
-            counts = []
-            for time in times:
-                count = 0
-                for meeting in meetings:
-                    for item in meeting.items().values():
-                        if item.create_time <= time:
-                            count += 1
-                counts.append(count)
-            return counts
-
         from itertools import chain
 
         now = self.now()
@@ -282,16 +266,52 @@ class Application:
                  list(chain.from_iterable((now - d[1], now - d[1] * 2) for d in deltas[1:])))
         #print(times)
 
-        counts = count_users(self, times)
-        #stats = [tuple(counts[i:i + 2]) for i in range(0, len(counts), 2)]
-        #stats = [(v[0], v[1] - v[0]) for v in stats] # rate of change
-        xstats = [(counts[i], counts[i] - counts[i + 1]) for i in range(0, len(counts), 2)]
-
-        stats = {d[0]: v for d, v in zip(deltas, xstats)}
+        data = {}
+        for topic, count in self.stats_meta.items():
+            counts = count(times)
+            #stats = [tuple(counts[i:i + 2]) for i in range(0, len(counts), 2)]
+            #stats = [(v[0], v[1] - v[0]) for v in stats] # rate of change
+            xstats = [(counts[i], counts[i] - counts[i + 1]) for i in range(0, len(counts), 2)]
+            data[topic] = {d[0]: v for d, v in zip(deltas, xstats)}
 
         #print(stats)
-        self.stats = Stats(id='Stats', trashed=False, create_time=now.isoformat() + 'Z', data=stats,
+        self.stats = Stats(id='Stats', trashed=False, create_time=now.isoformat() + 'Z', data=data,
                            app=self)
+
+    def sample(self):
+        """TODO."""
+        now = self.now()
+        reset_now = self.now
+        self.now = lambda: now - timedelta(days=361)
+        staff_member = self.login()
+        staff_member.edit(name='Ceiling')
+        self.login()
+        self.now = lambda: now - timedelta(days=31)
+        self.login()
+        self.now = lambda: now - timedelta(days=15)
+        self.login()
+        self.now = lambda: now - timedelta(hours=12)
+        self.login()
+        self.now = reset_now
+
+        user = self.login()
+        user.edit(name='Happy')
+        # Create an AuthRequest
+        user.set_email('happy@example.org')
+
+        self.do_sample()
+
+        self.produce_stats()
+
+    def do_sample(self):
+        """TODO.
+        Subclass API:
+
+        the currently logged in user is a std user 'Happy'.
+        """
+
+    def _count_users(self, times):
+        return [sum(1 for u in self.users.values() if u.create_time <= t) for t in times]
 
     @staticmethod
     def _encode(object):
@@ -569,6 +589,11 @@ class Stats(Object):
         super().__init__(id=id, trashed=trashed, create_time=create_time, app=app)
         self.data = data
 
+    def json(self, restricted=False):
+        json = super().json(restricted=restricted)
+        json['data'] = self.data
+        return json
+
 class AuthRequest(Object):
     """See :ref:`AuthRequest`."""
 
@@ -577,8 +602,8 @@ class AuthRequest(Object):
         self._email = email
         self._code = code
 
-    def json(self, restricted=False, attrs={}):
-        json = super().json(restricted=restricted, attrs=attrs)
+    def json(self, restricted=False):
+        json = super().json(restricted=restricted)
         json.update({'email': self._email, 'code': self._code})
         if restricted:
             del json['email']

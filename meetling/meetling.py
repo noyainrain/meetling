@@ -34,6 +34,10 @@ class Meetling(Application):
         super().__init__(redis_url=redis_url, email=email, smtp_url=smtp_url,
                          render_email_auth_message=render_email_auth_message)
         self.types.update({'Meeting': Meeting, 'AgendaItem': AgendaItem})
+        self.stats_meta.update({
+            'meetings': self._count_meetings,
+            'agenda_items': self._count_agenda_items
+        })
         self.meetings = JSONRedisMapping(self.r, 'meetings')
 
     def do_update(self):
@@ -128,6 +132,28 @@ class Meetling(Application):
         meeting.create_agenda_item('Next meeting', duration=5,
                                    description='When and where will our next meeting be?')
         return meeting
+
+    def do_sample(self):
+        user = self.user
+        self.user = self.settings.staff[0]
+        self.settings.edit(title='Meetling Lab')
+        self.user = user
+
+    def _count_meetings(self, times):
+        return [sum(1 for m in self.meetings.values() if m.create_time <= t) for t in times]
+
+    def _count_agenda_items(self, times):
+        return [sum(1 for m in self.meetings.values() for i in m.items.values() if i.create_time <= t) for t in times]
+        #meetings = self.meetings.values()
+        #counts = []
+        #for time in times:
+        #    count = 0
+        #    for meeting in meetings:
+        #        for item in meeting.items().values():
+        #            if item.create_time <= time:
+        #                count += 1
+        #    counts.append(count)
+        #return counts
 
 class Meeting(Object, Editable):
     """See :ref:`Meeting`.

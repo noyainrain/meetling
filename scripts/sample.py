@@ -25,12 +25,8 @@ def main(args):
     app = Meetling(**args)
     app.r.flushdb()
     app.update()
+    app.sample()
 
-    staff_member = app.login()
-    staff_member.edit(name='Ceiling')
-    app.settings.edit(title='Meetling Lab')
-    user = app.login()
-    user.edit(name='Happy')
     meeting1 = app.create_example_meeting()
     meeting2 = app.create_meeting('Cat hangout')
     meeting2.create_agenda_item('Eating')
@@ -42,7 +38,7 @@ def main(args):
     text = [
         'To log in as staff member, visit:',
         '',
-        'http://localhost:8080/#login={}'.format(staff_member.auth_secret),
+        'http://localhost:8080/#login={}'.format(app.settings.staff[0].auth_secret),
         '',
         'Meetings:',
         ''

@@ -104,6 +104,10 @@ small {
     text-decoration: underline;
 }
 
+.link:disabled {
+    cursor: default;
+}
+
 h1 .link {
     color: inherit;
 }
@@ -127,6 +131,10 @@ h1 .link:hover {
     line-height: 1;
     text-decoration: none;
     cursor: pointer;
+}
+
+.action:disabled {
+    cursor: default;
 }
 
 .action-subtle {

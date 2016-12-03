@@ -33,7 +33,9 @@ def main(args):
     user.edit(name='Happy')
     meeting1 = app.create_example_meeting()
     meeting2 = app.create_meeting('Cat hangout')
-    meeting2.create_agenda_item('Eating')
+    x = meeting2.create_agenda_item('Eating')
+    x.comments.create('HELLO THERE')
+    x.comments.create('danger')
     meeting2.create_agenda_item('Purring', duration=10, description='No snooping!')
     meeting2.trash_agenda_item(meeting2.create_agenda_item('Eatzing'))
     meeting2.trash_agenda_item(meeting2.create_agenda_item('Purring', duration=10,

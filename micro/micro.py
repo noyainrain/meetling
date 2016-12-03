@@ -75,7 +75,12 @@ class Application:
             raise ValueError('redis_url_invalid')
         self.r = JSONRedis(self.r, self._encode, self._decode)
 
-        self.types = {'User': User, 'Settings': Settings, 'AuthRequest': AuthRequest}
+        self.types = {
+            'User': User,
+            'Settings': Settings,
+            'Comment': Comment,
+            'AuthRequest': AuthRequest
+        }
         self.user = None
         self.users = JSONRedisMapping(self.r, 'users')
         self.email = email
@@ -451,6 +456,81 @@ class Settings(Object, Editable):
         json.update(Editable.json(self, restricted=restricted, include_users=include_users))
         if include_users:
             json['staff'] = [u.json(restricted=restricted) for u in self.staff]
+        return json
+
+class Comments(JSONRedisMapping):
+    def __init__(self, map_key, app):
+        super().__init__(app.r, map_key)
+        self.app = app
+
+    def create(self, text):
+        comment = Comment(id='Comment:' + randstr(), trashed=False, authors=[self.app.user.id],
+                          text=text, app=self.app)
+        self.app.r.oset(comment.id, comment)
+        self.app.r.rpush(self.map_key, comment.id)
+        return comment
+
+# TODO: must do this manually, not with zincrby, but with array, because
+# commetable.json should not hit the database again
+# => this means either store a) (userid, count) and make like below with zincr
+#    or b) go through all items on trash and see if another one of the user is left
+#          ^ probably this
+class Commentable:
+    def __init__(self, comment_count, commenter_ids):
+        #self._commenters_key = self.id + '.commenters'
+        self.comment_count = comment_count
+        self._commenter_ids = commenter_ids
+        self.comments = TODO
+
+    def create_comment(self, text):
+        comment = Comment(id='Comment:' + randstr(), trashed=False, authors=[self.app.user.id],
+                          text=text, app=self.app)
+        self.app.r.oset(comment.id, comment)
+        self.app.r.rpush(self.map_key, comment.id)
+        #self.app.r.zincrby(commentable._commenters_key, self.id, 1):
+        #self._commenters.add(app.user.id)
+        #self.comment_count += 1
+        return comment
+
+    def json(self, restricted=False, include=False):
+        json = {'commenters': self._commenters}
+        if include:
+            json['commenters'] = [u.json(restricted=restricted) for u in self.commenters]
+        return json
+
+class Comment(Object, Editable):
+    def __init__(self, id, trashed, authors, text, commentable, app):
+        super().__init__(id=id, trashed=trashed, app=app)
+        Editable.__init__(self, authors=authors)
+        self.text = text
+        self._commentable_id = commentable
+
+    def trash(self):
+        #if not self.app.r.zincrby(commentable._commenters_key, self.id, -1):
+        #    self.app.r.zrem(commentable._commenters_key, self.id)
+        #self.commentable.comment_count -= 1
+        #if not any(app.user in c.authors for c in self.commentable.comments):
+        #    self.commentable._commenters.remove(app.user.id)
+        self.trashed = True
+        self.app.r.oset(self.id, self)
+
+    def restore(self):
+        #self.app.r.zincrby(commentable._commenters_key, self.id, 1):
+        #self.commentable.comment_count += 1
+        #self.commentable._commenters.add(app.user.id)
+        self.trashed = False
+        self.app.r.oset(self.id, self)
+
+    def do_edit(self, **attrs):
+        if 'text' in attrs and not str_or_none(attrs['text']):
+            raise ValueError('text_empty')
+        if 'text' in attrs:
+            self.text = attrs['text']
+
+    def json(self, restricted=False, include=False):
+        json = super().json(restricted=restricted)
+        json.update(Editable.json(self, restricted=restricted, include_users=include))
+        json.update(text=self.text)
         return json
 
 class AuthRequest(Object):

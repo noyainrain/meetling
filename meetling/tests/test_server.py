@@ -83,6 +83,11 @@ class MeetlingServerTest(AsyncTestCase):
         yield self.request('/api/meetings/{}/items/{}'.format(self.meeting.id, self.item.id))
         yield self.request('/api/meetings/{}/items/{}'.format(self.meeting.id, self.item.id),
                            method='POST', body='{"title": "Intensive purring", "duration": 10}')
+        yield self.request(
+            '/api/meetings/{}/items/{}/comments'.format(self.meeting.id, self.item.id))
+        yield self.request(
+            '/api/meetings/{}/items/{}/comments'.format(self.meeting.id, self.item.id),
+            method='POST', body='{"text": "foobar"}')
 
         # API (as staff member)
         self.client_user = self.staff_member

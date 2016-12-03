@@ -21,7 +21,7 @@ from redis import RedisError
 from tornado.testing import AsyncTestCase
 
 import micro
-from micro import Application, Object, Editable, Settings
+from micro import Application, Object, Editable, Settings, Comments, Comment
 
 SETUP_DB_SCRIPT = """\
 from micro.tests.test_micro import CatApp
@@ -130,6 +130,31 @@ class UserTest(MicroTestCase):
     def test_edit(self):
         self.user.edit(name='Happy')
         self.assertEqual(self.user.name, 'Happy')
+
+class CommentsTest(MicroTestCase):
+    def test_create_comment(self):
+        comments = Comments('comments', app=self.app)
+        comment = comments.create('foobar')
+        self.assertIn(comment.id, comments)
+
+class CommentTest(MicroTestCase):
+    def setUp(self):
+        super().setUp()
+        self.comments = Comments('comments', app=self.app)
+        self.comment = self.comments.create('foobar')
+
+    def test_trash(self):
+        self.comment.trash()
+        self.assertTrue(self.comment.trashed)
+
+    def test_restore(self):
+        self.comment.trash()
+        self.comment.restore()
+        self.assertFalse(self.comment.trashed)
+
+    def test_edit(self):
+        self.comment.edit(text='oink')
+        self.assertEqual(self.comment.text, 'oink')
 
 class CatApp(Application):
     def __init__(self, redis_url=''):

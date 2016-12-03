@@ -17,7 +17,8 @@
 from datetime import datetime, timedelta
 from itertools import chain
 
-from micro import Application, Object, Editable, Settings, ValueError, InputError, PermissionError
+from micro import (Application, Object, Editable, Settings, Comments, ValueError, InputError,
+                   PermissionError)
 from micro.jsonredis import JSONRedis, JSONRedisMapping
 from micro.util import parse_isotime, randstr, str_or_none
 
@@ -248,6 +249,7 @@ class AgendaItem(Object, Editable):
         self.title = title
         self.duration = duration
         self.description = description
+        self.comments = Comments(self.id + '.comments', app=app)
 
     def do_edit(self, **attrs):
         e = InputError()

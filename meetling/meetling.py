@@ -17,7 +17,7 @@
 from datetime import datetime, timedelta
 from itertools import chain
 
-from micro import (Application, Object, Editable, Settings, Comments, ValueError, InputError,
+from micro import (Application, Object, Editable, Settings, Commentable, ValueError, InputError,
                    PermissionError)
 from micro.jsonredis import JSONRedis, JSONRedisMapping
 from micro.util import parse_isotime, randstr, str_or_none
@@ -184,7 +184,7 @@ class Meeting(Object, Editable):
 
         item = AgendaItem(
             id='AgendaItem:' + randstr(), trashed=False, app=self.app, authors=[self.app.user.id],
-            title=title, duration=duration, description=description)
+            comment_count=0, commenters=[], title=title, duration=duration, description=description)
         self.app.r.oset(item.id, item)
         self.app.r.rpush(self._items_key, item.id)
         return item
@@ -240,16 +240,17 @@ class Meeting(Object, Editable):
                                      for i in self.trashed_items.values()]
         return json
 
-class AgendaItem(Object, Editable):
+class AgendaItem(Object, Editable, Commentable):
     """See :ref:`AgendaItem`."""
 
-    def __init__(self, id, trashed, app, authors, title, duration, description):
+    def __init__(self, id, trashed, app, authors, comment_count, commenters, title, duration,
+                 description):
         super().__init__(id=id, trashed=trashed, app=app)
         Editable.__init__(self, authors=authors)
+        Commentable.__init__(self, comment_count=comment_count, commenters=commenters)
         self.title = title
         self.duration = duration
         self.description = description
-        self.comments = Comments(self.id + '.comments', app=app)
 
     def do_edit(self, **attrs):
         e = InputError()
@@ -273,4 +274,5 @@ class AgendaItem(Object, Editable):
             'description': self.description
         })
         json.update(Editable.json(self, restricted=restricted, include_users=include_users))
+        json.update(Commentable.json(self, restricted=restricted, include=include_users))
         return json

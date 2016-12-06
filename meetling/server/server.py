@@ -105,7 +105,7 @@ class MeetlingServer(HTTPServer):
             (r'/api/meetings/([^/]+)/move-agenda-item$', _MeetingMoveAgendaItemEndpoint),
             (r'/api/meetings/([^/]+)/items/([^/]+)$', _AgendaItemEndpoint),
             (r'/api/meetings/([^/]+)/items/([^/]+)/comments$', CommentsEndpoint,
-             {'get_comments': lambda m, i: self.app.meetings[m].items[i].comments})
+             {'get_comments': lambda m, i: self.app.meetings[m].items[i]})
         ]
         # pylint: disable=protected-access; meetling is a friend
         application = Application(
@@ -372,21 +372,21 @@ class _SettingsEndpoint(Endpoint):
         settings.edit(**args)
         self.write(settings.json(restricted=True, include_users=True))
 
+# TODO: Commentable
 class CommentsEndpoint(Endpoint):
     def initialize(self, get_comments):
-        print('INIT COMMENTS ENDPOINT')
         super().initialize()
         self.get_comments = get_comments
 
     def get(self, *args):
-        comments = self.get_comments(*args)
-        self.write(json.dumps([c.json(restricted=True, include=True) for c in comments.values()]))
+        commentable = self.get_comments(*args)
+        self.write(json.dumps([c.json(restricted=True, include=True) for c in commentable.comments.values()]))
 
     def post(self, *args):
-        comments = self.get_comments(*args)
+        commentable = self.get_comments(*args)
 
         args = self.check_args({'text': str})
-        comment = comments.create(**args)
+        comment = commentable.create_comment(**args)
         self.write(comment.json(restricted=True, include=True))
 
 class _MeetingEndpoint(Endpoint):

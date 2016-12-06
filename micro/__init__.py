@@ -19,5 +19,5 @@ communicating with the Redis server.
 """
 
 from micro.micro import (
-    Application, Object, Editable, User, Settings, Comments, Comment, AuthRequest, ValueError,
+    Application, Object, Editable, User, Settings, Commentable, Comment, AuthRequest, ValueError,
     InputError, AuthenticationError, PermissionError, EmailError)

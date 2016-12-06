@@ -21,7 +21,7 @@ from redis import RedisError
 from tornado.testing import AsyncTestCase
 
 import micro
-from micro import Application, Object, Editable, Settings, Comments, Comment
+from micro import Application, Object, Editable, Settings, Commentable, Comment
 
 SETUP_DB_SCRIPT = """\
 from micro.tests.test_micro import CatApp
@@ -41,6 +41,8 @@ class MicroTestCase(AsyncTestCase):
         self.app.update()
         self.staff_member = self.app.login()
         self.user = self.app.login()
+        self.cat = Cat(id='Cat', trashed=False, app=self.app, authors=[], comment_count=0,
+                       commenters=[], name=None)
 
 class ApplicationTest(MicroTestCase):
     def test_init_redis_url_invalid(self):
@@ -105,10 +107,6 @@ class ApplicationUpdateTest(AsyncTestCase):
         self.assertIsNone(app.settings.feedback_url)
 
 class EditableTest(MicroTestCase):
-    def setUp(self):
-        super().setUp()
-        self.cat = Cat(id='Cat', trashed=False, app=self.app, authors=[], name=None)
-
     def test_edit(self):
         self.cat.edit(name='Happy')
         self.cat.edit(name='Grumpy')
@@ -131,26 +129,32 @@ class UserTest(MicroTestCase):
         self.user.edit(name='Happy')
         self.assertEqual(self.user.name, 'Happy')
 
-class CommentsTest(MicroTestCase):
+class CommentableTest(MicroTestCase):
     def test_create_comment(self):
-        comments = Comments('comments', app=self.app)
-        comment = comments.create('foobar')
-        self.assertIn(comment.id, comments)
+        self.cat.create_comment('foobar')
+        self.cat.create_comment('foobar')
+        user2 = self.app.login()
+        self.cat.create_comment('foobar')
+        self.assertEqual(self.cat.comment_count, 3)
+        self.assertEqual(self.cat.commenters, [self.user, user2])
 
 class CommentTest(MicroTestCase):
     def setUp(self):
         super().setUp()
-        self.comments = Comments('comments', app=self.app)
-        self.comment = self.comments.create('foobar')
+        self.comment = self.cat.create_comment('foobar')
 
     def test_trash(self):
         self.comment.trash()
         self.assertTrue(self.comment.trashed)
+        self.assertEqual(self.cat.comment_count, 0)
+        self.assertEqual(self.cat.commenters, [])
 
     def test_restore(self):
         self.comment.trash()
         self.comment.restore()
         self.assertFalse(self.comment.trashed)
+        self.assertEqual(self.cat.comment_count, 1)
+        self.assertEqual(self.cat.commenters, [self.user])
 
     def test_edit(self):
         self.comment.edit(text='oink')
@@ -170,10 +174,11 @@ class CatApp(Application):
         auth_request = user.set_email('happy@example.org')
         self.r.set('auth_request', auth_request.id)
 
-class Cat(Object, Editable):
-    def __init__(self, id, trashed, app, authors, name):
+class Cat(Object, Editable, Commentable):
+    def __init__(self, id, trashed, app, authors, comment_count, commenters, name):
         super().__init__(id=id, trashed=trashed, app=app)
         Editable.__init__(self, authors=authors)
+        Commentable.__init__(self, comment_count=comment_count, commenters=commenters)
         self.name = name
 
     def do_edit(self, **attrs):
@@ -183,4 +188,5 @@ class Cat(Object, Editable):
     def json(self, restricted=False, include_users=False):
         json = super().json(attrs={'name': self.name})
         json.update(Editable.json(self, restricted=restricted, include_users=include_users))
+        json.update(Commentable.json(self, restricted=restricted, include=include_users))
         return json

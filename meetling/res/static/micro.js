@@ -473,6 +473,58 @@ micro.Menu = document.registerElement("micro-menu",
 })});
 
 /**
+ * TODO.
+ *
+ * .. attribute:: url
+ *
+ *    TODO.
+ */
+micro.CommentsElement = class extends HTMLElement {
+    createdCallback() {
+        this.url = null;
+        this.appendChild(document.importNode(ui.querySelector('.micro-comments-template').content,
+                                             true));
+    }
+
+    attachedCallback() {
+        micro.call('GET', this.url + '/comments').then(comments => {
+            let ul = this.querySelector('ul');
+            let commentLi = this.querySelector('.micro-comments-comment');
+            for (let comment of comments) {
+                let li = document.createElement('li', 'micro-comment');
+                li.comment = comment;
+                ul.insertBefore(commentLi, li);
+            }
+            this.classList.add('micro-comments-complete');
+        });
+    }
+}
+
+/**
+ * TODO.
+ *
+ * .. attribute:: comment
+ *
+ *    TODO.
+ */
+micro.CommentElement = class extends HTMLLIElement {
+    createdCallback() {
+        this._comment = null;
+        this.appendChild(document.importNode(ui.querySelector('.micro-comment-template').content,
+                                             true));
+    }
+
+    get comment() {
+        return this._comment;
+    }
+
+    set comment(value) {
+        this._comment = comment;
+        // TODO set user time text
+    }
+}
+
+/**
  * Not found page.
  */
 micro.NotFoundPage = document.registerElement('micro-not-found-page',
@@ -493,3 +545,6 @@ micro.ForbiddenPage = document.registerElement('micro-forbidden-page',
             ui.querySelector('.micro-forbidden-page-template').content, true));
     }}
 })});
+
+document.registerElement('micro-comments', micro.CommentsElement);
+document.registerElement('micro-comment', micro.CommentElement);

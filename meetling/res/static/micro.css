@@ -269,6 +269,12 @@ form > label {
     cursor: move;
 }
 
+/* ---- CommentsElement ---- */
+
+.micro-comments-complete .micro-progress {
+    display: none;
+}
+
 /* ---- BootPage ---- */
 
 .micro-boot-page {

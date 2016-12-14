@@ -38,6 +38,13 @@ class MeetlingServerTest(AsyncTestCase):
         self.meeting = self.server.app.create_meeting('Cat hangout')
         self.item = self.meeting.create_agenda_item('Eating')
 
+        self.comments = [
+            self.meeting.create_comment('foobar'),
+            self.meeting.create_comment('foobar'),
+            self.meeting.create_comment('foobar')
+        ]
+        self.comments[1].trash()
+
         self.client_user = self.user
 
     def request(self, url, **args):
@@ -83,17 +90,53 @@ class MeetlingServerTest(AsyncTestCase):
         yield self.request('/api/meetings/{}/items/{}'.format(self.meeting.id, self.item.id))
         yield self.request('/api/meetings/{}/items/{}'.format(self.meeting.id, self.item.id),
                            method='POST', body='{"title": "Intensive purring", "duration": 10}')
-        yield self.request(
-            '/api/meetings/{}/items/{}/comments'.format(self.meeting.id, self.item.id))
-        yield self.request(
-            '/api/meetings/{}/items/{}/comments'.format(self.meeting.id, self.item.id),
-            method='POST', body='{"text": "foobar"}')
 
         # API (as staff member)
         self.client_user = self.staff_member
         yield self.request(
             '/api/settings', method='POST',
             body='{"title": "Cat Meetling", "icon": "http://example.org/static/icon.svg"}')
+
+    @gen_test
+    def test_get_comments(self):
+        response = yield self.request('/api/meetings/{}/comments'.format(self.meeting.id))
+        comments = json.loads(response.body.decode())
+        self.assertEqual([c['id'] for c in comments], [c.id for c in self.comments])
+
+    @gen_test
+    def test_get_comments_trashed_by_other(self):
+        self.client_user = self.staff_member
+        response = yield self.request('/api/meetings/{}/comments'.format(self.meeting.id))
+        comments = json.loads(response.body.decode())
+        self.assertEqual([c['id'] for c in comments], [self.comments[0].id, self.comments[2].id])
+
+    @gen_test
+    def test_post_comments(self):
+        yield self.request('/api/meetings/{}/comments'.format(self.meeting.id), method='POST',
+                           body='{"text": "foobar"}')
+
+    @gen_test
+    def test_get_comment(self):
+        yield self.request(
+            '/api/meetings/{}/comments/{}'.format(self.meeting.id, self.comments[0].id))
+
+    @gen_test
+    def test_post_comment(self):
+        yield self.request(
+            '/api/meetings/{}/comments/{}'.format(self.meeting.id, self.comments[0].id),
+            method='POST', body='{"text": "oink"}')
+
+    @gen_test
+    def test_post_comment_trash(self):
+        yield self.request(
+            '/api/meetings/{}/comments/{}/trash'.format(self.meeting.id, self.comments[0].id),
+            method='POST', body='')
+
+    @gen_test
+    def test_post_comment_restore(self):
+        yield self.request(
+            '/api/meetings/{}/comments/{}/restore'.format(self.meeting.id, self.comments[1].id),
+            method='POST', body='')
 
     @gen_test
     def test_get_meeting(self):

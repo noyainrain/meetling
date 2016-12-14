@@ -536,6 +536,8 @@ class Comment(Object, Editable):
     def trash(self):
         if self.app.user != self.authors[0]:
             raise PermissionError()
+        if self.trashed:
+            raise ValueError('comment_trashed')
 
         self.trashed = True
         self.app.r.oset(self.id, self)
@@ -544,6 +546,8 @@ class Comment(Object, Editable):
     def restore(self):
         if self.app.user != self.authors[0]:
             raise PermissionError()
+        if not self.trashed:
+            raise ValueError('comment_not_trashed')
 
         self.trashed = False
         self.app.r.oset(self.id, self)

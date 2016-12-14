@@ -107,8 +107,9 @@ class Meetling(Application):
         e.trigger()
 
         meeting = Meeting(
-            id='Meeting:' + randstr(), trashed=False, app=self, authors=[self.user.id], title=title,
-            time=time, location=str_or_none(location), description=str_or_none(description))
+            id='Meeting:' + randstr(), trashed=False, app=self, authors=[self.user.id],
+            comment_count=0, commenters=[], title=title, time=time, location=str_or_none(location),
+            description=str_or_none(description))
         self.r.oset(meeting.id, meeting)
         self.r.rpush('meetings', meeting.id)
         return meeting
@@ -129,7 +130,7 @@ class Meetling(Application):
                                    description='When and where will our next meeting be?')
         return meeting
 
-class Meeting(Object, Editable):
+class Meeting(Object, Editable, Commentable):
     """See :ref:`Meeting`.
 
     .. attribute:: items
@@ -141,9 +142,11 @@ class Meeting(Object, Editable):
        Ordered map of trashed (deleted) :class:`AgendaItem` s.
     """
 
-    def __init__(self, id, trashed, app, authors, title, time, location, description):
+    def __init__(self, id, trashed, app, authors, comment_count, commenters, title, time, location,
+                 description):
         super().__init__(id=id, trashed=trashed, app=app)
         Editable.__init__(self, authors=authors)
+        Commentable.__init__(self, comment_count=comment_count, commenters=commenters)
         self.title = title
         self.time = time
         self.location = location
@@ -233,6 +236,7 @@ class Meeting(Object, Editable):
             'description': self.description
         })
         json.update(Editable.json(self, restricted=restricted, include_users=include_users))
+        json.update(Commentable.json(self, restricted=restricted, include=include_users))
         if include_items:
             json['items'] = [i.json(restricted=restricted, include_users=include_users)
                              for i in self.items.values()]

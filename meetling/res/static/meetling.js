@@ -757,6 +757,9 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
             this.querySelector('.meetling-meeting-edit').href =
                 `/meetings/${this._meeting.id}/edit`;
             this._update();
+
+            // TODO
+            this.querySelector('micro-comments').url = `/api/meetings/${this._meeting.id}`;
         }
     },
 

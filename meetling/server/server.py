@@ -99,14 +99,18 @@ class MeetlingServer(HTTPServer):
             (r'/api/users/([^/]+)/remove-email$', _UserRemoveEmailEndpoint),
             (r'/api/settings$', _SettingsEndpoint),
             (r'/api/meetings/([^/]+)$', _MeetingEndpoint),
+            # TODO; does this work with python < 3.5?
+            *commentable_endpoints(r'/api/meetings/([^/]+)', lambda i, *a: self.app.meetings[i]),
             (r'/api/meetings/([^/]+)/items(/trashed)?$', _MeetingItemsEndpoint),
             (r'/api/meetings/([^/]+)/trash-agenda-item$', _MeetingTrashAgendaItemEndpoint),
             (r'/api/meetings/([^/]+)/restore-agenda-item$', _MeetingRestoreAgendaItemEndpoint),
             (r'/api/meetings/([^/]+)/move-agenda-item$', _MeetingMoveAgendaItemEndpoint),
             (r'/api/meetings/([^/]+)/items/([^/]+)$', _AgendaItemEndpoint),
-            (r'/api/meetings/([^/]+)/items/([^/]+)/comments$', CommentsEndpoint,
-             {'get_comments': lambda m, i: self.app.meetings[m].items[i]})
+            *commentable_endpoints(r'/api/meetings/([^/]+)/items/([^/]+)',
+                                   lambda m, i: self.app.meetings[m].items[i])
         ]
+        from pprint import pformat
+        #print(pformat(handlers))
         # pylint: disable=protected-access; meetling is a friend
         application = Application(
             handlers, compress_response=True,
@@ -372,22 +376,54 @@ class _SettingsEndpoint(Endpoint):
         settings.edit(**args)
         self.write(settings.json(restricted=True, include_users=True))
 
-# TODO: Commentable
-class CommentsEndpoint(Endpoint):
-    def initialize(self, get_comments):
-        super().initialize()
-        self.get_comments = get_comments
+def commentable_endpoints(url, get_commentable):
+    args = {'get_commentable': get_commentable}
+    return [
+        (url + r'/comments$', _CommentsEndpoint, args),
+        (url + r'/comments/([^/]+)$', _CommentEndpoint, args),
+        (url + r'/comments/([^/]+)/trash$', _CommentTrashEndpoint, args),
+        (url + r'/comments/([^/]+)/restore$', _CommentRestoreEndpoint, args)
+	]
 
+class _CommentableEndpoint(Endpoint):
+    def initialize(self, get_commentable):
+        super().initialize()
+        self.get_commentable = get_commentable
+
+class _CommentsEndpoint(_CommentableEndpoint):
     def get(self, *args):
-        commentable = self.get_comments(*args)
-        self.write(json.dumps([c.json(restricted=True, include=True) for c in commentable.comments.values()]))
+        comments = self.get_commentable(*args).comments
+        comments = (c for c in comments.values() if not c.trashed or self.app.user == c.authors[0])
+        self.write(json.dumps([c.json(restricted=True, include=True) for c in comments]))
 
     def post(self, *args):
-        commentable = self.get_comments(*args)
-
+        commentable = self.get_commentable(*args)
         args = self.check_args({'text': str})
         comment = commentable.create_comment(**args)
         self.write(comment.json(restricted=True, include=True))
+
+class _CommentEndpoint(_CommentableEndpoint):
+    def get(self, *args):
+        comment = self.get_commentable(*args).comments[args[-1]]
+        self.write(comment.json(restricted=True, include=True))
+
+    def post(self, *args):
+        comment = self.get_commentable(*args).comments[args[-1]]
+        args = self.check_args({'text': (str, 'opt')})
+        comment.edit(**args)
+        self.write(comment.json(restricted=True, include=True))
+
+class _CommentTrashEndpoint(_CommentableEndpoint):
+    def post(self, *args):
+        comment = self.get_commentable(*args).comments[args[-1]]
+        comment.trash()
+        self.write(json.dumps(None))
+
+class _CommentRestoreEndpoint(_CommentableEndpoint):
+    def post(self, *args):
+        comment = self.get_commentable(*args).comments[args[-1]]
+        comment.restore()
+        self.write(json.dumps(None))
 
 class _MeetingEndpoint(Endpoint):
     def get(self, id):

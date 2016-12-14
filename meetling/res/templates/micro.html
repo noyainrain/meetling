@@ -9,3 +9,32 @@
     <p>Oops, you are not allowed to view this page!<p>
     <p><small>If you've been here before, someone has revoked your permission.</small></p>
 </template>
+
+<template class="micro-comments-template">
+    <ul>
+        <li class="micro-progress"><i class="fa fa-spinner fa-spin"></i></li>
+        <li class="micro-comments-comment">
+            <form>
+                <label>
+                    <textarea name="text"></textarea>
+                </label>
+                <p class="actions">
+                    <button class="action"><i class="fa fa-comment"></i> Comment</button>
+                </p>
+            </form>
+        </li>
+    </ul>
+</template>
+
+<template class="micro-comment-template">
+    <header class="group">
+        <p><micro-user></micro-user>, <time></time></p>
+        <micro-menu>
+            <button class="action action-subtle"><i class="fa fa-pencil"></i> Edit</button>
+            <button class="action action-subtle micro-menu-secondary">
+                <i class="fa fa-trash-o"></i> Trash
+            </button>
+        </micro-menu>
+    </header>
+    <p class="micro-multiline"></p>
+</template>

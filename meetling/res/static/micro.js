@@ -484,19 +484,44 @@ micro.CommentsElement = class extends HTMLElement {
         this.url = null;
         this.appendChild(document.importNode(ui.querySelector('.micro-comments-template').content,
                                              true));
+        this.classList.add('micro-comments-no-comments');
+        this.querySelector('.micro-comments-comment button').run = this._comment.bind(this);
+
+        this.form = this.querySelector('form');
+        this.textarea = this.form.elements['text'];
+        this.textarea.addEventListener('change', this);
     }
 
     attachedCallback() {
-        micro.call('GET', this.url + '/comments').then(comments => {
-            let ul = this.querySelector('ul');
-            let commentLi = this.querySelector('.micro-comments-comment');
-            for (let comment of comments) {
-                let li = document.createElement('li', 'micro-comment');
-                li.comment = comment;
-                ul.insertBefore(commentLi, li);
-            }
+        micro.call('GET', `${this.url}/comments`).then(comments => {
+            comments.forEach(this._addComment.bind(this));
             this.classList.add('micro-comments-complete');
         });
+    }
+
+    _comment() {
+        let form = this.querySelector('form');
+        return micro.call('POST', `${this.url}/comments`, {
+            text: form.elements['text'].value
+        }).then(comment => {
+            form.elements['text'].value = '';
+            this._addComment(comment);
+        });
+    }
+
+    _addComment(comment) {
+        this.classList.remove('micro-comments-no-comments')
+        let ul = this.querySelector('ul');
+        let commentLi = this.querySelector('.micro-comments-comment');
+        let li = document.createElement('li', 'micro-comment');
+        li.comment = comment;
+        ul.insertBefore(li, commentLi);
+    }
+
+    handleEvent(event) {
+        if (event.target === this.textarea && event.type === 'change') {
+            this.textarea.setCustomValidity(this.textarea.value.trim() ? '' : 'Please fill out this field.');
+        }
     }
 }
 
@@ -519,8 +544,9 @@ micro.CommentElement = class extends HTMLLIElement {
     }
 
     set comment(value) {
-        this._comment = comment;
-        // TODO set user time text
+        this._comment = value;
+        this.querySelector('meetling-user').user = this._comment.authors[0];
+        this.querySelector('.micro-comment-text').textContent = this._comment.text;
     }
 }
 
@@ -547,4 +573,5 @@ micro.ForbiddenPage = document.registerElement('micro-forbidden-page',
 })});
 
 document.registerElement('micro-comments', micro.CommentsElement);
-document.registerElement('micro-comment', micro.CommentElement);
+document.registerElement('micro-comment',
+                         {extends: 'li', prototype: micro.CommentElement.prototype});

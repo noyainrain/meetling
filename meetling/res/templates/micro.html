@@ -11,15 +11,18 @@
 </template>
 
 <template class="micro-comments-template">
-    <ul>
-        <li class="micro-progress"><i class="fa fa-spinner fa-spin"></i></li>
+    <ul class="micro-object-list">
+        <li class="micro-progress"><p><i class="fa fa-spinner fa-spin"></i></p></li>
+        <li class="micro-comments-no-comments-label"><p>There are no comments yet.</p></li>
         <li class="micro-comments-comment">
             <form>
                 <label>
-                    <textarea name="text"></textarea>
+                    <textarea name="text" required="required"></textarea>
                 </label>
                 <p class="actions">
-                    <button class="action"><i class="fa fa-comment"></i> Comment</button>
+                    <button is="micro-button" class="action">
+                        <i class="fa fa-comment"></i> Comment
+                    </button>
                 </p>
             </form>
         </li>
@@ -28,7 +31,7 @@
 
 <template class="micro-comment-template">
     <header class="group">
-        <p><micro-user></micro-user>, <time></time></p>
+        <p><meetling-user></meetling-user>:</p>
         <micro-menu>
             <button class="action action-subtle"><i class="fa fa-pencil"></i> Edit</button>
             <button class="action action-subtle micro-menu-secondary">
@@ -36,5 +39,5 @@
             </button>
         </micro-menu>
     </header>
-    <p class="micro-multiline"></p>
+    <p class="micro-comment-text micro-multiline"></p>
 </template>

@@ -41,6 +41,7 @@ small {
 
 .group {
     display: flex;
+    align-items: baseline;
 }
 
 .group > * {
@@ -84,6 +85,33 @@ small {
 
 .micro-progress {
     color: #4d8dd9;
+}
+
+/* TODO: micro-complex-list? */
+
+.micro-object-list {
+    padding: 0;
+    list-style: none;
+}
+
+.micro-object-list li:not(.micro-lgroup) {
+    /* ? */
+    padding-left: calc(1.5em * 2);
+}
+
+.micro-object-list li:not(.micro-lgroup):not(:last-child) {
+    /*padding: calc(1.5em / 2) 0;*/
+    padding-top: 1px;
+    /* because first child often invisible, last child not */
+    border-bottom: 1px solid #ddd;
+}
+
+.micro-object-list h1,
+.micro-object-list p,
+.micro-object-list ul,
+.micro-object-list ol,
+.micro-object-list form > label {
+    margin: calc(1.5rem / 2) 0;
 }
 
 /* ---- Links ---- */
@@ -189,7 +217,8 @@ select {
     font: inherit;
 }
 
-input:invalid {
+input:invalid,
+textarea:invalid {
     box-shadow: none;
 }
 
@@ -273,6 +302,27 @@ form > label {
 
 .micro-comments-complete .micro-progress {
     display: none;
+}
+
+micro-comments:not(.micro-comments-complete) .micro-comments-no-comments-label,
+micro-comments:not(.micro-comments-no-comments) .micro-comments-no-comments-label {
+    display: none;
+}
+
+.micro-comments-no-comments-label {
+    color: #888;
+    font-style: italic;
+}
+
+micro-comments label > textarea {
+    height: calc(2 * 1.5em + 2 * 1.5em / 4);
+}
+
+/* ---- CommentElement ---- */
+
+[is="micro-comment"] header > p {
+    flex: auto;
+    margin-bottom: 0;
 }
 
 /* ---- BootPage ---- */

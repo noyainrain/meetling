@@ -492,6 +492,9 @@ class Commentable:
         return self.app.r.omget(self._commenters)
 
     def create_comment(self, text):
+        if not str_or_none(text):
+            raise ValueError('text_empty')
+
         comment = Comment(id='Comment:' + randstr(), trashed=False, authors=[self.app.user.id],
                           text=text, commentable=self.id, app=self.app)
         self.app.r.rpush(self.comments.map_key, comment.id)

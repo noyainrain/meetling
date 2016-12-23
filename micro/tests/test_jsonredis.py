@@ -5,19 +5,22 @@
 
 # pylint: disable=missing-docstring; test module
 
-import json
 from collections import OrderedDict
 from itertools import count
+import json
 from unittest import TestCase
+from unittest.mock import Mock
+
 from redis import StrictRedis
 from redis.exceptions import ResponseError
-from micro.jsonredis import JSONRedis, JSONRedisMapping
+from micro.jsonredis import JSONRedis, JSONRedisSequence, JSONRedisMapping
 
-class JSONRedisTest(TestCase):
+class JSONRedisTestCase(TestCase):
     def setUp(self):
         self.r = JSONRedis(StrictRedis(db=15), encode=Cat.encode, decode=Cat.decode)
         self.r.flushdb()
 
+class JSONRedisTest(JSONRedisTestCase):
     def test_oset_oget(self):
         cat = Cat('cat:0', 'Happy')
         self.r.oset('cat:0', cat)
@@ -75,11 +78,59 @@ class JSONRedisTest(TestCase):
         got_cats = self.r.omget(cats.keys())
         self.assertEqual(got_cats, list(cats.values()))
 
-class JSONRedisMappingTest(TestCase):
+class JSONRedisSequenceTest(JSONRedisTestCase):
     def setUp(self):
-        self.r = JSONRedis(StrictRedis(db=15), encode=Cat.encode, decode=Cat.decode)
-        self.r.flushdb()
+        super().setUp()
+        self.list = [Cat('Cat:0', 'Happy'), Cat('Cat:1', 'Grumpy'), Cat('Cat:2', 'Long'),
+                     Cat('Cat:3', 'Monorail')]
+        self.r.omset({c.id: c for c in self.list})
+        self.r.rpush('cats', *(c.id for c in self.list))
+        self.cats = JSONRedisSequence(self.r, 'cats')
 
+    def test_getitem(self):
+        self.assertEqual(self.cats[1], self.list[1])
+
+    def test_getitem_key_negative(self):
+        self.assertEqual(self.cats[-2], self.list[-2])
+
+    def test_getitem_key_out_of_range(self):
+        with self.assertRaises(IndexError):
+            # pylint: disable=pointless-statement; error is triggered on access
+            self.cats[42]
+
+    def test_getitem_key_slice(self):
+        self.assertEqual(self.cats[1:3], self.list[1:3])
+
+    def test_getitem_key_no_start(self):
+        self.assertEqual(self.cats[:3], self.list[:3])
+
+    def test_getitem_key_no_stop(self):
+        self.assertEqual(self.cats[1:], self.list[1:])
+
+    def test_getitem_key_stop_zero(self):
+        self.assertFalse(self.cats[0:0])
+
+    def test_getitem_key_stop_lt_start(self):
+        self.assertFalse(self.cats[3:1])
+
+    def test_getitem_key_stop_negative(self):
+        self.assertEqual(self.cats[1:-1], self.list[1:-1])
+
+    def test_getitem_key_stop_out_of_range(self):
+        self.assertEqual(self.cats[0:42], self.list)
+
+    def test_getitem_pre(self):
+        pre = Mock()
+        cats = JSONRedisSequence(self.r, 'cats', pre=pre)
+        self.assertTrue(cats[0])
+        pre.assert_called_once_with()
+
+    def test_len(self):
+        self.assertEqual(len(self.cats), len(self.list))
+
+class JSONRedisMappingTest(JSONRedisTestCase):
+    def setUp(self):
+        super().setUp()
         self.objects = OrderedDict([
             ('cat:0', Cat('cat:0', 'Happy')),
             ('cat:1', Cat('cat:1', 'Grumpy')),

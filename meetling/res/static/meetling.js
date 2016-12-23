@@ -199,7 +199,7 @@ meetling.UI = document.registerElement('meetling-ui',
         this.user = JSON.parse(localStorage.user);
         this.settings = null;
 
-        this.pages = [
+        this.pages = this.pages.concat([
             {url: '^/$', page: 'meetling-start-page'},
             {url: '^/about$', page: 'meetling-about-page'},
             {url: '^/create-meeting$', page: 'meetling-edit-meeting-page'},
@@ -207,7 +207,20 @@ meetling.UI = document.registerElement('meetling-ui',
             {url: '^/settings/edit$', page: this._makeEditSettingsPage.bind(this)},
             {url: '^/meetings/([^/]+)$', page: this._makeMeetingPage.bind(this)},
             {url: '^/meetings/([^/]+)/edit$', page: this._makeEditMeetingPage.bind(this)}
-        ];
+        ]);
+
+        Object.assign(this.renderEvent, {
+            'create-meeting': event => {
+                var a = document.createElement('a');
+                a.classList.add('link');
+                a.href = `/meetings/${event.detail.meeting.id}`;
+                a.textContent = event.detail.meeting.title;
+                var userElem = document.createElement('meetling-user');
+                userElem.user = event.user;
+                return micro.util.formatFragment('{meeting} was created by {user}',
+                                                 {meeting: a, user: userElem});
+            }
+        });
 
         window.addEventListener('error', this);
         this.addEventListener('user-edit', this);
@@ -298,6 +311,8 @@ meetling.UI = document.registerElement('meetling-ui',
 
     _update: {value: function() {
         document.title = this.settings.title;
+        this.classList.toggle('meetling-ui-user-is-staff', this.staff)
+        this.classList.toggle('meetling-ui-settings-have-feedback-url', this.settings.feedback_url);
         this.querySelector('.meetling-ui-logo-text').textContent = this.settings.title;
         var img = this.querySelector('.meetling-ui-logo img');
         if (this.settings.favicon) {
@@ -307,7 +322,6 @@ meetling.UI = document.registerElement('meetling-ui',
         } else {
             img.style.display = 'none';
         }
-        this.classList.toggle('meetling-ui-settings-have-feedback-url', this.settings.feedback_url);
         this.querySelector('.meetling-ui-feedback a').href = this.settings.feedback_url;
 
         this.querySelector('.micro-ui-header meetling-user').user = this.user;

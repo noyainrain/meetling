@@ -26,7 +26,7 @@ from urllib.parse import urlparse
 
 import micro
 from micro import AuthRequest
-from micro.server import Endpoint
+from micro.server import Endpoint, make_list_endpoints
 from micro.util import str_or_none, parse_isotime
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
@@ -105,6 +105,7 @@ class MeetlingServer(HTTPServer):
             (r'/api/meetings/([^/]+)/move-agenda-item$', _MeetingMoveAgendaItemEndpoint),
             (r'/api/meetings/([^/]+)/items/([^/]+)$', _AgendaItemEndpoint)
         ]
+        handlers += make_list_endpoints(r'/api/activity', lambda *a: self.app.activity)
         # pylint: disable=protected-access; meetling is a friend
         application = Application(
             handlers, compress_response=True,

@@ -22,6 +22,18 @@ If user authentication with the given secret fails, an :ref:`AuthenticationError
 any endpoint, a :ref:`PermissionError` is returned if the current user is not allowed to perform the
 action.
 
+Lists
+-----
+
+For most API endpoints which return a list, a slice of the form ``/(start):(stop)`` may be appended
+to the URL, where *start* (inclusive) and *stop* (exclusive) are indices of the items to return.
+The maximum number of items is limited to a *limit* of ``100``. Both *start* and *stop* are optional
+and default to ``0`` and ``start + limit`` respectively.
+
+Example: ``/api/activity`` (which is equivalent to ``/api/activity/:`` or ``/api/activity/0:100``)
+returns the first hundred items (i.e. global events) and ``/api/activity/10:20`` returns the items
+from index 10 up to including 19.
+
 Usage examples
 --------------
 
@@ -65,6 +77,10 @@ Application
 -----------
 
 Social micro web app.
+
+.. http:get:: /api/activity
+
+   Global :ref:`Activity` feed.
 
 .. http:post:: /api/login
 
@@ -244,6 +260,48 @@ Settings is an :ref:`Object` and :ref:`Editable` by staff members.
 .. http:get:: /api/settings
 
    Get the settings.
+
+.. _Activity:
+
+Activity
+--------
+
+Activity feed (of events) around a common topic/context.
+
+*activity-url* is the URL that identifies the activity feed, e.g. ``/api/activity``.
+
+.. http:get:: (activity-url)
+
+   Get the list of recorded :ref:`Events`.
+
+.. _Event:
+
+Event
+-----
+
+Event about an action on an *object* by an *user*.
+
+Event is an :ref:`Object`.
+
+.. attribute:: type
+
+   Type of the event.
+
+.. attribute:: object
+
+   :ref:`Object` for which the event happened. ``null`` if it is a global event.
+
+.. attribute:: user
+
+   :ref:`User` who triggered the event.
+
+.. describe:: time
+
+   Date and time at which the event happened.
+
+.. attribute:: detail
+
+   Dictionary with additonal details about the event. The contents depend on the event *type*.
 
 .. _Meeting:
 

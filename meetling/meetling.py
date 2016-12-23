@@ -17,7 +17,8 @@
 from datetime import datetime, timedelta
 from itertools import chain
 
-from micro import Application, Object, Editable, Settings, ValueError, InputError, PermissionError
+from micro import (Application, Object, Editable, Settings, Event, ValueError, InputError,
+                   PermissionError)
 from micro.jsonredis import JSONRedis, JSONRedisMapping
 from micro.util import parse_isotime, randstr, str_or_none
 
@@ -33,9 +34,7 @@ class Meetling(Application):
                  render_email_auth_message=None):
         super().__init__(redis_url=redis_url, email=email, smtp_url=smtp_url,
                          render_email_auth_message=render_email_auth_message)
-        def _meeting(time, **kwargs):
-            return Meeting(time=parse_isotime(time) if time else time, **kwargs)
-        self.types.update({'Meeting': _meeting, 'AgendaItem': AgendaItem})
+        self.types.update({'Meeting': Meeting, 'AgendaItem': AgendaItem})
         self.meetings = JSONRedisMapping(self.r, 'meetings')
 
     def do_update(self):
@@ -107,9 +106,12 @@ class Meetling(Application):
 
         meeting = Meeting(
             id='Meeting:' + randstr(), trashed=False, app=self, authors=[self.user.id], title=title,
-            time=time, location=str_or_none(location), description=str_or_none(description))
+            time=time.isoformat() + 'Z' if time else None, location=str_or_none(location),
+            description=str_or_none(description))
         self.r.oset(meeting.id, meeting)
         self.r.rpush('meetings', meeting.id)
+
+        self.activity.publish(Event.create('create-meeting', None, {'meeting': meeting}, app=self))
         return meeting
 
     def create_example_meeting(self):
@@ -144,7 +146,7 @@ class Meeting(Object, Editable):
         super().__init__(id=id, trashed=trashed, app=app)
         Editable.__init__(self, authors=authors)
         self.title = title
-        self.time = time
+        self.time = parse_isotime(time) if time else None
         self.location = location
         self.description = description
 
@@ -264,7 +266,7 @@ class AgendaItem(Object, Editable):
         if 'description' in attrs:
             self.description = str_or_none(attrs['description'])
 
-    def json(self, restricted=False, include_users=False):
+    def json(self, restricted=False, include=False, include_users=False):
         json = super().json(attrs={
             'title': self.title,
             'duration': self.duration,

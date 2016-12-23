@@ -24,7 +24,10 @@ import json
 
 from tornado.web import RequestHandler, HTTPError
 
-from micro import ValueError, InputError, AuthenticationError, PermissionError
+from micro import Object, ValueError, InputError, AuthenticationError, PermissionError
+from micro.util import parse_slice
+
+LIST_LIMIT = 100
 
 class Endpoint(RequestHandler):
     """JSON REST API endpoint.
@@ -129,3 +132,24 @@ class Endpoint(RequestHandler):
         e.trigger()
 
         return args
+
+def make_list_endpoints(url, get_list):
+    """Make the API endpoints for a list with support for slicing.
+
+    *url* is the URL of the list.
+
+    *get_list* is a hook of the form *get_list(*args)*, responsible for retrieving the underlying
+    list. *args* are the URL arguments.
+    """
+    return [(url + r'(?:/(\d*:\d*))?$', _ListEndpoint, {'get_list': get_list})]
+
+class _ListEndpoint(Endpoint):
+    def initialize(self, get_list):
+        super().initialize()
+        self.get_list = get_list
+
+    def get(self, *args):
+        seq = self.get_list(*args)
+        slice = parse_slice(args[-1] or ':', limit=LIST_LIMIT)
+        self.write(json.dumps([i.json(restricted=True, include=True) if isinstance(i, Object) else i
+                               for i in seq[slice]]))

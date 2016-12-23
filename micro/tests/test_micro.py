@@ -21,7 +21,7 @@ from redis import RedisError
 from tornado.testing import AsyncTestCase
 
 import micro
-from micro import Application, Object, Editable, Settings
+from micro import Application, Object, Editable, Settings, Activity, Event
 
 SETUP_DB_SCRIPT = """\
 from micro.tests.test_micro import CatApp
@@ -131,6 +131,13 @@ class UserTest(MicroTestCase):
         self.user.edit(name='Happy')
         self.assertEqual(self.user.name, 'Happy')
 
+class ActivityTest(MicroTestCase):
+    def test_publish(self):
+        activity = Activity('more_activity', app=self.app)
+        event = Event.create('meow', None, app=self.app)
+        activity.publish(event)
+        self.assertIn(event, activity)
+
 class CatApp(Application):
     def __init__(self, redis_url=''):
         super().__init__(redis_url=redis_url)
@@ -155,7 +162,7 @@ class Cat(Object, Editable):
         if 'name' in attrs:
             self.name = attrs['name']
 
-    def json(self, restricted=False, include_users=False):
+    def json(self, restricted=False, include=False, include_users=False):
         json = super().json(attrs={'name': self.name})
         json.update(Editable.json(self, restricted=restricted, include_users=include_users))
         return json

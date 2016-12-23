@@ -45,6 +45,24 @@ def parse_isotime(isotime):
     except (TypeError, ValueError):
         raise ValueError('isotime_bad_format')
 
+def parse_slice(str, limit=None):
+    """Parse a slice string into a :class:`slice`.
+
+    The slice string *str* has the format ``start:stop``. Negative values are not supported. The
+    maximum size of the slice may be given by *limit*, which caps the maximum value of *stop* at
+    ``start + limit``."""
+    match = re.fullmatch(r'(\d*):(\d*)', str)
+    if not match:
+        raise ValueError('str_bad_format')
+
+    start, stop = match.group(1), match.group(2)
+    start, stop = int(start) if start else None, int(stop) if stop else None
+    if limit:
+        if stop is None:
+            stop = float('inf')
+        stop = min(stop, (start or 0) + limit)
+    return slice(start, stop)
+
 def check_email(email):
     """Check the *email* address."""
     if not str_or_none(email):

@@ -18,9 +18,18 @@
  * Client toolkit for social micro web apps.
  */
 
-"use strict;"
+'use strict;'
 
-var micro = micro || {};
+micro = micro || {};
+
+micro.LIST_LIMIT = 100;
+micro.SHORT_DATE_TIME_FORMAT = {
+    year: '2-digit',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+};
 
 /**
  * Thrown for HTTP JSON REST API errors.
@@ -118,15 +127,34 @@ micro.findAncestor = function(elem, predicate, top) {
  *    pattern are passed as additional arguments. The function may return a promise.
  *
  *    May be set by subclass in :meth:`init`. Defaults to ``[]``.
+ *
+ * .. attribute:: renderEvent
+ *
+ *    Subclass API: Table of event rendering hooks by event type. Used by the activity page to
+ *    visualize :ref:`Event` s. A hook has the form *renderEvent(event)* and is responsible to
+ *    render the given *event* to a :class:`Node`.
  */
 micro.UI = document.registerElement('micro-ui',
         {extends: 'body', prototype: Object.create(HTMLBodyElement.prototype, {
     createdCallback: {value: function() {
         this.page = null;
-        this.pages = [];
-
         this._progressElem = this.querySelector('.micro-ui-progress');
         this._pageSpace = this.querySelector('main .micro-ui-inside');
+
+        this.pages = [{url: '^/activity$', page: this._makeActivityPage}];
+
+        this.renderEvent = {
+            'editable-edit': event => {
+                var a = document.createElement('a');
+                a.classList.add('link');
+                a.href = '/settings/edit';
+                a.textContent = 'site settings';
+                var userElem = document.createElement('meetling-user');
+                userElem.user = event.user;
+                return micro.util.formatFragment('The {settings} were edited by {user}',
+                                                 {settings: a, user: userElem});
+            }
+        }
 
         this.addEventListener('click', this);
         window.addEventListener('popstate', this);
@@ -231,6 +259,13 @@ micro.UI = document.registerElement('micro-ui',
             this._progressElem.style.display = 'none';
             this._open(page);
         }.bind(this));
+    }},
+
+    _makeActivityPage: {value: function(url) {
+        if (!ui.staff) {
+            return document.createElement('micro-forbidden-page');
+        }
+        return document.createElement('micro-activity-page');
     }},
 
     handleEvent: {value: function(event) {
@@ -493,3 +528,37 @@ micro.ForbiddenPage = document.registerElement('micro-forbidden-page',
             ui.querySelector('.micro-forbidden-page-template').content, true));
     }}
 })});
+
+micro._ActivityPage = class extends HTMLElement {
+    createdCallback() {
+        this.appendChild(document.importNode(
+            ui.querySelector('.micro-activity-page-template').content, true));
+        this._showMoreButton = this.querySelector('button');
+        this._showMoreButton.run = this._showMore.bind(this);
+        this._start = 0;
+    }
+
+    attachedCallback() {
+        this._showMoreButton.trigger();
+    }
+
+    _showMore() {
+        return micro.call('GET', `/api/activity/${this._start}:`).then(events => {
+            let ul = this.querySelector('.micro-timeline');
+            for (let event of events) {
+                let li = document.createElement('li');
+                let time = document.createElement('time');
+                time.dateTime = event.time;
+                time.textContent =
+                    new Date(event.time).toLocaleString('en', micro.SHORT_DATE_TIME_FORMAT);
+                li.appendChild(time);
+                li.appendChild(ui.renderEvent[event.type](event));
+                ul.appendChild(li);
+            }
+            this.classList.toggle('micro-activity-all', events.length < micro.LIST_LIMIT);
+            this._start += micro.LIST_LIMIT;
+        });
+    }
+};
+
+document.registerElement('micro-activity-page', micro._ActivityPage);

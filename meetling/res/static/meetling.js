@@ -439,9 +439,8 @@ meetling.ErrorNotification = document.registerElement("meetling-error-notificati
 /**
  * Start page.
  */
-meetling.StartPage = document.registerElement('meetling-start-page',
-        {prototype: Object.create(HTMLElement.prototype, {
-    createdCallback: {value: function() {
+meetling.StartPage = class extends HTMLElement {
+    createdCallback() {
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-start-page-template').content, true));
         this._createExampleMeetingAction =
@@ -455,18 +454,17 @@ meetling.StartPage = document.registerElement('meetling-start-page',
             img.style.display = 'none';
         }
         this.querySelector('.meetling-logo span').textContent = ui.settings.title;
+        this._createExampleMeetingAction.run = this._createExampleMeeting.bind(this);
+    }
 
-        this._createExampleMeetingAction.addEventListener('click', this);
-    }},
+    _createExampleMeeting() {
+        return micro.call('POST', '/api/create-example-meeting').then(meeting => {
+            ui.navigate(`/meetings/${meeting.id}`);
+        });
+    }
+}
 
-    handleEvent: {value: function(event) {
-        if (event.currentTarget === this._createExampleMeetingAction && event.type === 'click') {
-            micro.call('POST', '/api/create-example-meeting').then(function(meeting) {
-                ui.navigate(`/meetings/${meeting.id}`);
-            });
-        }
-    }}
-})});
+document.registerElement('meetling-start-page', meetling.StartPage);
 
 /**
  * About page.

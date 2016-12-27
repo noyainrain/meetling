@@ -9,7 +9,7 @@ Also includes :class:`JSONRedisMapping`, an utility map interface for JSON objec
 """
 
 import json
-from collections import Mapping
+from collections import Sequence, Mapping
 from weakref import WeakValueDictionary
 from redis.exceptions import ResponseError
 
@@ -90,6 +90,50 @@ class JSONRedis:
     def __getattr__(self, name):
         # proxy
         return getattr(self.r, name)
+
+class JSONRedisSequence(Sequence):
+    """Read-Only list interface for JSON objects stored in Redis.
+
+    .. attribute:: r
+
+       Underlying :class:`JSONRedis` client.
+
+    .. attribute:: list_key
+
+       Key of the Redis list that tracks the (keys of the) objects that the sequence contains.
+
+    .. attribute:: pre
+
+       Function of the form *pre()*, which is called before an object is retrieved from the
+       database. May be ``None``.
+    """
+
+    def __init__(self, r, list_key, pre=None):
+        self.r = r
+        self.list_key = list_key
+        self.pre = pre
+
+    def __getitem__(self, key):
+        if self.pre:
+            self.pre()
+
+        if isinstance(key, slice):
+            if key.step:
+                raise NotImplementedError()
+            if key.stop == 0:
+                return []
+            start = 0 if key.start is None else key.start
+            stop = -1 if key.stop is None else key.stop - 1
+            return self.r.omget(k.decode() for k in self.r.lrange(self.list_key, start, stop))
+
+        else:
+            id = self.r.lindex(self.list_key, key)
+            if not id:
+                raise IndexError()
+            return self.r.oget(id.decode())
+
+    def __len__(self):
+        return self.r.llen(self.list_key)
 
 class JSONRedisMapping(Mapping):
     """Simple, read-only map interface for JSON objects stored in Redis.

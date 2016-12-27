@@ -15,6 +15,7 @@
 """Core parts of micro."""
 
 import builtins
+from datetime import datetime
 from email.message import EmailMessage
 import re
 from smtplib import SMTP
@@ -22,8 +23,8 @@ from urllib.parse import urlparse
 
 from redis import StrictRedis
 
-from micro.jsonredis import JSONRedis, JSONRedisMapping
-from micro.util import check_email, randstr, str_or_none
+from micro.jsonredis import JSONRedis, JSONRedisSequence, JSONRedisMapping
+from micro.util import check_email, randstr, parse_isotime, str_or_none
 
 class Application:
     """See :ref:`Application`.
@@ -75,9 +76,15 @@ class Application:
             raise ValueError('redis_url_invalid')
         self.r = JSONRedis(self.r, self._encode, self._decode)
 
-        self.types = {'User': User, 'Settings': Settings, 'AuthRequest': AuthRequest}
+        self.types = {
+            'User': User,
+            'Settings': Settings,
+            'Event': Event,
+            'AuthRequest': AuthRequest
+        }
         self.user = None
         self.users = JSONRedisMapping(self.r, 'users')
+        self.activity = Activity('activity', pre=self.check_user_is_staff, app=self)
         self.email = email
         self.smtp_url = smtp_url
         self.render_email_auth_message = render_email_auth_message
@@ -190,6 +197,12 @@ class Application:
             raise object
         return object
 
+    def check_user_is_staff(self):
+        """Check if the current :attr:`user` is a staff member."""
+        # pylint: disable=protected-access; Settings is a friend
+        if not (self.user and self.user.id in self.settings._staff):
+            raise PermissionError()
+
     @staticmethod
     def _encode(object):
         try:
@@ -218,17 +231,18 @@ class Object:
         self.trashed = trashed
         self.app = app
 
-    def json(self, restricted=False, attrs={}):
+    def json(self, restricted=False, include=False, attrs={}):
         """Return a JSON object representation of the object.
 
         The name of the object type is included as ``__type__``.
 
         By default, all attributes are included. If *restricted* is ``True``, a restricted view of
         the object is returned, i.e. attributes that should not be available to the current
-        :attr:`Meetling.user` are excluded.
+        :attr:`Meetling.user` are excluded. If *include* is ``True``, additional fields that may be
+        of interest to the caller are included.
 
         Subclass API: May be overridden by subclass. The default implementation returns the
-        attributes of :class:`Object`. *restricted* is ignored.
+        attributes of :class:`Object`. *restricted* and *include* are ignored.
         """
         # pylint: disable=unused-argument; restricted is part of the subclass API
         json = {'__type__': type(self).__name__, 'id': self.id, 'trashed': self.trashed}
@@ -247,8 +261,9 @@ class Editable:
     """
     # pylint: disable=no-member; mixin
 
-    def __init__(self, authors):
+    def __init__(self, authors, activity=None):
         self._authors = authors
+        self.__activity = activity
 
     @property
     def authors(self):
@@ -259,7 +274,6 @@ class Editable:
         """See :http:post:`/api/(object-url)`."""
         if not self.app.user:
             raise PermissionError()
-
         if self.trashed:
             raise ValueError('object_trashed')
 
@@ -267,6 +281,9 @@ class Editable:
         if not self.app.user.id in self._authors:
             self._authors.append(self.app.user.id)
         self.app.r.oset(self.id, self)
+
+        if self.__activity:
+            self.__activity.publish(Event.create('editable-edit', self, app=self.app))
 
     def do_edit(self, **attrs):
         """Subclass API: Perform the edit operation.
@@ -374,9 +391,9 @@ class User(Object, Editable):
         if 'name' in attrs:
             self.name = attrs['name']
 
-    def json(self, restricted=False, include_users=False):
+    def json(self, restricted=False, include=False, include_users=False):
         """See :meth:`Object.json`."""
-        json = super().json(restricted=restricted)
+        json = super().json(restricted=restricted, include=include)
         json.update({'name': self.name, 'email': self.email, 'auth_secret': self.auth_secret})
         json.update(Editable.json(self, restricted=restricted, include_users=include_users))
         if restricted and not self.app.user == self:
@@ -409,7 +426,7 @@ class Settings(Object, Editable):
 
     def __init__(self, id, trashed, app, authors, title, icon, favicon, feedback_url, staff):
         super().__init__(id=id, trashed=trashed, app=app)
-        Editable.__init__(self, authors=authors)
+        Editable.__init__(self, authors=authors, activity=app.activity)
         self.title = title
         self.icon = icon
         self.favicon = favicon
@@ -439,7 +456,7 @@ class Settings(Object, Editable):
         if 'feedback_url' in attrs:
             self.feedback_url = str_or_none(attrs['feedback_url'])
 
-    def json(self, restricted=False, include_users=False):
+    def json(self, restricted=False, include=False, include_users=False):
         json = super().json()
         json.update({
             'title': self.title,
@@ -453,6 +470,100 @@ class Settings(Object, Editable):
             json['staff'] = [u.json(restricted=restricted) for u in self.staff]
         return json
 
+class Activity(JSONRedisSequence):
+    """See :ref:`Activity`.
+
+    .. attribute:: app
+
+       Context :class:`Application`.
+    """
+
+    def __init__(self, list_key, pre=None, app=None):
+        super().__init__(app.r, list_key, pre=pre)
+        self.app = app
+
+    def publish(self, event):
+        """Publish an *event* to the feed."""
+        if not self.app.user:
+            raise PermissionError()
+        # If the event is published to multiple activity feeds, it is stored (and overwritten)
+        # multiple times, but that's acceptable for a more convenient API
+        self.r.oset(event.id, event)
+        self.r.lpush(self.list_key, event.id)
+
+class Event(Object):
+    """See :ref:`Event`."""
+
+    @staticmethod
+    def create(type, object, detail={}, app=None):
+        """Create an event."""
+        if not app.user:
+            raise PermissionError()
+        if not str_or_none(type):
+            raise ValueError('type_empty')
+        if any(k.endswith('_id') for k in detail):
+            raise ValueError('detail_invalid_key')
+
+        transformed = {}
+        for key, value in detail.items():
+            if isinstance(value, Object):
+                key = key + '_id'
+                value = value.id
+            transformed[key] = value
+        return Event(
+            id='Event:' + randstr(), trashed=False, type=type, object=object.id if object else None,
+            user=app.user.id, time=datetime.utcnow().isoformat() + 'Z', detail=transformed, app=app)
+
+    def __init__(self, id, trashed, type, object, user, time, detail, app):
+        super().__init__(id=id, trashed=trashed, app=app)
+        self.type = type
+        self.time = parse_isotime(time) if time else None
+        self._object_id = object
+        self._user_id = user
+        self._detail = detail
+
+    @property
+    def object(self):
+        # pylint: disable=missing-docstring; already documented
+        return self.app.r.oget(self._object_id) if self._object_id else None
+
+    @property
+    def user(self):
+        # pylint: disable=missing-docstring; already documented
+        return self.app.users[self._user_id]
+
+    @property
+    def detail(self):
+        # pylint: disable=missing-docstring; already documented
+        detail = {}
+        for key, value in self._detail.items():
+            if key.endswith('_id'):
+                key = key[:-3]
+                value = self.app.r.oget(value)
+            detail[key] = value
+        return detail
+
+    def json(self, restricted=False, include=False, attrs={}):
+        json = super().json(restricted=restricted, include=include, attrs=attrs)
+        json.update({
+            'type': self.type,
+            'object': self._object_id,
+            'user': self._user_id,
+            'time': self.time.isoformat() + 'Z' if self.time else None,
+            'detail': self._detail
+        })
+        if include:
+            json['object'] = self.object.json(restricted=restricted) if self.object else None
+            json['user'] = self.user.json(restricted=restricted)
+            json['detail'] = {k: v.json(restricted=restricted) if isinstance(v, Object) else v
+                              for k, v in self.detail.items()}
+        return json
+
+    def __str__(self):
+        return '<{} {} on {} by {}>'.format(type(self).__name__, self.type, self._object_id,
+                                            self._user_id)
+    __repr__ = __str__
+
 class AuthRequest(Object):
     """See :ref:`AuthRequest`."""
 
@@ -461,8 +572,8 @@ class AuthRequest(Object):
         self._email = email
         self._code = code
 
-    def json(self, restricted=False, attrs={}):
-        json = super().json(restricted=restricted, attrs=attrs)
+    def json(self, restricted=False, include=False, attrs={}):
+        json = super().json(restricted=restricted, include=include, attrs=attrs)
         json.update({'email': self._email, 'code': self._code})
         if restricted:
             del json['email']

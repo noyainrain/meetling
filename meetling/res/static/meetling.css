@@ -204,6 +204,10 @@ body:not(.meetling-ui-settings-have-feedback-url) .meetling-ui-feedback {
     display: none;
 }
 
+body:not(.meetling-ui-user-is-staff) .meetling-ui-activity {
+    display: none;
+}
+
 main {
     padding-top: calc(1.5 * 1.5rem);
 }
@@ -354,10 +358,6 @@ meetling-edit-user-page:not(.meetling-edit-user-has-email) .meetling-edit-user-r
 
 meetling-edit-user-page:not(.meetling-edit-user-has-email) .meetling-edit-user-email-value {
     display: none;
-}
-
-.meetling-edit-user-email small {
-    color: #888;
 }
 
 /* ---- MeetingPage ---- */

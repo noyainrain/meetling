@@ -16,6 +16,26 @@
 
 MESSAGE_TEMPLATES = {
     'email_auth': """
+        Subject: [{{ app.settings.title }}] {{ _('email.auth.subject') }}
+
+        {{ _('email.auth.greeting') }}
+
+        {{ _('email.auth.link').format(email=email, title=app.settings.title) }}
+
+        {{ server.url }}/user/edit#set-email={{ auth_request.id[12:] }}:{{ auth }}
+
+        {{ _('email.auth.code') }}
+
+        {{ auth }}
+
+        ---
+
+        {{ _('email.auth.disclaimer').format(title=app.settings.title) }}
+    """
+}
+
+MESSAGE_TEMPLATES = {
+    'email_auth': """
         Subject: [{{ app.settings.title }}] Add email address
 
         Hi there!

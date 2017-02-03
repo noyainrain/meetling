@@ -1,0 +1,23 @@
+{
+    "foo": "German foo",
+    "start": {
+        "slogan": "Meetings gemeinsam vorbereiten",
+        "description": "Entwerfe kollaborativ eine Tagesordnung. Alle können Themen vorschlagen und bearbeiten. Gratis, einfach und ohne Anmeldung.",
+        "action": "Starte ein Meeting",
+        "example": "oder {link}",
+        "example-link": "Betrachte ein Beispiel"
+    },
+    "about": {
+        "title": "Über {site-title}",
+        "short": "{site-title} ist ein Service zum gemeinsamen Vorbereiten von Meetings.",
+        "poweredBy": {
+            "title": "Betrieben mit",
+            "content": "Der Service wird betrieben mit {meetling}, einer {foss} lizenziert unter der {gpl}.",
+            "foss": "freien Open-Source-Software",
+            "copyright": "Copyright © {year} Meetling Mitwirkende"
+        }
+    },
+    "meeting": {
+        "authors": "bearbeitet von {authors}"
+    }
+}

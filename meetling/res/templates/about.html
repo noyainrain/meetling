@@ -1,25 +1,27 @@
 <template class="meetling-about-page-template">
-    <h1 data-text="About {title}"></h1>
-    <p class="meetling-about-short"
-       data-text="{title} is a service for collaboratively preparing meetings.">
-    </p>
+    <h1 data-text="about.title"></h1>
+    <p data-text="about.short"></p>
     <p class="meetling-about-provider"></p>
 
     <section>
-        <h1>Powered by</h1>
+        <h1 data-text="about.poweredBy.title"></h1>
         <p class="meetling-logo">
             <a class="link" href="https://github.com/NoyaInRain/meetling" target="_blank">
                 <img src="{{ static_url('images/icon.svg') }}"> Meetling
             </a>
         </p>
-        <p>
-            The service is powered by
-            <a class="link" href="https://github.com/NoyaInRain/meetling" target="_blank">
-                Meetling
-            </a>,
-            a <em>free and open-source software</em> licensed under the
-            <a class="link" href="https://gnu.org/licenses/gpl.html" target="_blank">GPL</a>.
-        </p>
-        <p>Copyright © 2015 Meetling contributors</p>
+        <p data-text="about.poweredBy.content"></p>
+        <p data-text="about.poweredBy.copyright"></p>
     </section>
+</template>
+
+<template class="meetling-about-powered-by-content-template">
+    <a class="meetling-about-meetling link" href="https://github.com/NoyaInRain/meetling"
+       target="_blank">
+        Meetling
+    </a>
+    <a class="meetling-about-gpl link" href="https://gnu.org/licenses/gpl.html" target="_blank">
+        GPL
+    </a>
+    <em data-text="about.poweredBy.foss"></em>
 </template>

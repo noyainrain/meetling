@@ -1,0 +1,55 @@
+{
+    "foo": "English foo",
+    "bar": "bar only in en",
+    "oink": "me {{var}} you",
+    "start": {
+        "slogan": "Prepare meetings together",
+        "description": "Collaboratively draft an agenda. Let everyone propose and edit agenda items. Free, simple and no registration required.",
+        "action": "Start a meeting",
+        "example": "or {link}",
+        "example-link": "View an example"
+    },
+    "about": {
+        "title": "About {site-title}",
+        "short": "{site-title} is a service for collaboratively preparing meetings.",
+        "poweredBy": {
+            "title": "Powered by",
+            "content": "The service is powered by {meetling}, a {foss} licensed under the {gpl}.",
+            "foss": "free and open-source software",
+            "copyright": "Copyright © {year} Meetling contributors"
+        }
+    },
+    "meeting": {
+        "authors": "edited by {authors}",
+        "edit": "Edit",
+        "time": "Time",
+        "location": "Location",
+        "agenda": "Agenda",
+        "trashedItemsCover": "There is one trashed item.",
+        "trashedItemsCover_plural": "There are {n} trashed items.",
+        "trashedItems": "Trashed items",
+        "showTrashedItems": "Show",
+        "hideTrashedItems": "Hide",
+        "createAgendaItem": "Propose an agenda item",
+        "actions": "Actions",
+        "share": "Share",
+        "agendaItem": {
+            "duration": "Duration",
+            "trash": "Trash",
+            "restore": "Restore"
+        },
+        "agendaItemEditor": {
+            "title": "Title",
+            "duration": "Duration (optional)",
+            "durationDescription": "How long does this agenda item take in minutes? An estimate is fine here.",
+            "description": "Description (optional)",
+            "done": "Done",
+            "cancel": "Cancel"
+        },
+        "shareNotification": {
+            "content": "To share the meeting, simply give this link to the other participants:",
+            "link": "Share link",
+            "small": "Anyone with the link can propose and edit agenda items and change the details of the meeting."
+        }
+    }
+}

@@ -3,21 +3,19 @@
         <h1 class="meetling-logo" href="/">
             <a class="link"><img /><span></span></a>
         </h1>
-        <p class="meetling-start-slogan">Prepare meetings together</p>
-        <p class="meetling-start-description">
-            Collaboratively draft an agenda. Let everyone propose and edit agenda items. Free,
-            simple and no registration required.
-        </p>
+        <p class="meetling-start-slogan" data-text="start.slogan"></p>
+        <p class="meetling-start-description" data-text="start.description"></p>
         <p>
             <a class="action meetling-start-create-meeting" href="/create-meeting">
-                <i class="fa fa-paper-plane"></i> Start a meeting
+                <i class="fa fa-paper-plane"></i> <span data-text="start.action"></span>
             </a>
         </p>
-        <p>
-            or
-            <button is="micro-button" class="link meetling-start-create-example-meeting">
-                <i class="fa fa-book"></i> View an example
-            </button>
-        </p>
+        <p data-text="start.example"></p>
     </div>
+</template>
+
+<template class="meetling-start-create-example-meeting-template">
+    <button is="micro-button" class="link meetling-start-create-example-meeting">
+        <i class="fa fa-book"></i> <span data-text="start.example-link"></span>
+    </button>
 </template>

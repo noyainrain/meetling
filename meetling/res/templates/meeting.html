@@ -2,37 +2,40 @@
     <h1></h1>
 
     <ul class="meetling-meeting-meta">
-        <li class="meetling-meeting-time" title="Time">
+        <li class="meetling-meeting-time" data-text-title="meeting.time">
             <i class="fa fa-fw fa-calendar"></i> <time></time>
         </li>
-        <li class="meetling-meeting-location" title="Location">
+        <li class="meetling-meeting-location" data-text-title="meeting.location">
             <i class="fa fa-fw fa-map-marker"></i> <span></span>
         </li>
     </ul>
 
     <p class="micro-multiline"></p>
 
-    <p class="meetling-detail">
-        edited by <meetling-user-listing></meetling-user-listing>
-    </p>
+    <p class="meetling-detail" data-text="meeting.authors"></p>
 
     <section class="meetling-meeting-agenda">
-        <h1>Agenda</h1>
+        <h1 data-text="meeting.agenda"></h1>
         <ul>
             <li class="meetling-meeting-items micro-lgroup">
                 <ol is='micro-ol'></ol>
             </li>
             <li class="meetling-meeting-trashed-items-cover">
-                <span data-text="There is one trashed item.|There are {n} trashed items."></span>
-                <button class="meetling-meeting-show-trashed-items link" title="Show">
+                <span data-text="meeting.trashedItemsCover"></span>
+                <button class="meetling-meeting-show-trashed-items link"
+                        data-text-title="meeting.showTrashedItems">
                     <i class="fa fa-search-plus"></i>
                 </button>
             </li>
             <li class="meetling-meeting-trashed-items micro-lgroup">
                 <ul>
                     <li class="meetling-meeting-trashed-items-header group">
-                        <p><i class="fa fa-trash-o"></i> Trashed items</p>
-                        <button class="meetling-meeting-hide-trashed-items link" title="Hide">
+                        <p>
+                            <i class="fa fa-trash-o"></i>
+                            <span data-text="meeting.trashedItems"></span>
+                        </p>
+                        <button class="meetling-meeting-hide-trashed-items link"
+                                data-text-title="meeting.hideTrashedItems">
                             <i class="fa fa-search-minus"></i>
                         </button>
                     </li>
@@ -40,20 +43,21 @@
             </li>
             <li class="meetling-meeting-create-agenda-item">
                 <button class="action">
-                    <i class="fa fa-plus-circle"></i> Propose an agenda item
+                    <i class="fa fa-plus-circle"></i>
+                    <span data-text="meeting.createAgendaItem"></span>
                 </button>
             </li>
         </ul>
     </section>
 
     <section class="meetling-meeting-actions">
-        <h1>Actions</h1>
+        <h1 data-text="meeting.actions"></h1>
         <micro-menu>
             <button class="meetling-meeting-share action">
-                <i class="fa fa-envelope"></i> Share
+                <i class="fa fa-envelope"></i> <span data-text="meeting.share"></span>
             </button>
             <a class="meetling-meeting-edit action">
-                <i class="fa fa-pencil"></i> Edit
+                <i class="fa fa-pencil"></i> <span data-text="meeting.edit"></span>
             </a>
         </micro-menu>
     </section>
@@ -67,26 +71,24 @@
     <section>
         <header class="group">
             <h1></h1>
-            <p class="meetling-agenda-item-duration" title="Duration">
+            <p class="meetling-agenda-item-duration" data-text-title="meeting.agendaItem.duration">
                 <i class="fa fa-clock-o"></i> <span></span>
             </p>
         </header>
         <div class="meetling-agenda-item-content compact">
             <p class="meetling-agenda-item-description micro-multiline"></p>
-            <p class="meetling-detail">
-                edited by <meetling-user-listing></meetling-user-listing>
-            </p>
+            <p class="meetling-detail" data-text="meeting.authors"></p>
             <micro-menu class="meetling-agenda-item-menu">
                 <button class="action action-subtle meetling-agenda-item-edit">
-                    <i class="fa fa-pencil"></i> Edit
+                    <i class="fa fa-pencil"></i> <span data-text="meeting.edit"></span>
                 </button>
                 <button class="meetling-agenda-item-trash micro-menu-secondary action action-subtle">
-                    <i class="fa fa-trash-o"></i> Trash
+                    <i class="fa fa-trash-o"></i> <span data-text="meeting.agendaItem.trash"></span>
                 </button>
             </micro-menu>
             <micro-menu class="meetling-agenda-item-trashed-menu">
                 <button class="meetling-agenda-item-restore action action-subtle">
-                    <i class="fa fa-undo"></i> Restore
+                    <i class="fa fa-undo"></i> <span data-text="meeting.agendaItem.restore"></span>
                 </button>
             </micro-menu>
         </div>
@@ -99,42 +101,36 @@
         <form novalidate="novalidate">
             <label>
                 <input name="title" />
-                <small>Title</small>
+                <small data-text="meeting.agendaItemEditor.title"></small>
             </label>
             <label>
                 <input type="number" name="duration" min="-9007199254740991"
                        max="9007199254740991" />
-                <small>Duration (optional)</small>
-                <small>
-                    How long does this agenda item take in minutes? An estimate is fine here.
-                </small>
+                <small data-text="meeting.agendaItemEditor.duration"></small>
+                <small data-text="meeting.agendaItemEditor.durationDescription"></small>
             </label>
             <label>
                 <textarea name="description"></textarea>
-                <small>Description (optional)</small>
+                <small data-text="meeting.agendaItemEditor.description"></small>
             </label>
             <p class="group">
                 <button is="micro-button" class="action">
-                    <i class="fa fa-check-circle"></i> Done
+                    <i class="fa fa-check-circle"></i>
+                    <span data-text="meeting.agendaItemEditor.done"></span>
                 </button>
-                <button is="micro-button" type="button" class="action action-cancel">Cancel</button>
+                <button is="micro-button" type="button" class="action action-cancel"
+                        data-text="meeting.agendaItemEditor.cancel">
+                </button>
             </p>
         </form>
     </section>
 </template>
 
 <template class="meetling-share-notification-template">
-    <p>
-        To share the meeting, simply give this link to the other participants:
-    </p>
+    <p data-text="meeting.shareNotification.content"></p>
     <label>
         <input readonly="readonly" />
-        <small>Share link</small>
+        <small data-text="meeting.shareNotification.link"></small>
     </label>
-    <p>
-        <small>
-            Anyone with the link can propose and edit agenda items and change the details of the
-            meeting.
-        </small>
-    </p>
+    <p><small data-text="meeting.shareNotification.small"></small></p>
 </template>

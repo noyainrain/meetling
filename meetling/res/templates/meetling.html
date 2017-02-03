@@ -7,18 +7,26 @@
         <title>Meetling</title>
 
         <link rel="icon" />
+
         <link rel="stylesheet" href="{{ static_url('lib/pikaday/css/pikaday.css') }}" />
         <link rel="stylesheet"
               href="{{ static_url('lib/font-awesome/css/font-awesome.min.css') }}" />
         <link rel="stylesheet" href="{{ static_url('micro.css') }}" />
         <link rel="stylesheet" href="{{ static_url('meetling.css') }}" />
 
+        <link rel="language preload" data-languages='en-US'
+              href="{{ static_url('locales/en.json') }}" />
+        <link rel="language" data-languages='de-DE'
+              href="{{ static_url('locales/de.json') }}" />
+
         <script src="{{ static_url('lib/fetch/fetch.js') }}" defer="defer"></script>
         <script src="{{ static_url('lib/webcomponentsjs/webcomponents-lite.js') }}" defer="defer">
         </script>
+        <script src="{{ static_url('lib/i18next/i18next.min.js') }}" defer="defer"></script>
         <script src="{{ static_url('lib/pikaday/pikaday.js') }}" defer="defer"></script>
         <script src="{{ static_url('micro/util.js') }}" defer="defer"></script>
         <script src="{{ static_url('micro.js') }}" defer="defer"></script>
+        <script src="{{ static_url('micro/util.js') }}" defer="defer"></script>
         <script src="{{ static_url('meetling.js') }}" defer="defer"></script>
 
         <style>

@@ -171,6 +171,32 @@ meetling.UserListingElement = document.registerElement("meetling-user-listing",
     }
 })});
 
+micro.I18nextLink = class {
+    init(services, backendOptions, i18nextOptions) {
+        /* use services and options */
+        console.log('INIT', services, backendOptions, i18nextOptions);
+    }
+
+    read(language, namespace, callback) {
+        /* return resources */
+        console.log('READ', language, namespace, callback);
+        if (language === 'en' || language === 'de') {
+            callback(new Error('fooooo'), null);
+            return;
+        }
+        let url = document.querySelector(`link[data-languages~=${language}]`).href;
+        console.log('URL', url);
+        fetch(url).then(r => r.json()).then(r => callback(null, r)).catch(e => callback(e, null));
+            /*if (!response.ok) {
+                throw new TypeError();
+            }
+            return response.json();
+        }).then(callback);*/
+        //callback({});
+    }
+}
+micro.I18nextLink.type = 'backend';
+
 /**
  * Meetling UI.
  *
@@ -226,7 +252,25 @@ meetling.UI = document.registerElement('meetling-ui',
         this.addEventListener('user-edit', this);
         this.addEventListener('settings-edit', this);
 
-        return Promise.resolve().then(function() {
+        // interpolation -> escape?, prefix, suffix, defaultVariables?
+        // format -> rather not, formatting details go into translation, not the place to be.
+        /*18next.changeLanguage('en', (e, t) => {
+            console.log(e, t);
+        });*/
+
+        let opts = {
+            debug: true,
+            load: 'currentOnly',
+            lng: 'en-US',
+            fallbackLng: 'en-US'
+        };
+
+        i18next.use(micro.I18nextLink);
+        let i18nPromise = new Promise(resolve => {
+            i18next.init(opts, (e, t) => resolve({e: e, t: t}));
+        });
+
+        let userPromise = Promise.resolve().then(() => {
             // If requested, log in with code
             var match = /^#login=(.+)$/.exec(location.hash);
             if (match) {
@@ -241,17 +285,53 @@ meetling.UI = document.registerElement('meetling-ui',
                 });
             }
 
-        }.bind(this)).then(function() {
+        }).then(() => {
             // If not logged in (yet), log in as a new user
             if (!this.user) {
                 return micro.call('POST', '/api/login').then(this._storeUser.bind(this));
             }
+        });
 
-        }.bind(this)).then(function() {
-            return micro.call('GET', '/api/settings');
+        return Promise.all([i18nPromise, userPromise]).then(() => {
+            console.log('LANGS', i18next.language);
+            console.log('LANGS', i18next.languages);
 
-        }).then(function(settings) {
-            this.settings = settings;
+            let langPromise = new Promise(resolve => {
+                i18next.changeLanguage('de-DE', (e, t) => resolve({e: e, t: t}));
+            });
+
+            let settingsPromise = micro.call('GET', '/api/settings').then(settings => {
+                this.settings = settings;
+                settings.languages = ['de-DE', 'en-US'];
+                console.log('available', settings.languages);
+
+                // TODO detect language
+                let tokens = navigator.language.split('-', 2);
+                //let tokens = 'de-oink-DE-script'.split('-', 2);
+                let langs = [tokens[0]];
+                if (tokens.length == 2) {
+                    langs.unshift(`${tokens[0]}-${tokens[1].toUpperCase()}`);
+                }
+                console.log(langs);
+
+                let match = null;
+                for (let lang of langs) {
+                    console.log(lang);
+                    match = settings.languages.find(l => l.startsWith(lang));
+                    console.log('match', match);
+                    if (match) {
+                        break;
+                    }
+                }
+
+                match = match || 'en-US';
+
+                console.log('detected lang', match);
+            });
+
+            return Promise.all([langPromise, settingsPromise]);
+
+        }).then(() => {
             this._update();
 
             // Update the user details
@@ -259,7 +339,7 @@ meetling.UI = document.registerElement('meetling-ui',
                 this.dispatchEvent(new CustomEvent('user-edit', {detail: {user: user}}));
             }.bind(this));
 
-        }.bind(this)).catch(function(e) {
+        }).catch(e => {
             // Authentication errors are a corner case and happen only if a) the user has deleted
             // their account on another device or b) the database has been reset (during
             // development)
@@ -271,7 +351,7 @@ meetling.UI = document.registerElement('meetling-ui',
             } else {
                 throw e;
             }
-        }.bind(this));
+        });
     }},
 
     /**
@@ -466,8 +546,9 @@ meetling.StartPage = class extends HTMLElement {
             img.style.display = 'none';
         }
         this.querySelector('.meetling-logo span').textContent = ui.settings.title;
-        this.querySelector('.meetling-start-create-example-meeting').run =
-            this._createExampleMeeting.bind(this);
+        let createExampleMeetingAction = micro.util.translate(document.importNode(ui.querySelector('.meetling-start-create-example-meeting-template').content, true).firstElementChild);
+        createExampleMeetingAction.run = this._createExampleMeeting.bind(this);
+        micro.util.translate(this, {link: createExampleMeetingAction});
     }
 
     _createExampleMeeting() {
@@ -484,12 +565,16 @@ meetling.AboutPage = class extends HTMLElement {
     createdCallback() {
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-about-page-template').content, true));
+        let t = document.importNode(ui.querySelector('.meetling-about-powered-by-content-template').content, true);
+        micro.util.translate(this, {
+            'site-title': ui.settings.title,
+            'meetling': t.querySelector('.meetling-about-meetling'),
+            'gpl': t.querySelector('.meetling-about-gpl'),
+            'foss': micro.util.translate(t.querySelector('em')),
+            'year': '2015'
+        });
 
-        let h1 = this.querySelector('h1');
-        h1.textContent = h1.dataset.text.replace('{title}', ui.settings.title);
-        let p = this.querySelector('.meetling-about-short');
-        p.textContent = p.dataset.text.replace('{title}', ui.settings.title);
-
+        // TODO: multilang
         if (ui.settings.provider_name) {
             let text = 'The service is provided by {provider}.';
             let args = {provider: ui.settings.provider_name};
@@ -790,10 +875,16 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
             }
             this.querySelector('.micro-multiline').textContent =
                 this._meeting.description || '';
-            this.querySelector('.meetling-detail meetling-user-listing').users =
-                this._meeting.authors;
+            // TODO: where to create meetling-user-listing for meeting and for agenda item
+            this._authors = document.createElement('meetling-user-listing');
+            this._authors.users = this._meeting.authors;
+            //this.querySelector('.meetling-detail meetling-user-listing').users =
+            //    this._meeting.authors;
             this.querySelector('.meetling-meeting-edit').href =
                 `/meetings/${this._meeting.id}/edit`;
+
+            micro.util.translate(this, {authors: this._authors});
+
             this._update();
         }
     },
@@ -803,9 +894,11 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
         var trashedItemsLi = this.querySelector(".meetling-meeting-trashed-items");
         var trashedItemElems = trashedItemsLi.querySelectorAll(".meetling-agenda-item");
         var span = trashedItemsCoverLi.querySelector("span");
-        span.textContent =
+        micro.util.translate(span, {n: trashedItemElems.length},
+                             {'meeting.trashedItemsCover': trashedItemElems.length});
+        /*span.textContent =
             span.dataset.text.split("|")[trashedItemElems.length === 1 ? 0 : 1].replace("{n}",
-                trashedItemElems.length);
+                trashedItemElems.length);*/
         trashedItemsCoverLi.style.display = trashedItemElems.length ? "" : "none";
         trashedItemsLi.style.display = trashedItemElems.length ? "" : "none";
     }},
@@ -1023,6 +1116,10 @@ meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
         this._item = null;
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-agenda-item-template').content, true));
+
+        this._userListing = document.createElement('meetling-user-listing');
+        micro.util.translate(this, {'authors': this._userListing});
+
         this.classList.add("meetling-agenda-item");
         this._trashAction = this.querySelector(".meetling-agenda-item-trash");
         this._restoreAction = this.querySelector(".meetling-agenda-item-restore");
@@ -1042,14 +1139,14 @@ meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
                 this.querySelector("h1").textContent = this._item.title;
                 var p = this.querySelector(".meetling-agenda-item-duration");
                 if (this._item.duration) {
-                    p.querySelector("span").textContent = this._item.duration + "m";
+                    p.querySelector("span").textContent = `${this._item.duration}min`;
                     p.style.display = "";
                 } else {
                     p.style.display = "none";
                 }
                 this.querySelector(".meetling-agenda-item-description").textContent =
                     this._item.description || "";
-                this.querySelector("meetling-user-listing").users = this._item.authors;
+                this._userListing.users = this._item.authors;
             }
         }
     },

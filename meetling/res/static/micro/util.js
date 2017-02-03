@@ -54,3 +54,33 @@ micro.util.formatFragment = function(str, args) {
 
     return fragment;
 };
+
+micro.util.translate = function(elem, data={}, plural={}) {
+    let elems = null;
+    if (elem.dataset.text || elem.dataset.textTitle) {
+        elems = [elem];
+    } else {
+        elems = elem.querySelectorAll('[data-text], [data-text-title]');
+    }
+    console.log('PLURAL', plural);
+
+    for (let i = 0; i < elems.length; i++) {
+        let elem = elems[i];
+        //elem.textContent = i18next.t(elem.dataset.text);
+        //elem.textContent = i18next.t(elem.dataset.text, {replace: data});
+        if (elem.dataset.text) {
+            let options = {};
+            if (elem.dataset.text in plural) {
+                options.count = plural[elem.dataset.text];
+            }
+            elem.textContent = '';
+            elem.appendChild(micro.util.formatFragment(i18next.t(elem.dataset.text, options), data));
+        }
+        if (elem.dataset.textTitle) {
+            // TODO: options like above
+            elem.title = i18next.t(elem.dataset.textTitle, data);
+        }
+    }
+
+    return elem;
+}

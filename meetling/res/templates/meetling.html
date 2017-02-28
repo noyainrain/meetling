@@ -182,6 +182,24 @@
             var features = {};
             features.dom4ClassList = 'classList' in document.createElement('div');
             features.dom4QuerySelector = 'querySelector' in document;
+            try {
+                eval('var x = () => {};');
+                features.es6ArrowFunction = true;
+            } catch (e) {
+                features.es6ArrowFunction = false;
+            }
+            try {
+                eval('var x = class {};');
+                features.es6Class = true;
+            } catch (e) {
+                features.es6Class = false;
+            }
+            try {
+                eval('let x = 42;');
+                features.es6Let = true;
+            } catch (e) {
+                features.es6Let = false;
+            }
             features.es6Promise = 'Promise' in window;
             features.es6String = 'startsWith' in String.prototype;
             try {

@@ -377,6 +377,72 @@ micro.OL = document.registerElement('micro-ol',
 })});
 
 /**
+ * Button with an associated action that runs on click.
+ *
+ * While an action is running, the button is suspended, i.e. it shows a progress indicator and is
+ * not clickable.
+ *
+ * .. attribute:: run
+ *
+ *    Hook function of the form *run()*, which performs the associated action. If it returns a
+ *    promise, the button will be suspended until the promise resolves.
+ */
+micro.Button = class extends HTMLButtonElement {
+    createdCallback() {
+        this.run = null;
+        this.addEventListener('click', this);
+    }
+
+    /**
+     * Trigger the button.
+     *
+     * The associated action is run and a promise is returned which resolves to the result of
+     * :attr:`run`.
+     */
+    trigger() {
+        if (!this.run) {
+            return Promise.resolve();
+        }
+
+        let i = this.querySelector('i');
+        let classes = i ? i.className : null;
+
+        let suspend = () => {
+            this.disabled = true;
+            if (i) {
+                i.className = 'fa fa-spinner fa-spin';
+            }
+        };
+
+        let resume = () => {
+            this.disabled = false;
+            if (i) {
+                i.className = classes;
+            }
+        };
+
+        suspend();
+        return Promise.resolve(this.run()).then(result => {
+            resume();
+            return result;
+        }, e => {
+            resume();
+            throw e;
+        });
+    }
+
+    handleEvent(event) {
+        if (event.currentTarget === this && event.type === 'click') {
+            if (this.form && this.type === 'submit') {
+                // Prevent default form submission
+                event.preventDefault();
+            }
+            this.trigger();
+        }
+    }
+};
+
+/**
  * Simple menu for (typically) actions and/or links.
  *
  * Secondary items, marked with the ``micro-menu-secondary`` class, are hidden by default and can be
@@ -434,3 +500,5 @@ micro.ForbiddenPage = document.registerElement('micro-forbidden-page',
             ui.querySelector('.micro-forbidden-page-template').content, true));
     }}
 })});
+
+document.registerElement('micro-button', {prototype: micro.Button.prototype, extends: 'button'});

@@ -439,15 +439,12 @@ meetling.ErrorNotification = document.registerElement("meetling-error-notificati
 /**
  * Start page.
  */
-meetling.StartPage = document.registerElement('meetling-start-page',
-        {prototype: Object.create(HTMLElement.prototype, {
-    createdCallback: {value: function() {
+meetling.StartPage = class extends HTMLElement {
+    createdCallback() {
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-start-page-template').content, true));
-        this._createExampleMeetingAction =
-            this.querySelector('.meetling-start-create-example-meeting');
 
-        var img = this.querySelector('.meetling-logo img');
+        let img = this.querySelector('.meetling-logo img');
         if (ui.settings.icon) {
             img.src = ui.settings.icon;
             img.style.display = '';
@@ -455,18 +452,16 @@ meetling.StartPage = document.registerElement('meetling-start-page',
             img.style.display = 'none';
         }
         this.querySelector('.meetling-logo span').textContent = ui.settings.title;
+        this.querySelector('.meetling-start-create-example-meeting').run =
+            this._createExampleMeeting.bind(this);
+    }
 
-        this._createExampleMeetingAction.addEventListener('click', this);
-    }},
-
-    handleEvent: {value: function(event) {
-        if (event.currentTarget === this._createExampleMeetingAction && event.type === 'click') {
-            micro.call('POST', '/api/create-example-meeting').then(function(meeting) {
-                ui.navigate(`/meetings/${meeting.id}`);
-            });
-        }
-    }}
-})});
+    _createExampleMeeting() {
+        return micro.call('POST', '/api/create-example-meeting').then(meeting => {
+            ui.navigate(`/meetings/${meeting.id}`);
+        });
+    }
+}
 
 /**
  * About page.
@@ -1074,8 +1069,8 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-agenda-item-editor-template').content, true));
         this.classList.add("meetling-agenda-item-editor");
-        this.querySelector("form").addEventListener("submit", this);
-        this.querySelector(".action-cancel").addEventListener("click", this);
+        this.querySelector('.action').run = this._edit.bind(this);
+        this.querySelector('.action-cancel').run = this._close.bind(this);
         this.item = null;
         this.replaced = null;
     }},
@@ -1100,55 +1095,46 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
         }
     },
 
-    handleEvent: {value: function(event) {
-        var form = this.querySelector("form");
-        var cancel = this.querySelector(".action-cancel");
+    _edit: {value: function() {
+        let form = this.querySelector('form');
 
-        if (event.currentTarget === form) {
-            event.preventDefault();
-
-            if (!form.elements["duration"].checkValidity()) {
-                ui.notify('Duration is not a number.');
-                return;
-            }
-
-            var url = `/api/meetings/${ui.page.meeting.id}/items`;
-            if (this._item) {
-                url = `/api/meetings/${ui.page.meeting.id}/items/${this._item.id}`;
-            }
-
-            micro.call('POST', url, {
-                title: form.elements['title'].value,
-                duration: form.elements['duration'].value ?
-                    parseInt(form.elements['duration'].value) : null,
-                description: form.elements['description'].value
-            }).then(function(item) {
-                if (this._item) {
-                    // In edit mode, update the corresponding meetling-agenda-item
-                    this.replaced.item = item;
-                } else {
-                    // In create mode, append a new meetling-agenda-item to the list
-                    var li = new meetling.AgendaItemElement();
-                    li.item = item;
-                    this.parentNode.querySelector('.meetling-meeting-items > ol').appendChild(li);
-                }
-                this._close();
-            }.bind(this), function(e) {
-                if (e instanceof micro.APIError && e.error.__type__ === 'InputError') {
-                    var arg = Object.keys(e.error.errors)[0];
-                    ui.notify({
-                        title: {empty: 'Title is missing.'},
-                        duration: {not_positive: 'Duration is not positive.'}
-                    }[arg][e.error.errors[arg]]);
-                } else {
-                    throw e;
-                }
-            });
-
-        } else if (event.currentTarget === cancel) {
-            event.preventDefault();
-            this._close();
+        if (!form.elements['duration'].checkValidity()) {
+            ui.notify('Duration is not a number.');
+            return;
         }
+
+        var url = `/api/meetings/${ui.page.meeting.id}/items`;
+        if (this._item) {
+            url = `/api/meetings/${ui.page.meeting.id}/items/${this._item.id}`;
+        }
+
+        return micro.call('POST', url, {
+            title: form.elements['title'].value,
+            duration: form.elements['duration'].value ?
+                parseInt(form.elements['duration'].value) : null,
+            description: form.elements['description'].value
+        }).then(item => {
+            if (this._item) {
+                // In edit mode, update the corresponding meetling-agenda-item
+                this.replaced.item = item;
+            } else {
+                // In create mode, append a new meetling-agenda-item to the list
+                let li = new meetling.AgendaItemElement();
+                li.item = item;
+                this.parentNode.querySelector('.meetling-meeting-items > ol').appendChild(li);
+            }
+            this._close();
+        }, e => {
+            if (e instanceof micro.APIError && e.error.__type__ === 'InputError') {
+                let arg = Object.keys(e.error.errors)[0];
+                ui.notify({
+                    title: {empty: 'Title is missing.'},
+                    duration: {not_positive: 'Duration is not positive.'}
+                }[arg][e.error.errors[arg]]);
+            } else {
+                throw e;
+            }
+        });
     }},
 
     _close: {value: function() {
@@ -1156,3 +1142,5 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
         this.parentNode.removeChild(this);
     }}
 })});
+
+document.registerElement('meetling-start-page', meetling.StartPage);

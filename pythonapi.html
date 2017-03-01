@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>3. Python API &mdash; Meetling 0.13.2 documentation</title>
+    <title>3. Python API &#8212; Meetling 0.14.0 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,21 +14,24 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.13.2',
+        VERSION:     '0.14.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.png"/>
-    <link rel="top" title="Meetling 0.13.2 documentation" href="contents.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="4. Contributing" href="contributing.html" />
     <link rel="prev" title="2. Web API" href="webapi.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
@@ -105,6 +108,12 @@ email address to authenticate and <em>auth</em> is the secret authentication cod
 </dd></dl>
 
 <dl class="method">
+<dt id="micro.Application.check_user_is_staff">
+<code class="descname">check_user_is_staff</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#micro.Application.check_user_is_staff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the current <a class="reference internal" href="#micro.Application.user" title="micro.Application.user"><code class="xref py py-attr docutils literal"><span class="pre">user</span></code></a> is a staff member.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="micro.Application.create_settings">
 <code class="descname">create_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#micro.Application.create_settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subclass API: Create and return the app <a class="reference internal" href="#micro.Settings" title="micro.Settings"><code class="xref py py-class docutils literal"><span class="pre">Settings</span></code></a>.</p>
@@ -164,21 +173,22 @@ necessary or not.</p>
 
 <dl class="method">
 <dt id="micro.Object.json">
-<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>attrs={}</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Object.json" title="Permalink to this definition">¶</a></dt>
+<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include=False</em>, <em>attrs={}</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Object.json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a JSON object representation of the object.</p>
 <p>The name of the object type is included as <code class="docutils literal"><span class="pre">__type__</span></code>.</p>
 <p>By default, all attributes are included. If <em>restricted</em> is <code class="docutils literal"><span class="pre">True</span></code>, a restricted view of
 the object is returned, i.e. attributes that should not be available to the current
-<code class="xref py py-attr docutils literal"><span class="pre">Meetling.user</span></code> are excluded.</p>
+<code class="xref py py-attr docutils literal"><span class="pre">Meetling.user</span></code> are excluded. If <em>include</em> is <code class="docutils literal"><span class="pre">True</span></code>, additional fields that may be
+of interest to the caller are included.</p>
 <p>Subclass API: May be overridden by subclass. The default implementation returns the
-attributes of <a class="reference internal" href="#micro.Object" title="micro.Object"><code class="xref py py-class docutils literal"><span class="pre">Object</span></code></a>. <em>restricted</em> is ignored.</p>
+attributes of <a class="reference internal" href="#micro.Object" title="micro.Object"><code class="xref py py-class docutils literal"><span class="pre">Object</span></code></a>. <em>restricted</em> and <em>include</em> are ignored.</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="micro.Editable">
-<em class="property">class </em><code class="descclassname">micro.</code><code class="descname">Editable</code><span class="sig-paren">(</span><em>authors</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Editable" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">micro.</code><code class="descname">Editable</code><span class="sig-paren">(</span><em>authors</em>, <em>activity=None</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Editable" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#editable"><span class="std std-ref">Editable</span></a>.</p>
 <p>The <a class="reference internal" href="#micro.Object.json" title="micro.Object.json"><code class="xref py py-meth docutils literal"><span class="pre">Object.json()</span></code></a> method of editable objects accepts an additional argument
 <em>include_users</em>. If it is <code class="docutils literal"><span class="pre">True</span></code>, <a class="reference internal" href="#micro.User" title="micro.User"><code class="xref py py-class docutils literal"><span class="pre">User</span></code></a> s are included as JSON objects (instead of
@@ -218,7 +228,7 @@ checking, managing <em>authors</em> and storing the updated object in the databa
 
 <dl class="method">
 <dt id="micro.User.json">
-<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include_users=False</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.User.json" title="Permalink to this definition">¶</a></dt>
+<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include=False</em>, <em>include_users=False</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.User.json" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="#micro.Object.json" title="micro.Object.json"><code class="xref py py-meth docutils literal"><span class="pre">Object.json()</span></code></a>.</p>
 </dd></dl>
 
@@ -320,6 +330,15 @@ raised. If communication with the SMTP server fails, an <span class="xref std st
 <p>Note that this rudimentary parser makes bold assumptions about the format: The first six
 components are always interpreted as year, month, day and optionally hour, minute and second.
 Everything else, i.e. microsecond and time zone information, is ignored.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="micro.util.parse_slice">
+<code class="descclassname">micro.util.</code><code class="descname">parse_slice</code><span class="sig-paren">(</span><em>str</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.util.parse_slice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse a slice string into a <code class="xref py py-class docutils literal"><span class="pre">slice</span></code>.</p>
+<p>The slice string <em>str</em> has the format <code class="docutils literal"><span class="pre">start:stop</span></code>. Negative values are not supported. The
+maximum size of the slice may be given by <em>limit</em>, which caps the maximum value of <em>stop</em> at
+<code class="docutils literal"><span class="pre">start</span> <span class="pre">+</span> <span class="pre">limit</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -481,11 +500,11 @@ this documentation is on the differences and additions to the Web API.</p>
       &copy;2015 Meetling contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
       |
-      <a href="_sources/pythonapi.txt"
+      <a href="_sources/pythonapi.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Meetling Documentation &mdash; Meetling 0.13.2 documentation</title>
+    <title>Meetling Documentation &#8212; Meetling 0.14.0 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,20 +14,23 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.13.2',
+        VERSION:     '0.14.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.png"/>
-    <link rel="top" title="Meetling 0.13.2 documentation" href="#" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="1. Introduction" href="introduction.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
@@ -49,21 +52,24 @@
 <li class="toctree-l1"><a class="reference internal" href="webapi.html">2. Web API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="webapi.html#introduction">2.1. Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="webapi.html#authentication-and-permissions">2.2. Authentication and Permissions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="webapi.html#usage-examples">2.3. Usage examples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="webapi.html#application">2.4. Application</a></li>
-<li class="toctree-l2"><a class="reference internal" href="webapi.html#authrequest">2.5. AuthRequest</a></li>
-<li class="toctree-l2"><a class="reference internal" href="webapi.html#meetling">2.6. Meetling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="webapi.html#object">2.7. Object</a></li>
-<li class="toctree-l2"><a class="reference internal" href="webapi.html#editable">2.8. Editable</a></li>
-<li class="toctree-l2"><a class="reference internal" href="webapi.html#user">2.9. User</a></li>
-<li class="toctree-l2"><a class="reference internal" href="webapi.html#settings">2.10. Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="webapi.html#meeting">2.11. Meeting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="webapi.html#agendaitem">2.12. AgendaItem</a></li>
-<li class="toctree-l2"><a class="reference internal" href="webapi.html#valueerror">2.13. ValueError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="webapi.html#inputerror">2.14. InputError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="webapi.html#notfounderror">2.15. NotFoundError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="webapi.html#authenticationerror">2.16. AuthenticationError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="webapi.html#permissionerror">2.17. PermissionError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#lists">2.3. Lists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#usage-examples">2.4. Usage examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#application">2.5. Application</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#authrequest">2.6. AuthRequest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#meetling">2.7. Meetling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#object">2.8. Object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#editable">2.9. Editable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#user">2.10. User</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#settings">2.11. Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#activity">2.12. Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#event">2.13. Event</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#meeting">2.14. Meeting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#agendaitem">2.15. AgendaItem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#valueerror">2.16. ValueError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#inputerror">2.17. InputError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#notfounderror">2.18. NotFoundError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#authenticationerror">2.19. AuthenticationError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webapi.html#permissionerror">2.20. PermissionError</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="pythonapi.html">3. Python API</a><ul>
@@ -121,11 +127,11 @@
       &copy;2015 Meetling contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
       |
-      <a href="_sources/contents.txt"
+      <a href="_sources/contents.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

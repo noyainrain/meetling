@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>2. Web API &mdash; Meetling 0.13.2 documentation</title>
+    <title>2. Web API &#8212; Meetling 0.14.0 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,21 +14,24 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.13.2',
+        VERSION:     '0.14.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.png"/>
-    <link rel="top" title="Meetling 0.13.2 documentation" href="contents.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="3. Python API" href="pythonapi.html" />
     <link rel="prev" title="1. Introduction" href="introduction.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
@@ -59,8 +62,18 @@
 any endpoint, a <a class="reference internal" href="#permissionerror"><span class="std std-ref">PermissionError</span></a> is returned if the current user is not allowed to perform the
 action.</p>
 </div>
+<div class="section" id="lists">
+<h2>2.3. Lists<a class="headerlink" href="#lists" title="Permalink to this headline">¶</a></h2>
+<p>For most API endpoints which return a list, a slice of the form <code class="docutils literal"><span class="pre">/(start):(stop)</span></code> may be appended
+to the URL, where <em>start</em> (inclusive) and <em>stop</em> (exclusive) are indices of the items to return.
+The maximum number of items is limited to a <em>limit</em> of <code class="docutils literal"><span class="pre">100</span></code>. Both <em>start</em> and <em>stop</em> are optional
+and default to <code class="docutils literal"><span class="pre">0</span></code> and <code class="docutils literal"><span class="pre">start</span> <span class="pre">+</span> <span class="pre">limit</span></code> respectively.</p>
+<p>Example: <code class="docutils literal"><span class="pre">/api/activity</span></code> (which is equivalent to <code class="docutils literal"><span class="pre">/api/activity/:</span></code> or <code class="docutils literal"><span class="pre">/api/activity/0:100</span></code>)
+returns the first hundred items (i.e. global events) and <code class="docutils literal"><span class="pre">/api/activity/10:20</span></code> returns the items
+from index 10 up to including 19.</p>
+</div>
 <div class="section" id="usage-examples">
-<h2>2.3. Usage examples<a class="headerlink" href="#usage-examples" title="Permalink to this headline">¶</a></h2>
+<h2>2.4. Usage examples<a class="headerlink" href="#usage-examples" title="Permalink to this headline">¶</a></h2>
 <p>A new <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> is created and logged in with the following request:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -d &quot;&quot; https://meetling.org/api/login
 {
@@ -96,8 +109,14 @@ setting the email address:</p>
 </div>
 </div>
 <div class="section" id="application">
-<span id="id1"></span><h2>2.4. Application<a class="headerlink" href="#application" title="Permalink to this headline">¶</a></h2>
+<span id="id1"></span><h2>2.5. Application<a class="headerlink" href="#application" title="Permalink to this headline">¶</a></h2>
 <p>Social micro web app.</p>
+<dl class="get">
+<dt id="get--api-activity">
+<code class="descname">GET </code><code class="descname">/api/activity</code><a class="headerlink" href="#get--api-activity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Global <a class="reference internal" href="#activity"><span class="std std-ref">Activity</span></a> feed.</p>
+</dd></dl>
+
 <dl class="post">
 <dt id="post--api-login">
 <code class="descname">POST </code><code class="descname">/api/login</code><a class="headerlink" href="#post--api-login" title="Permalink to this definition">¶</a></dt>
@@ -111,7 +130,7 @@ registered as staff member.</p>
 
 </div>
 <div class="section" id="authrequest">
-<span id="id2"></span><h2>2.5. AuthRequest<a class="headerlink" href="#authrequest" title="Permalink to this headline">¶</a></h2>
+<span id="id2"></span><h2>2.6. AuthRequest<a class="headerlink" href="#authrequest" title="Permalink to this headline">¶</a></h2>
 <p>Third party authentication request.</p>
 <p>To set an <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> &#8216;s email address, a third party authentication via the email provider is
 performed to proof ownership over the address: First an email message containing a secret
@@ -121,7 +140,7 @@ application.</p>
 <p>AuthRequest is an <a class="reference internal" href="#object"><span class="std std-ref">Object</span></a>.</p>
 </div>
 <div class="section" id="meetling">
-<span id="id3"></span><h2>2.6. Meetling<a class="headerlink" href="#meetling" title="Permalink to this headline">¶</a></h2>
+<span id="id3"></span><h2>2.7. Meetling<a class="headerlink" href="#meetling" title="Permalink to this headline">¶</a></h2>
 <p>Meetling <a class="reference internal" href="#application"><span class="std std-ref">Application</span></a>.</p>
 <dl class="post">
 <dt id="post--api-meetings">
@@ -141,7 +160,7 @@ application.</p>
 
 </div>
 <div class="section" id="object">
-<span id="id4"></span><h2>2.7. Object<a class="headerlink" href="#object" title="Permalink to this headline">¶</a></h2>
+<span id="id4"></span><h2>2.8. Object<a class="headerlink" href="#object" title="Permalink to this headline">¶</a></h2>
 <p>Object in the application universe.</p>
 <dl class="attribute">
 <dt id="id">
@@ -157,7 +176,7 @@ application.</p>
 
 </div>
 <div class="section" id="editable">
-<span id="id5"></span><h2>2.8. Editable<a class="headerlink" href="#editable" title="Permalink to this headline">¶</a></h2>
+<span id="id5"></span><h2>2.9. Editable<a class="headerlink" href="#editable" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference internal" href="#object"><span class="std std-ref">Object</span></a> that can be edited.</p>
 <p>The URL that uniquely identifies an object is referred to as <em>object-url</em>, e.g. <code class="docutils literal"><span class="pre">meetings/abc</span></code> for
 a <a class="reference internal" href="#meeting"><span class="std std-ref">Meeting</span></a> with the <em>id</em> <code class="docutils literal"><span class="pre">abc</span></code>.</p>
@@ -179,7 +198,7 @@ a <a class="reference internal" href="#meeting"><span class="std std-ref">Meetin
 
 </div>
 <div class="section" id="user">
-<span id="id6"></span><h2>2.9. User<a class="headerlink" href="#user" title="Permalink to this headline">¶</a></h2>
+<span id="id6"></span><h2>2.10. User<a class="headerlink" href="#user" title="Permalink to this headline">¶</a></h2>
 <p>User is an <a class="reference internal" href="#object"><span class="std std-ref">Object</span></a> and <a class="reference internal" href="#editable"><span class="std std-ref">Editable</span></a> by the user oneself.</p>
 <dl class="describe">
 <dt>
@@ -238,7 +257,7 @@ the given email address is already associated with another user, a <a class="ref
 
 </div>
 <div class="section" id="settings">
-<span id="id7"></span><h2>2.10. Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
+<span id="id7"></span><h2>2.11. Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
 <p>App settings.</p>
 <p>Settings is an <a class="reference internal" href="#object"><span class="std std-ref">Object</span></a> and <a class="reference internal" href="#editable"><span class="std std-ref">Editable</span></a> by staff members.</p>
 <dl class="describe">
@@ -278,8 +297,54 @@ the given email address is already associated with another user, a <a class="ref
 </dd></dl>
 
 </div>
+<div class="section" id="activity">
+<span id="id8"></span><h2>2.12. Activity<a class="headerlink" href="#activity" title="Permalink to this headline">¶</a></h2>
+<p>Activity feed (of events) around a common topic/context.</p>
+<p><em>activity-url</em> is the URL that identifies the activity feed, e.g. <code class="docutils literal"><span class="pre">/api/activity</span></code>.</p>
+<dl class="get">
+<dt id="get-(activity-url)">
+<code class="descname">GET </code><code class="descname">(activity-url)</code><a class="headerlink" href="#get-(activity-url)" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the list of recorded <span class="xref std std-ref">Events</span>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="event">
+<span id="id9"></span><h2>2.13. Event<a class="headerlink" href="#event" title="Permalink to this headline">¶</a></h2>
+<p>Event about an action on an <em>object</em> by an <em>user</em>.</p>
+<p>Event is an <a class="reference internal" href="#object"><span class="std std-ref">Object</span></a>.</p>
+<dl class="attribute">
+<dt id="type">
+<code class="descname">type</code><a class="headerlink" href="#type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type of the event.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">object</code></dt>
+<dd><p><a class="reference internal" href="#object"><span class="std std-ref">Object</span></a> for which the event happened. <code class="docutils literal"><span class="pre">null</span></code> if it is a global event.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">user</code></dt>
+<dd><p><a class="reference internal" href="#user"><span class="std std-ref">User</span></a> who triggered the event.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<code class="descname">time</code></dt>
+<dd><p>Date and time at which the event happened.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="detail">
+<code class="descname">detail</code><a class="headerlink" href="#detail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary with additonal details about the event. The contents depend on the event <em>type</em>.</p>
+</dd></dl>
+
+</div>
 <div class="section" id="meeting">
-<span id="id8"></span><h2>2.11. Meeting<a class="headerlink" href="#meeting" title="Permalink to this headline">¶</a></h2>
+<span id="id10"></span><h2>2.14. Meeting<a class="headerlink" href="#meeting" title="Permalink to this headline">¶</a></h2>
 <p>Meeting.</p>
 <p>Meeting is an <a class="reference internal" href="#object"><span class="std std-ref">Object</span></a> and <a class="reference internal" href="#editable"><span class="std std-ref">Editable</span></a>.</p>
 <dl class="describe">
@@ -360,7 +425,7 @@ returned.</p>
 
 </div>
 <div class="section" id="agendaitem">
-<span id="id9"></span><h2>2.12. AgendaItem<a class="headerlink" href="#agendaitem" title="Permalink to this headline">¶</a></h2>
+<span id="id11"></span><h2>2.15. AgendaItem<a class="headerlink" href="#agendaitem" title="Permalink to this headline">¶</a></h2>
 <p>Item on a <a class="reference internal" href="#meeting"><span class="std std-ref">Meeting</span></a> &#8216;s agenda.</p>
 <p>AgendaItem is an <a class="reference internal" href="#object"><span class="std std-ref">Object</span></a> and <a class="reference internal" href="#editable"><span class="std std-ref">Editable</span></a>.</p>
 <dl class="describe">
@@ -389,7 +454,7 @@ returned.</p>
 
 </div>
 <div class="section" id="valueerror">
-<span id="id10"></span><h2>2.13. ValueError<a class="headerlink" href="#valueerror" title="Permalink to this headline">¶</a></h2>
+<span id="id12"></span><h2>2.16. ValueError<a class="headerlink" href="#valueerror" title="Permalink to this headline">¶</a></h2>
 <p>Returned for value-related errors.</p>
 <dl class="attribute">
 <dt id="code">
@@ -399,7 +464,7 @@ returned.</p>
 
 </div>
 <div class="section" id="inputerror">
-<span id="id11"></span><h2>2.14. InputError<a class="headerlink" href="#inputerror" title="Permalink to this headline">¶</a></h2>
+<span id="id13"></span><h2>2.17. InputError<a class="headerlink" href="#inputerror" title="Permalink to this headline">¶</a></h2>
 <p>Returned if the input to an endpoint contains one or more arguments with an invalid value.</p>
 <p>InputError is a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> with <em>code</em> set to <code class="docutils literal"><span class="pre">input_invalid</span></code>.</p>
 <dl class="attribute">
@@ -410,15 +475,15 @@ returned.</p>
 
 </div>
 <div class="section" id="notfounderror">
-<span id="id12"></span><h2>2.15. NotFoundError<a class="headerlink" href="#notfounderror" title="Permalink to this headline">¶</a></h2>
+<span id="id14"></span><h2>2.18. NotFoundError<a class="headerlink" href="#notfounderror" title="Permalink to this headline">¶</a></h2>
 <p>Returned if a requested endpoint does not exist.</p>
 </div>
 <div class="section" id="authenticationerror">
-<span id="id13"></span><h2>2.16. AuthenticationError<a class="headerlink" href="#authenticationerror" title="Permalink to this headline">¶</a></h2>
+<span id="id15"></span><h2>2.19. AuthenticationError<a class="headerlink" href="#authenticationerror" title="Permalink to this headline">¶</a></h2>
 <p>Returned if user authentication fails.</p>
 </div>
 <div class="section" id="permissionerror">
-<span id="id14"></span><h2>2.17. PermissionError<a class="headerlink" href="#permissionerror" title="Permalink to this headline">¶</a></h2>
+<span id="id16"></span><h2>2.20. PermissionError<a class="headerlink" href="#permissionerror" title="Permalink to this headline">¶</a></h2>
 <p>Returned if the current user is not allowed to perform an action.</p>
 </div>
 </div>
@@ -438,21 +503,24 @@ returned.</p>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">2. Web API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">2.1. Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#authentication-and-permissions">2.2. Authentication and Permissions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#usage-examples">2.3. Usage examples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#application">2.4. Application</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#authrequest">2.5. AuthRequest</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#meetling">2.6. Meetling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#object">2.7. Object</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#editable">2.8. Editable</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#user">2.9. User</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#settings">2.10. Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#meeting">2.11. Meeting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#agendaitem">2.12. AgendaItem</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#valueerror">2.13. ValueError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#inputerror">2.14. InputError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#notfounderror">2.15. NotFoundError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#authenticationerror">2.16. AuthenticationError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#permissionerror">2.17. PermissionError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lists">2.3. Lists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage-examples">2.4. Usage examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#application">2.5. Application</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#authrequest">2.6. AuthRequest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#meetling">2.7. Meetling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#object">2.8. Object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#editable">2.9. Editable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user">2.10. User</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#settings">2.11. Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#activity">2.12. Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#event">2.13. Event</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#meeting">2.14. Meeting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#agendaitem">2.15. AgendaItem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#valueerror">2.16. ValueError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#inputerror">2.17. InputError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#notfounderror">2.18. NotFoundError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#authenticationerror">2.19. AuthenticationError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#permissionerror">2.20. PermissionError</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="pythonapi.html">3. Python API</a></li>
@@ -485,11 +553,11 @@ returned.</p>
       &copy;2015 Meetling contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
       |
-      <a href="_sources/webapi.txt"
+      <a href="_sources/webapi.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

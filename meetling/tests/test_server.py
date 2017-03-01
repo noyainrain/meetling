@@ -89,6 +89,7 @@ class MeetlingServerTest(AsyncTestCase):
         yield self.request(
             '/api/settings', method='POST',
             body='{"title": "Cat Meetling", "icon": "http://example.org/static/icon.svg"}')
+        yield self.request('/api/activity')
 
     @gen_test
     def test_get_meeting(self):

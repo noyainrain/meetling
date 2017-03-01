@@ -35,8 +35,14 @@ li h1 {
     border-bottom: none;
 }
 
+ul,
+ol {
+    padding-left: 1.5rem;
+}
+
 small {
     font-size: 0.875rem;
+    color: #888;
 }
 
 .group {
@@ -210,11 +216,11 @@ label > textarea {
 
 label > small {
     display: block;
-    font-size: 0.9em;
+    font-size: 0.875em;
 }
 
-label > small + small {
-    color: #888;
+label > small:first-of-type {
+    color: inherit;
 }
 
 form > label {
@@ -223,6 +229,52 @@ form > label {
 
 .compact form > label {
     margin: calc(0.25 * 1.5rem) 0;
+}
+
+/* ---- Timeline ---- */
+
+.micro-timeline {
+    padding-left: 1.5rem;
+    list-style: none;
+}
+
+.micro-timeline > li {
+    position: relative;
+}
+
+.micro-timeline > li::before {
+    content: '';
+    position: absolute;
+    left: calc(-1.5rem / 2);
+    top: 0;
+    bottom: 0;
+    border-left: 1px solid #ddd;
+}
+
+.micro-timeline > li:first-child::before {
+    top: 50%;
+}
+
+.micro-timeline > li:last-child::before {
+    bottom: 50%;
+}
+
+.micro-timeline > li::after {
+    content: '';
+    position: absolute;
+    left: calc(-1.5rem / 2 - 1.5rem / 8);
+    top: calc(50% - 1.5rem / 8);
+    width: calc(1.5rem / 4);
+    height: calc(1.5rem / 4);
+    border-radius: calc(1.5rem / 8);
+    background: #ddd;
+}
+
+.micro-timeline > li > time {
+    display: inline-block;
+    margin-right: 1ch;
+    font-size: 0.875em;
+    color: #888;
 }
 
 /* ---- Menu ---- */
@@ -289,4 +341,14 @@ micro-not-found-page {
 
 micro-forbidden-page {
     text-align: center;
+}
+
+/* ---- _ActivityPage ---- */
+
+micro-activity-page > ul {
+    list-style: none;
+}
+
+.micro-activity-all .micro-activity-show-more {
+    display: none;
 }

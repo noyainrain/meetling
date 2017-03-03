@@ -123,7 +123,15 @@ class Application:
             settings = r.oget('Settings')
             settings['feedback_url'] = None
             r.oset(settings['id'], settings)
-            self.r.set('micro_version', 2)
+            r.set('micro_version', 2)
+
+        if version < 3:
+            settings = r.oget('Settings')
+            settings['provider_name'] = None
+            settings['provider_url'] = None
+            settings['provider_description'] = {}
+            r.oset(settings['id'], settings)
+            r.set('micro_version', 3)
 
         self.do_update()
 
@@ -424,12 +432,17 @@ class User(Object, Editable):
 class Settings(Object, Editable):
     """See :ref:`Settings`."""
 
-    def __init__(self, id, trashed, app, authors, title, icon, favicon, feedback_url, staff):
+    def __init__(
+            self, id, trashed, app, authors, title, icon, favicon, provider_name, provider_url,
+            provider_description, feedback_url, staff):
         super().__init__(id=id, trashed=trashed, app=app)
         Editable.__init__(self, authors=authors, activity=app.activity)
         self.title = title
         self.icon = icon
         self.favicon = favicon
+        self.provider_name = provider_name
+        self.provider_url = provider_url
+        self.provider_description = provider_description
         self.feedback_url = feedback_url
         self._staff = staff
 
@@ -453,6 +466,12 @@ class Settings(Object, Editable):
             self.icon = str_or_none(attrs['icon'])
         if 'favicon' in attrs:
             self.favicon = str_or_none(attrs['favicon'])
+        if 'provider_name' in attrs:
+            self.provider_name = str_or_none(attrs['provider_name'])
+        if 'provider_url' in attrs:
+            self.provider_url = str_or_none(attrs['provider_url'])
+        if 'provider_description' in attrs:
+            self.provider_description = attrs['provider_description']
         if 'feedback_url' in attrs:
             self.feedback_url = str_or_none(attrs['feedback_url'])
 
@@ -462,6 +481,9 @@ class Settings(Object, Editable):
             'title': self.title,
             'icon': self.icon,
             'favicon': self.favicon,
+            'provider_name': self.provider_name,
+            'provider_url': self.provider_url,
+            'provider_description': self.provider_description,
             'feedback_url': self.feedback_url,
             'staff': self._staff
         })

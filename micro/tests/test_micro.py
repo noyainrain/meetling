@@ -90,11 +90,11 @@ class ApplicationUpdateTest(AsyncTestCase):
         self.assertEqual(app.settings.title, 'CatApp')
 
     def test_update_db_version_previous(self):
-        self.setup_db('0.12.3')
+        self.setup_db('0.14.0')
         app = CatApp(redis_url='15')
         app.update()
 
-        self.assertIsNone(app.settings.feedback_url)
+        self.assertFalse(app.settings.provider_description)
 
     def test_update_db_version_first(self):
         self.setup_db('0.12.3')
@@ -103,6 +103,8 @@ class ApplicationUpdateTest(AsyncTestCase):
 
         # Update to version 2
         self.assertIsNone(app.settings.feedback_url)
+        # Update to version 3
+        self.assertFalse(app.settings.provider_description)
 
 class EditableTest(MicroTestCase):
     def setUp(self):
@@ -144,8 +146,10 @@ class CatApp(Application):
         self.types.update({'Cat': Cat})
 
     def create_settings(self):
-        return Settings(id='Settings', trashed=False, app=self, authors=[], title='CatApp',
-                        icon=None, favicon=None, feedback_url=None, staff=[])
+        return Settings(
+            id='Settings', trashed=False, app=self, authors=[], title='CatApp', icon=None,
+            favicon=None, provider_name=None, provider_url=None, provider_description={},
+            feedback_url=None, staff=[])
 
     def sample(self):
         user = self.login()

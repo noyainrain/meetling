@@ -92,6 +92,14 @@ class MeetlingServerTest(AsyncTestCase):
         yield self.request('/api/activity')
 
     @gen_test
+    def test_post_settings_provider_description_bad_type(self):
+        with self.assertRaises(HTTPError) as cm:
+            yield self.request('/api/settings', method='POST',
+                               body='{"provider_description": {"en": " "}}')
+        self.assertEqual(cm.exception.code, http.client.BAD_REQUEST)
+        self.assertIn('provider_description_bad_type', cm.exception.response.body.decode())
+
+    @gen_test
     def test_get_meeting(self):
         response = yield self.request('/api/meetings/' + self.meeting.id)
         meeting = json.loads(response.body.decode())

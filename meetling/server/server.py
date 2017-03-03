@@ -27,7 +27,7 @@ from urllib.parse import urlparse
 import micro
 from micro import AuthRequest
 from micro.server import Endpoint, make_list_endpoints
-from micro.util import str_or_none, parse_isotime
+from micro.util import str_or_none, parse_isotime, check_polyglot
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from tornado.template import DictLoader, filter_whitespace
@@ -256,8 +256,17 @@ class _SettingsEndpoint(Endpoint):
             'title': (str, 'opt'),
             'icon': (str, None, 'opt'),
             'favicon': (str, None, 'opt'),
+            'provider_name': (str, None, 'opt'),
+            'provider_url': (str, None, 'opt'),
+            'provider_description': (dict, 'opt'),
             'feedback_url': (str, None, 'opt')
         })
+        if 'provider_description' in args:
+            try:
+                check_polyglot(args['provider_description'])
+            except ValueError:
+                raise micro.ValueError('provider_description_bad_type')
+
         settings = self.app.settings
         settings.edit(**args)
         self.write(settings.json(restricted=True, include_users=True))

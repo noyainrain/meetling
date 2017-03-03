@@ -63,6 +63,14 @@ def parse_slice(str, limit=None):
         stop = min(stop, (start or 0) + limit)
     return slice(start, stop)
 
+def check_polyglot(polyglot):
+    """Check the *polyglot* string."""
+    if not all(re.fullmatch('[a-z]{2}', l) for l in polyglot):
+        raise ValueError('polyglot_language_bad_format')
+    if not all(str_or_none(v) for v in polyglot.values()):
+        raise ValueError('polyglot_value_empty')
+    return polyglot
+
 def check_email(email):
     """Check the *email* address."""
     if not str_or_none(email):

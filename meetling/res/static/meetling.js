@@ -480,17 +480,36 @@ meetling.StartPage = class extends HTMLElement {
 /**
  * About page.
  */
-meetling.AboutPage = document.registerElement('meetling-about-page',
-        {prototype: Object.create(HTMLElement.prototype, {
-    createdCallback: {value: function() {
+meetling.AboutPage = class extends HTMLElement {
+    createdCallback() {
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-about-page-template').content, true));
-        var h1 = this.querySelector('h1');
+
+        let h1 = this.querySelector('h1');
         h1.textContent = h1.dataset.text.replace('{title}', ui.settings.title);
-        var p = this.querySelector('.meetling-about-short');
+        let p = this.querySelector('.meetling-about-short');
         p.textContent = p.dataset.text.replace('{title}', ui.settings.title);
-    }}
-})});
+
+        if (ui.settings.provider_name) {
+            let text = 'The service is provided by {provider}.';
+            let args = {provider: ui.settings.provider_name};
+            if (ui.settings.provider_url) {
+                let a = document.createElement('a');
+                a.classList.add('link');
+                a.href = ui.settings.provider_url;
+                a.target = '_blank';
+                a.textContent = ui.settings.provider_name;
+                args.provider = a;
+            }
+            if (ui.settings.provider_description.en) {
+                text = 'The service is provided by {provider}, {description}.';
+                args.description = ui.settings.provider_description.en;
+            }
+            this.querySelector('.meetling-about-provider').appendChild(
+                micro.util.formatFragment(text, args));
+        }
+    }
+};
 
 /**
  * Edit user page.
@@ -647,24 +666,23 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
 /**
  * Edit settings page.
  */
-meetling.EditSettingsPage = document.registerElement('meetling-edit-settings-page',
-        {prototype: Object.create(HTMLElement.prototype, {
-    createdCallback: {value: function() {
+meetling.EditSettingsPage = class extends HTMLElement {
+    createdCallback() {
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-edit-settings-page-template').content, true));
         this._form = this.querySelector('form');
         this._form.elements['title'].value = ui.settings.title;
         this._form.elements['icon'].value = ui.settings.icon || '';
         this._form.elements['favicon'].value = ui.settings.favicon || '';
+        this._form.elements['provider_name'].value = ui.settings.provider_name || '';
+        this._form.elements['provider_url'].value = ui.settings.provider_url || '';
+        this._form.elements['provider_description'].value =
+            ui.settings.provider_description.en || '';
         this._form.elements['feedback_url'].value = ui.settings.feedback_url || '';
         this.querySelector('.meetling-edit-settings-edit').addEventListener('submit', this);
-    }},
+    }
 
-    attachedCallback: {value: function() {
-        this._form.elements['title'].focus();
-    }},
-
-    handleEvent: {value: function(event) {
+    handleEvent(event) {
         if (event.currentTarget === this._form) {
             event.preventDefault();
             // Cancel submit if validation fails (not all browsers do this automatically)
@@ -672,18 +690,27 @@ meetling.EditSettingsPage = document.registerElement('meetling-edit-settings-pag
                 return;
             }
 
+            function toStringOrNull(str) {
+                return str.trim() ? str : null;
+            }
+            let description = toStringOrNull(this._form.elements['provider_description'].value);
+            description = description ? {en: description} : {};
+
             micro.call('POST', '/api/settings', {
                 title: this._form.elements['title'].value,
                 icon: this._form.elements['icon'].value,
                 favicon: this._form.elements['favicon'].value,
+                provider_name: this._form.elements['provider_name'].value,
+                provider_url: this._form.elements['provider_url'].value,
+                provider_description: description,
                 feedback_url: this._form.elements['feedback_url'].value
             }).then(function(settings) {
                 ui.navigate('/');
                 ui.dispatchEvent(new CustomEvent('settings-edit', {detail: {settings: settings}}));
             }.bind(this));
         }
-    }}
-})});
+    }
+};
 
 /**
  * Meeting page.
@@ -1158,3 +1185,5 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
 })});
 
 document.registerElement('meetling-start-page', meetling.StartPage);
+document.registerElement('meetling-about-page', meetling.AboutPage);
+document.registerElement('meetling-edit-settings-page', meetling.EditSettingsPage);

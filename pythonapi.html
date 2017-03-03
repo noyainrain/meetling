@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>3. Python API &#8212; Meetling 0.14.0 documentation</title>
+    <title>3. Python API &#8212; Meetling 0.15.0 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.14.0',
+        VERSION:     '0.15.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -266,7 +266,7 @@ raised. If communication with the SMTP server fails, an <span class="xref std st
 
 <dl class="class">
 <dt id="micro.Settings">
-<em class="property">class </em><code class="descclassname">micro.</code><code class="descname">Settings</code><span class="sig-paren">(</span><em>id</em>, <em>trashed</em>, <em>app</em>, <em>authors</em>, <em>title</em>, <em>icon</em>, <em>favicon</em>, <em>feedback_url</em>, <em>staff</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Settings" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">micro.</code><code class="descname">Settings</code><span class="sig-paren">(</span><em>id</em>, <em>trashed</em>, <em>app</em>, <em>authors</em>, <em>title</em>, <em>icon</em>, <em>favicon</em>, <em>provider_name</em>, <em>provider_url</em>, <em>provider_description</em>, <em>feedback_url</em>, <em>staff</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#settings"><span class="std std-ref">Settings</span></a>.</p>
 </dd></dl>
 
@@ -339,6 +339,12 @@ Everything else, i.e. microsecond and time zone information, is ignored.</p>
 <p>The slice string <em>str</em> has the format <code class="docutils literal"><span class="pre">start:stop</span></code>. Negative values are not supported. The
 maximum size of the slice may be given by <em>limit</em>, which caps the maximum value of <em>stop</em> at
 <code class="docutils literal"><span class="pre">start</span> <span class="pre">+</span> <span class="pre">limit</span></code>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="micro.util.check_polyglot">
+<code class="descclassname">micro.util.</code><code class="descname">check_polyglot</code><span class="sig-paren">(</span><em>polyglot</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.util.check_polyglot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check the <em>polyglot</em> string.</p>
 </dd></dl>
 
 <dl class="function">
@@ -500,8 +506,8 @@ this documentation is on the differences and additions to the Web API.</p>
       &copy;2015 Meetling contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
       <a href="_sources/pythonapi.rst.txt"

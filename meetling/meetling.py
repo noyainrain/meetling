@@ -91,8 +91,10 @@ class Meetling(Application):
             r.set('version', 5)
 
     def create_settings(self):
-        return Settings(id='Settings', trashed=False, app=self, authors=[], title='My Meetling',
-                        icon=None, favicon=None, feedback_url=None, staff=[])
+        return Settings(
+            id='Settings', trashed=False, app=self, authors=[], title='My Meetling', icon=None,
+            favicon=None, provider_name=None, provider_url=None, provider_description={},
+            feedback_url=None, staff=[])
 
     def create_meeting(self, title, time=None, location=None, description=None):
         """See :http:post:`/api/meetings`."""

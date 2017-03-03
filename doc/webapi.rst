@@ -34,6 +34,12 @@ Example: ``/api/activity`` (which is equivalent to ``/api/activity/:`` or ``/api
 returns the first hundred items (i.e. global events) and ``/api/activity/10:20`` returns the items
 from index 10 up to including 19.
 
+Additional types
+----------------
+
+A *polyglot string* is an :class:`Object` holding multiple translations of a string indexed by short
+language tag.
+
 Usage examples
 --------------
 
@@ -248,6 +254,19 @@ Settings is an :ref:`Object` and :ref:`Editable` by staff members.
 .. describe:: favicon
 
    URL of the site icon optimized for a small size. May be ``null``.
+
+.. describe:: provider_name
+
+   Service provider name. May be ``null``.
+
+.. describe:: provider_url
+
+   URL of the website of the service provider. May be ``null``.
+
+.. describe:: provider_description
+
+   Short polyglot description of the service provider, which can be read as an addendum to the
+   *provider_name*.
 
 .. describe:: feedback_url
 

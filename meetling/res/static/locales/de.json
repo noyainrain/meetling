@@ -18,6 +18,8 @@
         }
     },
     "meeting": {
-        "authors": "bearbeitet von {authors}"
+        "authors": "bearbeitet von {authors}",
+        "edit": "Bearbeiten",
+        "share": "Teilen"
     }
 }

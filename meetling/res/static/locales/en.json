@@ -12,6 +12,8 @@
     "about": {
         "title": "About {site-title}",
         "short": "{site-title} is a service for collaboratively preparing meetings.",
+        "provider": "The service is provided by {provider}.",
+        "providerWithDescription": "The service is provided by {provider}, {description}.",
         "poweredBy": {
             "title": "Powered by",
             "content": "The service is powered by {meetling}, a {foss} licensed under the {gpl}.",

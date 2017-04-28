@@ -862,6 +862,7 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
             if (this._meeting.time) {
                 var time = this.querySelector('.meetling-meeting-time time');
                 time.dateTime = this._meeting.time;
+                // TODO: format time with lang info
                 time.textContent = new Date(this._meeting.time).toLocaleString(
                     'en', meetling._DATE_TIME_FORMAT);
             } else {

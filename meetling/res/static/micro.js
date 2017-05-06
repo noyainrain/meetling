@@ -87,6 +87,76 @@ micro.call = function(method, url, args) {
     })
 };
 
+micro._proxies = new WeakMap();
+
+micro.bind = function(elem) {
+    // utility: template selector, if given make documentImportNode ppend child foo...
+    // TODO this.elem.dataset.shadow = true
+
+    let subscribers = {};
+
+    let data = new Proxy({}, {
+        set(target, prop, value) {
+            target[prop] = value;
+            for (let subscriber of subscribers[prop]) {
+                subscriber();
+            }
+            return true;
+        }
+    });
+
+    let rootTag = elem.tagName.toLowerCase();
+
+    let stack = [];
+    stack.push(...elem.children);
+
+    while(stack.length) {
+        let child = stack.pop();
+
+        let tag = `${child.tagName.toLowerCase()}`;
+
+        for (let [elemProp, expr] of Object.entries(child.dataset)) {
+            let tokens = expr.split('.');
+
+            let update = () => {
+                let value = tokens.reduce((a, v, i) => {
+                    return (a === null || a === undefined) ? undefined : a[v];
+                    //if (a === null || a === undefined) {
+                    //    throw new TypeError(`${tokens.slice(0, i).join('.')} is ${a} in <${tag} data-${elemProp}="${expr}">`, `<${rootTag}>`);
+                    //}
+                }, data);
+                console.log(`Updating <${tag}>.${elemProp} to <${rootTag}>.${expr} = ${value}`);
+                if (elemProp === 'content') {
+                    if (value instanceof Node) {
+                        child.textContent = '';
+                        child.appendChild(value);
+                    } else {
+                        child.textContent = value;
+                    }
+                } else {
+                    child[elemProp] = value;
+                }
+            }
+
+            console.log(`Binding <${tag}>.${elemProp} to ${expr}`);
+
+            let subs = subscribers[tokens[0]];
+            if (subs === undefined) {
+                subs = [];
+                subscribers[tokens[0]] = subs;
+            }
+            subs.push(update);
+        }
+
+        // TODO: check if 'shadow' in child.dataset
+        if (!('content' in child.dataset)) {
+            stack.push(...child.children);
+        }
+    }
+
+    return data;
+}
+
 /**
  * Find the first ancestor of *elem* that satisfies *predicate*.
  *

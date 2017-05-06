@@ -2,7 +2,7 @@
     <h1>Edit user settings</h1>
     <form class="meetling-edit-user-edit">
         <label>
-            <input name="name" />
+            <input name="name" data-value="user.name" />
             <small>Name</small>
             <small>Your name or nick name.</small>
         </label>
@@ -15,7 +15,9 @@
         <header class="group">
             <h1>Email</h1>
             <div class="meetling-edit-user-remove-email actions">
-                <button class="action"><i class="fa fa-trash-o"></i> Remove</button>
+                <button is="micro-button" class="action" data-run="removeEmail">
+                    <i class="fa fa-trash-o"></i> Remove
+                </button>
             </div>
         </header>
 
@@ -45,7 +47,7 @@
             <p class="micro-progress"><i class="fa fa-spin fa-spinner"></i></p>
         </section>
 
-        <p class="meetling-edit-user-email-value"></p>
+        <p class="meetling-edit-user-email-value" data-content="user.email"></p>
 
         <p><small>The email address is only visible to you.</small></p>
     </section>

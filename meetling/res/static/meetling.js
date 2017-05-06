@@ -127,6 +127,9 @@ meetling.UserElement = document.registerElement("meetling-user",
             return this._user;
         },
         set: function(value) {
+            // data-live-content="user.name"
+            // data-live-title="user.name"
+
             this._user = value;
             if (this._user) {
                 this.querySelector("span").textContent = this._user.name;
@@ -156,6 +159,10 @@ meetling.UserListingElement = document.registerElement("meetling-user-listing",
             return this._users;
         },
         set: function(value) {
+            // data-live-content="seq users 'user'"
+            //     <meetling-user data-live-user="user"></meetling-user><span>,</span>
+            // last comma will be hidden with css
+
             this._users = value;
             this.innerHTML = "";
             for (var i = 0; i < this._users.length; i++) {
@@ -310,6 +317,15 @@ meetling.UI = document.registerElement('meetling-ui',
     }},
 
     _update: {value: function() {
+        // data-live-title="settings.title"
+        // data-live-class="TODO"
+        // data-live-content="settings.title"
+        // data-live-href="settings.favicon"
+        // data-live-visible="settings.favicon | bool"
+        // data-live-href="settings.feedback_url"
+        // data-live-user="user"
+        // data-live-visible="staff"
+
         document.title = this.settings.title;
         this.classList.toggle('meetling-ui-user-is-staff', this.staff)
         this.classList.toggle('meetling-ui-settings-have-feedback-url', this.settings.feedback_url);
@@ -415,6 +431,8 @@ meetling.UI = document.registerElement('meetling-ui',
 meetling.SimpleNotification = document.registerElement("meetling-simple-notification",
         {prototype: Object.create(HTMLElement.prototype, {
     createdCallback: {value: function() {
+        // data-live-run="_dismiss"
+
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-simple-notification-template').content, true));
         this.classList.add("meetling-notification", "meetling-simple-notification");
@@ -436,6 +454,8 @@ meetling.SimpleNotification = document.registerElement("meetling-simple-notifica
 meetling.ErrorNotification = document.registerElement("meetling-error-notification",
         {prototype: Object.create(HTMLElement.prototype, {
     createdCallback: {value: function() {
+        // data-live-run="_reload"
+
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-error-notification-template').content, true));
         this.classList.add("meetling-notification", "meetling-error-notification");
@@ -455,6 +475,11 @@ meetling.ErrorNotification = document.registerElement("meetling-error-notificati
  */
 meetling.StartPage = class extends HTMLElement {
     createdCallback() {
+        // data-live-src="ui.settings.icon"
+        // data-live-visible="ui.settings.icon | bool"
+        // data-live-content="ui.settings.title"
+        // data-live-run="_createExampleMeeting"
+
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-start-page-template').content, true));
 
@@ -482,6 +507,10 @@ meetling.StartPage = class extends HTMLElement {
  */
 meetling.AboutPage = class extends HTMLElement {
     createdCallback() {
+        // data-live-content="ui.settings.title"
+        // data-live-title="ui.settings.title"
+        // TODO: translate with differing strings
+
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-about-page-template').content, true));
 
@@ -517,6 +546,10 @@ meetling.AboutPage = class extends HTMLElement {
 meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
         {prototype: Object.create(HTMLElement.prototype, {
     createdCallback: {value: function() {
+        // data-live-run="_removeEmail"
+        // data-live-run="_setEmail"
+        // data-live-run="_cancelSetEmail"
+
         this._user = null;
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-edit-user-page-template').content, true));
@@ -529,11 +562,14 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
         this._emailP = this.querySelector('.meetling-edit-user-email-value');
         this._setEmailAction = this.querySelector('.meetling-edit-user-set-email-1 form button');
         this._cancelSetEmailAction = this.querySelector('.meetling-edit-user-set-email-2 button');
-        this._removeEmailAction = this.querySelector('.meetling-edit-user-remove-email button');
-        this._removeEmailAction.addEventListener('click', this);
+        //this._removeEmailAction = this.querySelector('.meetling-edit-user-remove-email button');
+        //this._removeEmailAction.addEventListener('click', this);
         this._setEmailAction.addEventListener('click', this);
         this._cancelSetEmailAction.addEventListener('click', this);
         this._setEmailForm.addEventListener('submit', function(e) { e.preventDefault(); });
+
+        this._data = micro.bind(this);
+        this._data.removeEmail = this._removeEmail.bind(this);
     }},
 
     attachedCallback: {value: function() {
@@ -581,10 +617,15 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
             return this._user;
         },
         set: function(value) {
+            // TODO: class
+            // data-live-content"user.email"
+
             this._user = value;
+            this._data.user = value;
+
             this.classList.toggle('meetling-edit-user-has-email', this._user.email);
-            this._form.elements['name'].value = this._user.name;
-            this._emailP.textContent = this._user.email;
+            // this._form.elements['name'].value = this._user.name;
+            //this._emailP.textContent = this._user.email;
         }
     },
 
@@ -607,6 +648,9 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
     }},
 
     _removeEmail: {value: function() {
+        this.user.email = this.user.email + 'X';
+        this.user = this.user;
+        return;
         micro.call('POST', `/api/users/${this.user.id}/remove-email`).then(function(user) {
             this.user = user;
         }.bind(this), function(e) {
@@ -617,6 +661,12 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
     }},
 
     _showSetEmailPanel2: {value: function(progress) {
+        // data-live-visible="state | eq 'step1'"
+        // data-live-visible="state | eq 'step1'"
+        // data-live-visible="state | eq 'step2'"
+        // data-live-visible="progress"
+        // data-live-visible="progress | not"
+
         progress = progress || false;
         var progressP = this.querySelector('.meetling-edit-user-set-email-2 .micro-progress');
         var actions = this.querySelector('.meetling-edit-user-set-email-2 .actions');
@@ -668,6 +718,14 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
  */
 meetling.EditSettingsPage = class extends HTMLElement {
     createdCallback() {
+        // data-live-value="ui.settings.title"
+        // data-live-value="ui.settings.icon"
+        // data-live-value="ui.settings.favicon"
+        // data-live-value="ui.settings.provider_name"
+        // data-live-value="ui.settings.provider_url"
+        // data-live-value="ui.settings.provider_description.en"
+        // data-live-value="ui.settings.feedback_url"
+
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-edit-settings-page-template').content, true));
         this._form = this.querySelector('form');
@@ -718,6 +776,11 @@ meetling.EditSettingsPage = class extends HTMLElement {
 meetling.MeetingPage = document.registerElement('meetling-meeting-page',
         {prototype: Object.create(HTMLElement.prototype, {
     createdCallback: {value: function() {
+        // data-live-run="_showTrashedItems"
+        // data-live-run="_hideTrashedItems"
+        // data-live-run="_createAgendaItem"
+        // data-live-run="_share"
+
         this._meeting = null;
 
         this.appendChild(document.importNode(
@@ -739,6 +802,11 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
     }},
 
     attachedCallback: {value: function() {
+        // data-live-content="items | seq 'item'"
+            // <meetling-agenda-item data-live-item="item"></meetling-agenda-item>
+        // data-live-content="trashedItems | seq 'item'"
+            // <meetling-agenda-item data-live-item="item"></meetling-agenda-item>
+
         ui.addEventListener('trash-agenda-item', this);
         ui.addEventListener('restore-agenda-item', this);
 
@@ -772,6 +840,16 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
             return this._meeting;
         },
         set: function(value) {
+            // data-live-content="meeting.title"
+            // data-live-date-time="meeting.time"
+            // data-live-content="meeting.time | formatDateTime"
+            // data-live-visible="meeting.time | bool"
+            // data-live-content="meeting.location"
+            // data-live-visible="meeting.location | bool"
+            // data-live-content="meeting.description"
+            // data-live-users="meeting.authors"
+            // data-live-href="'/meetings/{}/edit' | format meeting.id"
+
             this._meeting = value;
             this.querySelector('h1').textContent = this._meeting.title;
             if (this._meeting.time) {
@@ -799,6 +877,11 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
     },
 
     _update: {value: function() {
+        // TODO: translate
+        // data-live-visible="trashedItems | count | bool"
+        // alternative
+        // data-live-visible="trashedItems | isNonEmpty"
+
         var trashedItemsCoverLi = this.querySelector(".meetling-meeting-trashed-items-cover");
         var trashedItemsLi = this.querySelector(".meetling-meeting-trashed-items");
         var trashedItemElems = trashedItemsLi.querySelectorAll(".meetling-agenda-item");
@@ -845,6 +928,11 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
     }},
 
     handleEvent: {value: function(event) {
+        // TODO: cannot replace with editor
+        //       every item can have hidden editor
+        //       or we need data-live-content="item | if 'true' item.edit itemize | if 'false' item.edit editorize"
+        //       or it is okay to modify dom, as long as we know that if it changes we will loose
+
         if (event.target === ui && event.type === 'trash-agenda-item') {
             var li = this._getAgendaItemElement(event.detail.item.id);
             li.item = event.detail.item;

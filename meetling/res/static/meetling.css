@@ -331,33 +331,18 @@ main {
 
 /* ---- EditUserPage ---- */
 
-.meetling-edit-user-email header {
+header.group {
+/*.meetling-edit-user-email header {*/
     align-items: flex-end;
 }
-
-.meetling-edit-user-email header h1 {
+header.group > h1 {
+/*.meetling-edit-user-email header h1 {*/
     flex: auto;
-}
-
-meetling-edit-user-page:not(.meetling-edit-user-has-email) .meetling-edit-user-remove-email {
-    display: none;
-}
-
-.meetling-edit-user-has-email .meetling-edit-user-set-email-1 {
-    display: none;
-}
-
-.meetling-edit-user-set-email-2 {
-    display: none;
 }
 
 .meetling-edit-user-set-email-2 h1 {
     border-bottom: none;
     font-size: 1rem;
-}
-
-meetling-edit-user-page:not(.meetling-edit-user-has-email) .meetling-edit-user-email-value {
-    display: none;
 }
 
 /* ---- MeetingPage ---- */

@@ -1,53 +1,57 @@
 <template class="meetling-edit-user-page-template">
     <h1>Edit user settings</h1>
-    <form class="meetling-edit-user-edit">
+    <form>
         <label>
             <input name="name" data-value="user.name" />
             <small>Name</small>
             <small>Your name or nick name.</small>
         </label>
         <p class="actions">
-            <button class="action"><i class="fa fa-check-circle"></i> Save</button>
+            <button is="micro-button" class="action" data-run="edit">
+                <i class="fa fa-check-circle"></i> Save
+            </button>
         </p>
     </form>
 
-    <section class="meetling-edit-user-email">
+    <section>
         <header class="group">
             <h1>Email</h1>
-            <div class="meetling-edit-user-remove-email actions">
+            <div class="actions" data-visible="user.email">
                 <button is="micro-button" class="action" data-run="removeEmail">
                     <i class="fa fa-trash-o"></i> Remove
                 </button>
             </div>
         </header>
 
-        <div class="meetling-edit-user-set-email-1">
+        <div class="meetling-edit-user-set-email-1" data-visible="eq setEmailStep 1">
             <form>
                 <label>
                     <input name="email" type="email" required="required" />
                     <small>Email address</small>
                 </label>
                 <p class="actions">
-                    <button class="action">
+                    <button is="micro-button" class="action" data-run="setEmail">
                         <i class="fa fa-check-circle"></i> Add email address
                     </button>
                 </p>
             </form>
         </div>
 
-        <section class="meetling-edit-user-set-email-2">
+        <section class="meetling-edit-user-set-email-2" data-visible="gt setEmailStep 1">
             <h1>Add email address</h1>
             <p>
                 We've sent a message to your email address. Please open it and follow the
                 instructions.
             </p>
-            <p class="actions">
-                <button class="action">Cancel</button>
+            <p class="actions" data-visible="eq setEmailStep 2">
+                <button is="micro-button" class="action" data-run="cancelSetEmail">Cancel</button>
             </p>
-            <p class="micro-progress"><i class="fa fa-spin fa-spinner"></i></p>
+            <p class="micro-progress" data-visible="eq setEmailStep 3">
+                <i class="fa fa-spin fa-spinner"></i>
+            </p>
         </section>
 
-        <p class="meetling-edit-user-email-value" data-content="user.email"></p>
+        <p data-content="user.email"></p>
 
         <p><small>The email address is only visible to you.</small></p>
     </section>

@@ -543,36 +543,18 @@ meetling.AboutPage = class extends HTMLElement {
 /**
  * Edit user page.
  */
-meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
-        {prototype: Object.create(HTMLElement.prototype, {
-    createdCallback: {value: function() {
-        // data-live-run="_removeEmail"
-        // data-live-run="_setEmail"
-        // data-live-run="_cancelSetEmail"
-
-        this._user = null;
+meetling.EditUserPage = class extends HTMLElement {
+    createdCallback() {
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-edit-user-page-template').content, true));
-        this._form = this.querySelector('form');
-        this.querySelector(".meetling-edit-user-edit").addEventListener("submit", this);
-
-        this._setEmail1 = this.querySelector('.meetling-edit-user-set-email-1');
-        this._setEmailForm = this.querySelector('.meetling-edit-user-set-email-1 form');
-        this._setEmail2 = this.querySelector('.meetling-edit-user-set-email-2');
-        this._emailP = this.querySelector('.meetling-edit-user-email-value');
-        this._setEmailAction = this.querySelector('.meetling-edit-user-set-email-1 form button');
-        this._cancelSetEmailAction = this.querySelector('.meetling-edit-user-set-email-2 button');
-        //this._removeEmailAction = this.querySelector('.meetling-edit-user-remove-email button');
-        //this._removeEmailAction.addEventListener('click', this);
-        this._setEmailAction.addEventListener('click', this);
-        this._cancelSetEmailAction.addEventListener('click', this);
-        this._setEmailForm.addEventListener('submit', function(e) { e.preventDefault(); });
-
-        this._data = micro.bind(this);
+        this._data = micro.bind.bind(this);
+        this._data.edit = this._edit.bind(this);
+        this._data.setEmail = this._setEmail.bind(this);
         this._data.removeEmail = this._removeEmail.bind(this);
-    }},
+        this._data.cancelSetEmail = this._cancelSetEmail.bind(this);
+    }
 
-    attachedCallback: {value: function() {
+    attachedCallback() {
         var match = /^#set-email=([^:]+):([^:]+)$/.exec(location.hash);
         if (match) {
             history.replaceState(null, null, location.pathname);
@@ -585,7 +567,7 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
             }
 
             this._showSetEmailPanel2(true);
-            micro.call('POST', `/api/users/${this._user.id}/finish-set-email`, {
+            micro.call('POST', `/api/users/${this._data.user.id}/finish-set-email`, {
                 auth_request_id: authRequest.id,
                 auth: match[2]
             }).then(function(user) {
@@ -607,111 +589,65 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
                 }
             }.bind(this));
         }
-    }},
+    }
 
     /**
      * :ref:`User` to edit.
      */
-    user: {
-        get: function() {
-            return this._user;
-        },
-        set: function(value) {
-            // TODO: class
-            // data-live-content"user.email"
+    get user() {
+        return this._data.user;
+    }
 
-            this._user = value;
-            this._data.user = value;
+    set user(value) {
+        this._data.user = value;
+        this._data.setEmailStep = this._data.user.email ? null : 1;
+    }
 
-            this.classList.toggle('meetling-edit-user-has-email', this._user.email);
-            // this._form.elements['name'].value = this._user.name;
-            //this._emailP.textContent = this._user.email;
+    async _edit() {
+        let form = this.querySelector('form');
+        try {
+            let user = await micro.call('POST', `/api/users/${this._data.user.id}`, {
+                name: form.elements['name'].value
+            });
+            ui.dispatchEvent(new CustomEvent('user-edit', {detail: {user: user}}));
+        } catch(e) {
+            if (e instanceof micro.APIError) {
+                ui.notify('The name is missing.');
+            } else {
+                throw e;
+            }
         }
-    },
+    }
 
-    _setEmail: {value: function() {
-        if (!this._setEmailForm.checkValidity()) {
+    async _setEmail() {
+        let form = this.querySelector('.meetling-edit-user-set-email-1 form');
+        if (!form.checkValidity()) {
             return;
         }
 
-        micro.call('POST', `/api/users/${this.user.id}/set-email`, {
-            "email": this._setEmailForm.elements['email'].value
-        }).then(function(authRequest) {
-            localStorage.authRequest = JSON.stringify(authRequest);
-            this._setEmailForm.reset();
-            this._showSetEmailPanel2();
-        }.bind(this));
-    }},
+        let authRequest = await micro.call('POST', `/api/users/${this.user.id}/set-email`, {
+            email: form.elements['email'].value
+        });
+        localStorage.authRequest = JSON.stringify(authRequest);
+        form.reset();
+        this._data.setEmailStep = 2;
+    }
 
-    _cancelSetEmail: {value: function() {
-        this._hideSetEmailPanel2();
-    }},
+    _cancelSetEmail() {
+        this._data.setEmailStep = 1;
+    }
 
-    _removeEmail: {value: function() {
-        this.user.email = this.user.email + 'X';
-        this.user = this.user;
-        return;
-        micro.call('POST', `/api/users/${this.user.id}/remove-email`).then(function(user) {
-            this.user = user;
-        }.bind(this), function(e) {
+    async _removeEmail() {
+        try {
+            this.user = await micro.call('POST', `/api/users/${this.user.id}/remove-email`);
+        } catch(e) {
             // If the email address has already been removed, we just update the UI
             this.user.email = null;
             this.user = this.user;
-        }.bind(this));
-    }},
-
-    _showSetEmailPanel2: {value: function(progress) {
-        // data-live-visible="state | eq 'step1'"
-        // data-live-visible="state | eq 'step1'"
-        // data-live-visible="state | eq 'step2'"
-        // data-live-visible="progress"
-        // data-live-visible="progress | not"
-
-        progress = progress || false;
-        var progressP = this.querySelector('.meetling-edit-user-set-email-2 .micro-progress');
-        var actions = this.querySelector('.meetling-edit-user-set-email-2 .actions');
-        this._emailP.style.display = 'none';
-        this._setEmail1.style.display = 'none';
-        this._setEmail2.style.display = 'block';
-        if (progress) {
-            progressP.style.display = '';
-            actions.style.display = 'none';
-        } else {
-            progressP.style.display = 'none';
-            actions.style.display = '';
         }
-    }},
-
-    _hideSetEmailPanel2: {value: function() {
-        this._emailP.style.display = '';
-        this._setEmail1.style.display = '';
-        this._setEmail2.style.display = '';
-    }},
-
-    handleEvent: {value: function(event) {
-        if (event.currentTarget === this._form) {
-            event.preventDefault();
-            micro.call('POST', `/api/users/${this._user.id}`, {
-                name: this._form.elements['name'].value
-            }).then(function(user) {
-                ui.dispatchEvent(new CustomEvent('user-edit', {detail: {user: user}}));
-            }, function(e) {
-                if (e instanceof micro.APIError) {
-                    ui.notify('The name is missing.');
-                } else {
-                    throw e;
-                }
-            }.bind(this));
-
-        } else if (event.currentTarget === this._setEmailAction && event.type === 'click') {
-            this._setEmail();
-        } else if (event.currentTarget === this._cancelSetEmailAction && event.type === 'click') {
-            this._cancelSetEmail();
-        } else if (event.currentTarget === this._removeEmailAction && event.type === 'click') {
-            this._removeEmail();
-        }
-    }}
-})});
+        this._data.setEmailStep = 1;
+    }
+};
 
 /**
  * Edit settings page.
@@ -1274,4 +1210,5 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
 
 document.registerElement('meetling-start-page', meetling.StartPage);
 document.registerElement('meetling-about-page', meetling.AboutPage);
+document.registerElement('meetling-edit-user-page', meetling.EditUserPage);
 document.registerElement('meetling-edit-settings-page', meetling.EditSettingsPage);

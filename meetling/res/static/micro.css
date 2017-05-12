@@ -348,7 +348,3 @@ micro-forbidden-page {
 micro-activity-page > ul {
     list-style: none;
 }
-
-.micro-activity-all .micro-activity-show-more {
-    display: none;
-}

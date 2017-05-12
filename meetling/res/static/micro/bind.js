@@ -8,7 +8,7 @@
 
 'use strict;'
 
-micro = micro || {};
+micro = window.micro || {};
 micro.bind = {};
 
 micro.bind.Watchable = class {
@@ -16,13 +16,13 @@ micro.bind.Watchable = class {
         object = object || {};
         let watchers = {};
 
-        let notify = (prop, change, index) => {
-            console.log('NOTIFY', prop, change, index);
+        let notify = (prop, value, change, index, item) => {
+            //console.log('NOTIFY', prop, change, index);
             if (prop in watchers) {
                 for (let handle of watchers[prop]) {
                     handle = handle[change];
                     if (handle) {
-                        handle(index);
+                        handle(prop, value, index, item);
                     }
                 }
             } else {
@@ -50,26 +50,26 @@ micro.bind.Watchable = class {
                             let splice = (start, deleteCount, ...items) => {
                                 let res = target.splice(start, deleteCount, ...items);
                                 for (let [i, item] of Object.entries(res)) {
-                                    notify(prop, 'deleteItem', start + parseInt(i));
+                                    notify(prop, value, 'deleteItem', start + parseInt(i), item);
                                 }
                                 for (let [i, item] of Object.entries(items)) {
-                                    notify(prop, 'insertItem', start + parseInt(i));
+                                    notify(prop, value, 'insertItem', start + parseInt(i), item);
                                 }
                                 return res;
                             }
                             return index === 'splice' ? splice : target[index];
                         },
 
-                        set(target, index, value) {
-                            target[index] = value;
-                            notify(prop, 'updateItem', index);
+                        set(target, index, val) {
+                            target[index] = val;
+                            notify(prop, value, 'updateItem', parseInt(index), val);
                             return true;
                         }
                     });
                 }
 
                 target[prop] = value;
-                notify(prop, 'update');
+                notify(prop, value, 'update');
                 return true;
             }
         });
@@ -83,24 +83,6 @@ micro.bind.bind = function(elem) {
 
     //let subscribers = {};
 
-    let funcs = {
-        eq(a, b) {
-            return a === b;
-        },
-
-        not(a, b) {
-            return a !== b;
-        },
-
-        lt(a, b) {
-            return a < b;
-        },
-
-        gt(a, b) {
-            return a > b;
-        }
-    };
-
     /*let data = new Proxy(Object.create(funcs), {
         set(target, prop, value) {
             target[prop] = value;
@@ -112,7 +94,7 @@ micro.bind.bind = function(elem) {
         }
     });*/
 
-    data = new micro.bind.Watchable(Object.create(funcs));
+    data = new micro.bind.Watchable(Object.create(micro.bind.transforms));
 
     let rootTag = elem.tagName.toLowerCase();
 
@@ -143,6 +125,11 @@ micro.bind.bind = function(elem) {
             });
             //let tokens = expr.split('.');
 
+            let ctx = {
+                data: data,
+                elem: child
+            }
+
             let update = () => {
                 let values = words.map(word => {
                     return typeof word === 'object' ? word.resolve() : word;
@@ -155,7 +142,7 @@ micro.bind.bind = function(elem) {
                     if (typeof values[0] !== 'function') {
                         throw new TypeError(`${words[0].name} is not a function (in <${tag} data-${elemProp}="${expr}">)`);
                     }
-                    value = values[0](...values.slice(1));
+                    value = values[0](ctx, ...values.slice(1));
                 }
 
                 console.log(`Updating <${rootTag}><${tag}>.${elemProp} to {${expr}}=${String(value).substring(0, 16).replace('\n', 'x')}${String(value).length > 16 ? '…' : ''}`);
@@ -207,3 +194,60 @@ micro.bind.bind = function(elem) {
 
     return data;
 }
+
+micro.bind.transforms = {
+    eq(ctx, a, b) {
+        return a === b;
+    },
+
+    not(ctx, data, a, b) {
+        return a !== b;
+    },
+
+    lt(ctx, data, a, b) {
+        return a < b;
+    },
+
+    gt(ctx, a, b) {
+        return a > b;
+    },
+
+    list(ctx, arr, itemName) {
+        let scopes = new Map();
+
+        let watcher = {
+            insertItem(index) {
+                let elem = document.cloneNode(ctx.elem._template, true);
+                ctx.elem.insertBefore(elem, ctx.elem.children[index]);
+				let scope = new Watchable(Object.create(data));
+                scopes.set(elem, scope);
+                micro.bind.bind(elem, scope);
+				scope[itemName] = arr[index];
+            },
+
+            deleteItem(index) {
+                let elem = ctx.elem.children[index];
+		        ctx.elem.removeChild(elem);
+		        scopes.remove(elem);
+            },
+
+            updateItem(index) {
+                let elem = ctx.elem.children[index];
+                scopes.get(elem)[itemName] = arr[index];
+            }
+        }
+
+        let key = Object.entries(ctx.data).find(([k, v]) => v === arr)[0];
+        ctx.data.watch(key, watcher);
+
+        if (!ctx.elem._template) {
+            ctx.elem._template = document.createDocumentFragment();
+            ctx.elem._template.appendChild(ctx.elem.children);
+            ctx.elem.textContent = '';
+        }
+
+        for (i in arr) {
+            watcher.insertItem(index);
+        }
+    }
+};

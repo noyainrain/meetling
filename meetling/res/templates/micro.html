@@ -15,12 +15,27 @@
     <p><small><i class='fa fa-eye'></i> Only visible to staff members</small></p>
     <ul>
         <li class="micro-lgroup">
-            <ul class="micro-timeline"></ul>
+            <ul class="micro-timeline" data-content="list events 'event'">
+                <li>
+                    <time data-date-time="event.time" data-content="formatDate event.time"></time>
+                    <span data-content="renderEvent event"></span>
+                </li>
+            </ul>
         </li>
-        <li class="micro-activity-show-more">
-            <button is="micro-button" class="link">
+        <li class="micro-activity-show-more" data-visible="moreEvents">
+            <button is="micro-button" class="link" data-run="showMore">
                 <i class="fa fa-ellipsis-v"></i> Show more
             </button>
         </li>
     </ul>
+</template>
+
+<template class="micro-editable-edit-event-template">
+    <span
+        data-content="translate 'event.editableEdit' user.language 'settings' 'a' 'user' 'meetling-user'">
+        <a class="link" href="/settings/edit"
+           data-content="translate 'event.siteSettings' user.language">
+        </a>
+        <meetling-user data-user="user"></meetling-user>
+    </span>
 </template>

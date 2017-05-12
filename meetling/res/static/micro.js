@@ -541,15 +541,13 @@ micro._ActivityPage = class extends HTMLElement {
         this.appendChild(document.importNode(
             ui.querySelector('.micro-activity-page-template').content, true));
         this._showMoreButton = this.querySelector('button');
-        this._showMoreButton.run = this._showMore.bind(this);
         this._start = 0;
 
         this._data = micro.bind.bind(this);
-        this._data.events = ['foo', 'bar', 'baz', 'peter', 'juergen'];
-        console.log('SET');
+        this._data.showMore = this._showMore.bind(this);
+        //this._data.events = ['foo', 'bar', 'baz', 'peter', 'juergen'];
+        /*console.log('SET');
         this._data.events[1] = 'oink';
-        /*console.log('DELETE');
-        delete this._data.events[2];*/
         console.log('SPLICE');
         this._data.events.splice(2, 1, 'zzzz');
         console.log('DELETE SPLICE');
@@ -561,7 +559,7 @@ micro._ActivityPage = class extends HTMLElement {
         console.log('UNSHIFT');
         this._data.events.shift();
         console.log('POP');
-        this._data.events.pop();
+        this._data.events.pop();*/
     }
 
     attachedCallback() {
@@ -581,7 +579,8 @@ micro._ActivityPage = class extends HTMLElement {
                 li.appendChild(ui.renderEvent[event.type](event));
                 ul.appendChild(li);
             }
-            this.classList.toggle('micro-activity-all', events.length < micro.LIST_LIMIT);
+            //this.classList.toggle('micro-activity-all', events.length < micro.LIST_LIMIT);
+            this._data.moreEvents = (events.length === micro.LIST_LIMIT);
             this._start += micro.LIST_LIMIT;
         });
     }

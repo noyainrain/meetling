@@ -64,6 +64,107 @@ describe('Watchable', function() {
     });
 });
 
+describe('bind()', function() {
+    before(function() {
+        this.setupItems = function() {
+            this.items = ['a', 'b', 'c'];
+            document.body.innerHTML = `
+                <ul data-content="list items">
+                    <li data-content="item"></li>
+                </ul>
+            `;
+            this.ul = document.querySelector('ul');
+            this.data = micro.bind.bind(document.body);
+            this.data.items = this.items;
+            this.children = Array.from(this.ul.children);
+            console.log(this.ul);
+        }
+    });
+
+    describe('on update data', function() {
+        it('should update DOM', function() {
+            document.body.innerHTML = `
+                <p data-title="title"><span data-title="title"></span></p>
+            `;
+            let p = document.querySelector('p');
+            let span = document.querySelector('span');
+            let data = micro.bind.bind(document.body);
+            data.title = 'test';
+            expect(p.title).to.equal('test');
+            expect(span.title).to.equal('test');
+        });
+
+        it('should update DOM with content binding', function() {
+            document.body.innerHTML = '<p data-content="content"></p>';
+            let p = document.querySelector('p');
+            let data = micro.bind.bind(document.body);
+            let a = document.createElement('a');
+            data.content = a;
+            // TODO deep?
+            expect(Array.from(p.childNodes)).to.deep.equal([a]);
+        });
+
+        it('should update DOM with visible binding', function() {
+            document.body.innerHTML = '<p data-visible="visible"></p>';
+            let p = document.querySelector('p');
+            let data = micro.bind.bind(document.body);
+            data.visible = false;
+            expect(p.offsetParent).to.be.null;
+        });
+
+        it('should update DOM with transform', function() {
+            let elem = document.body;
+            document.body.innerHTML = '<p data-title="eq title 42"></p>';
+            let p = document.querySelector('p');
+            let data = micro.bind.bind(document.body);
+            data.title = 'foo';
+            expect(p.title).to.equal('false');
+        });
+
+        it('should update DOM with list transform', function() {
+            this.setupItems();
+            let foo = Array.from(this.ul.childNodes, c => c.textContent)
+            expect(foo).to.deep.equal(['a', 'b', 'c']);
+        });
+    });
+
+    describe('on insert item', function() {
+        it('should update DOM', function() {
+            this.setupItems();
+            this.data.items.splice(1, 0, 'z');
+            let children = Array.from(this.ul.children);
+            expect(children.length).to.equal(4);
+            expect(children[0]).to.equal(this.children[0]);
+            expect(children[1].textContent).to.equal('z');
+            expect(children[2]).to.equal(this.children[1]);
+            expect(children[3]).to.equal(this.children[2]);
+        });
+    });
+
+    describe('on remove item', function() {
+        it('should update DOM', function() {
+            this.setupItems();
+            this.data.items.splice(1, 1);
+            let children = Array.from(this.ul.children);
+            expect(children.length).to.equal(2);
+            expect(children[0]).to.equal(this.children[0]);
+            expect(children[1]).to.equal(this.children[2]);
+        });
+    });
+
+    describe('on update item', function() {
+        it('should update DOM', function() {
+            this.setupItems();
+            this.data.items[1] = 'z';
+            let children = Array.from(this.ul.children);
+            expect(children.length).to.equal(3);
+            expect(children[0]).to.equal(this.children[0]);
+            expect(children[1].textContent).to.equal('z');
+            expect(children[2]).to.equal(this.children[2]);
+        });
+    });
+});
+
 /*
 * WIKI: micro client unit tests
 ```

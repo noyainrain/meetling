@@ -30,7 +30,7 @@ micro.bind.Watchable = class {
             }
         }
 
-        return new Proxy(object, {
+        let p = new Proxy(object, {
             get(target, prop) {
                 let watch = (prop, handle) => {
                     let ws = watchers[prop];
@@ -40,10 +40,24 @@ micro.bind.Watchable = class {
                     }
                     ws.push(typeof handle === 'function' ? {update: handle} : handle);
                 };
-                return prop === 'watch' ? watch : target[prop];
+                //return prop === 'watch' ? watch : target[prop];
+                switch(prop) {
+                case 'target':
+                    return target;
+                case 'watch':
+                    return watch;
+                default:
+                    return target[prop];
+                }
             },
 
-            set(target, prop, value) {
+            set(target, prop, value, r) {
+                if (p !== r) {
+                    console.log('RECEIVER NOT PROXY');
+                    /*r[prop] = value;*/
+                    return true;
+                }
+
                 if (value instanceof Array) {
                     value = new Proxy(value, {
                         get(target, index) {
@@ -73,10 +87,11 @@ micro.bind.Watchable = class {
                 return true;
             }
         });
+        return p;
     }
 }
 
-micro.bind.bind = function(elem) {
+micro.bind.bind = function(elem, data) {
     // utility: template selector, if given make documentImportNode ppend child foo...
     // or rather: bindTemplate(elem, templateSelector)
     // TODO this.elem.dataset.shadow = true
@@ -94,12 +109,20 @@ micro.bind.bind = function(elem) {
         }
     });*/
 
-    data = new micro.bind.Watchable(Object.create(micro.bind.transforms));
+    let stack = [];
+    // XXX
+    if (data) {
+        stack.push(elem);
+    } else {
+        stack.push(...elem.children);
+    }
+
+    if (data === undefined) {
+        data = new micro.bind.Watchable(Object.create(micro.bind.transforms));
+    }
 
     let rootTag = elem.tagName.toLowerCase();
 
-    let stack = [];
-    stack.push(...elem.children);
 
     while(stack.length) {
         let child = stack.pop();
@@ -200,11 +223,11 @@ micro.bind.transforms = {
         return a === b;
     },
 
-    not(ctx, data, a, b) {
-        return a !== b;
+    not(ctx, a) {
+        return !a;
     },
 
-    lt(ctx, data, a, b) {
+    lt(ctx, a, b) {
         return a < b;
     },
 
@@ -213,25 +236,37 @@ micro.bind.transforms = {
     },
 
     list(ctx, arr, itemName) {
+        // TODO
+        itemName = 'item';
+
         let scopes = new Map();
 
+        let create = index => {
+            let elem = ctx.elem._template.cloneNode(true);
+            let scope = new micro.bind.Watchable(Object.create(ctx.data.target));
+            scopes.set(elem, scope);
+            micro.bind.bind(elem, scope);
+            //scope[itemName] = arr[index];
+            scope.item = arr[index];
+            /*scope.foo = 3;
+            console.log(scope.__proto__);
+            console.log(ctx);
+            console.log('SCOPE', scope);*/
+            return elem;
+        };
+
         let watcher = {
-            insertItem(index) {
-                let elem = document.cloneNode(ctx.elem._template, true);
-                ctx.elem.insertBefore(elem, ctx.elem.children[index]);
-				let scope = new Watchable(Object.create(data));
-                scopes.set(elem, scope);
-                micro.bind.bind(elem, scope);
-				scope[itemName] = arr[index];
+            insertItem(a, b, index) {
+                ctx.elem.insertBefore(create(index), ctx.elem.children[index] || null);
             },
 
-            deleteItem(index) {
+            deleteItem(a, b, index) {
                 let elem = ctx.elem.children[index];
 		        ctx.elem.removeChild(elem);
-		        scopes.remove(elem);
+		        scopes.delete(elem);
             },
 
-            updateItem(index) {
+            updateItem(a, b, index) {
                 let elem = ctx.elem.children[index];
                 scopes.get(elem)[itemName] = arr[index];
             }
@@ -241,13 +276,23 @@ micro.bind.transforms = {
         ctx.data.watch(key, watcher);
 
         if (!ctx.elem._template) {
-            ctx.elem._template = document.createDocumentFragment();
-            ctx.elem._template.appendChild(ctx.elem.children);
+            //ctx.elem._template = document.createDocumentFragment();
+            /*for (let elem of ctx.elem.childNodes) {
+                ctx.elem._template.appendChild(elem);
+            }*/
+            //ctx.elem._template.appendChild(ctx.elem.children);
+            ctx.elem._template = ctx.elem.firstElementChild;
             ctx.elem.textContent = '';
         }
 
+        /*for (i in arr) {
+            watcher.insertItem(i);
+        }*/
+
+        let fragment = document.createDocumentFragment();
         for (i in arr) {
-            watcher.insertItem(index);
+            fragment.appendChild(create(i));
         }
+        return fragment;
     }
 };

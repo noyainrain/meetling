@@ -7,10 +7,15 @@ PIPFLAGS=$$([ -z "$$VIRTUAL_ENV" ] && echo --user) -U
 .PHONY: test
 test:
 	$(PYTHON) -m unittest
+	$(NPM) test
 
 .PHONY: test-ext
 test-ext:
 	$(PYTHON) -m unittest discover -p "ext_test*.py"
+
+.PHONY: test-watch-client
+test-watch-client:
+	trap "exit 0" INT; $(NPM) run test-watch
 
 .PHONY: lint
 lint:

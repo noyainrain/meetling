@@ -74,13 +74,14 @@ describe('bind()', function() {
                 </ul>
             `;
             this.ul = document.querySelector('ul');
-            this.data = micro.bind.bind(document.body);
-            this.data.items = this.items;
+            this.data = new micro.bind.Watchable({items: this.items});
+            micro.bind.bind(document.body, this.data);
             this.children = Array.from(this.ul.children);
             console.log(this.ul);
         }
     });
 
+    // TODO: one on update data test
     describe('on update data', function() {
         it('should update DOM', function() {
             document.body.innerHTML = `
@@ -88,8 +89,9 @@ describe('bind()', function() {
             `;
             let p = document.querySelector('p');
             let span = document.querySelector('span');
-            let data = micro.bind.bind(document.body);
-            data.title = 'test';
+            let data = new micro.bind.Watchable({title: 'test'});
+            micro.bind.bind(document.body, data);
+            //data.title = 'test';
             expect(p.title).to.equal('test');
             expect(span.title).to.equal('test');
         });
@@ -97,9 +99,10 @@ describe('bind()', function() {
         it('should update DOM with content binding', function() {
             document.body.innerHTML = '<p data-content="content"></p>';
             let p = document.querySelector('p');
-            let data = micro.bind.bind(document.body);
             let a = document.createElement('a');
-            data.content = a;
+            let data = new micro.bind.Watchable({content: a});
+            micro.bind.bind(document.body, data);
+            //data.content = a;
             // TODO deep?
             expect(Array.from(p.childNodes)).to.deep.equal([a]);
         });
@@ -107,8 +110,9 @@ describe('bind()', function() {
         it('should update DOM with visible binding', function() {
             document.body.innerHTML = '<p data-visible="visible"></p>';
             let p = document.querySelector('p');
-            let data = micro.bind.bind(document.body);
-            data.visible = false;
+            let data = new micro.bind.Watchable({visible: false});
+            micro.bind.bind(document.body, data);
+            //data.visible = false;
             expect(p.offsetParent).to.be.null;
         });
 
@@ -116,8 +120,8 @@ describe('bind()', function() {
             let elem = document.body;
             document.body.innerHTML = '<p data-title="eq title 42"></p>';
             let p = document.querySelector('p');
-            let data = micro.bind.bind(document.body);
-            data.title = 'foo';
+            let data = new micro.bind.Watchable({title: 'foo'});
+            micro.bind.bind(document.body, data);
             expect(p.title).to.equal('false');
         });
 

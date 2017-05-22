@@ -22,7 +22,7 @@
 
 micro = micro || {};
 
-micro.LIST_LIMIT = 100;
+micro.LIST_LIMIT = 5;
 micro.SHORT_DATE_TIME_FORMAT = {
     year: '2-digit',
     month: '2-digit',
@@ -540,49 +540,24 @@ micro._ActivityPage = class extends HTMLElement {
     createdCallback() {
         this.appendChild(document.importNode(
             ui.querySelector('.micro-activity-page-template').content, true));
-        this._showMoreButton = this.querySelector('button');
-        this._start = 0;
-
-        this._data = micro.bind.bind(this);
-        this._data.showMore = this._showMore.bind(this);
-        //this._data.events = ['foo', 'bar', 'baz', 'peter', 'juergen'];
-        /*console.log('SET');
-        this._data.events[1] = 'oink';
-        console.log('SPLICE');
-        this._data.events.splice(2, 1, 'zzzz');
-        console.log('DELETE SPLICE');
-        this._data.events.splice(3, 1);//, 'zzzz');
-        console.log('INSERT SPLICE');
-        this._data.events.splice(1, 0, 'yeah');
-        console.log('PUSH');
-        this._data.events.push('blablabla');
-        console.log('UNSHIFT');
-        this._data.events.shift();
-        console.log('POP');
-        this._data.events.pop();*/
+        this._data = new micro.bind.Watchable({
+            events: [],
+            start: 0,
+            showMore: this._showMore.bind(this),
+            renderEvent: (c, e) => ui.renderEvent[e.type](e)
+        });
+        micro.bind.bind(this, this._data, {template: '.micro-activity-page-template'});
     }
 
     attachedCallback() {
-        this._showMoreButton.trigger();
+        this.querySelector('button').trigger();
     }
 
-    _showMore() {
-        return micro.call('GET', `/api/activity/${this._start}:`).then(events => {
-            let ul = this.querySelector('.micro-timeline');
-            for (let event of events) {
-                let li = document.createElement('li');
-                let time = document.createElement('time');
-                time.dateTime = event.time;
-                time.textContent =
-                    new Date(event.time).toLocaleString('en', micro.SHORT_DATE_TIME_FORMAT);
-                li.appendChild(time);
-                li.appendChild(ui.renderEvent[event.type](event));
-                ul.appendChild(li);
-            }
-            //this.classList.toggle('micro-activity-all', events.length < micro.LIST_LIMIT);
-            this._data.moreEvents = (events.length === micro.LIST_LIMIT);
-            this._start += micro.LIST_LIMIT;
-        });
+    async _showMore() {
+        let events = await micro.call('GET', `/api/activity/${this.data.start}:`);
+        this.data.events.slice(this.data.start, 0, ...events);
+        this.data.start = events.length < micro.LIST_LIMIT ?
+            null : this.data.start + micro.LIST_LIMIT;
     }
 };
 

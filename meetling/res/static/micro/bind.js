@@ -40,24 +40,15 @@ micro.bind.Watchable = class {
                     }
                     ws.push(typeof handle === 'function' ? {update: handle} : handle);
                 };
-                //return prop === 'watch' ? watch : target[prop];
-                switch(prop) {
-                case 'target':
-                    return target;
-                case 'watch':
+
+                if (prop === 'watch') {
                     return watch;
-                default:
-                    return target[prop];
                 }
-            },
-
-            set(target, prop, value, r) {
-                if (p !== r) {
-                    console.log('RECEIVER NOT PROXY');
-                    /*r[prop] = value;*/
-                    return true;
+                if (prop === 'target') {
+                    return target;
                 }
 
+                let value = target[prop];
                 if (value instanceof Array) {
                     value = new Proxy(value, {
                         get(target, index) {
@@ -81,7 +72,25 @@ micro.bind.Watchable = class {
                         }
                     });
                 }
+                return value;
 
+                //return prop === 'watch' ? watch : target[prop];
+                /*switch(prop) {
+                case 'target':
+                    return target;
+                case 'watch':
+                    return watch;
+                default:
+                    return target[prop];
+                }*/
+            },
+
+            set(target, prop, value, r) {
+                if (p !== r) {
+                    console.log('RECEIVER NOT PROXY');
+                    /*r[prop] = value;*/
+                    return true;
+                }
                 target[prop] = value;
                 notify(prop, value, 'update');
                 return true;
@@ -91,64 +100,54 @@ micro.bind.Watchable = class {
     }
 }
 
-micro.bind.bind = function(elem, data) {
-    // utility: template selector, if given make documentImportNode ppend child foo...
-    // or rather: bindTemplate(elem, templateSelector)
-    // TODO this.elem.dataset.shadow = true
+micro.bind.bind = function(elem, data, {contentOnly=true, outer=null, template=null}={}) {
+    console.log('OUTER', outer ? outer._micro_binding : 'nono');
 
-    //let subscribers = {};
+    if (template) {
+        elem.appendChild(document.importNode(document.querySelector(template).content, true));
+    }
 
-    /*let data = new Proxy(Object.create(funcs), {
-        set(target, prop, value) {
-            target[prop] = value;
-            if (!(prop in subscribers)) console.log(`no bindings for ${prop} !!`);
-            for (let subscriber of subscribers[prop]) {
-                subscriber();
-            }
-            return true;
+    elem._micro_binding = {data, outer};
+
+    let stack = [...(function*(o) {
+        while (o) {
+            yield o._micro_binding.data;
+            o = o._micro_binding.outer;
         }
-    });*/
+        //return micro.bind.transforms;
+    }(elem)), micro.bind.transforms];
+    console.log('STACK', stack);
 
-    let stack = [];
-    // XXX
-    if (data) {
-        stack.push(elem);
-    } else {
-        stack.push(...elem.children);
-    }
-
-    if (data === undefined) {
-        data = new micro.bind.Watchable(Object.create(micro.bind.transforms));
-    }
+    let elems = contentOnly ? [...elem.children] : [elem];
 
     let rootTag = elem.tagName.toLowerCase();
 
-
-    while(stack.length) {
-        let child = stack.pop();
+    while (elems.length) {
+        let child = elems.pop();
 
         let tag = `${child.tagName.toLowerCase()}`;
 
         for (let [elemProp, expr] of Object.entries(child.dataset)) {
-            let words = expr.split(/\s+/)
+            let words = expr.split(/\s+/);
             words = words.map(word => {
                 return parseFloat(word) || {
                     name: word,
                     tokens: word.split('.'),
-
+                    scope: null,
                     resolve() {
                         return this.tokens.reduce((a, v, i) => {
                             return (a === null || a === undefined) ? undefined : a[v];
                             //if (a === null || a === undefined) {
                             //    throw new TypeError(`${tokens.slice(0, i).join('.')} is ${a} in <${tag} data-${elemProp}="${expr}">`, `<${rootTag}>`);
                             //}
-                        }, data);
+                        }, this.scope);
                     }
                 }
             });
             //let tokens = expr.split('.');
 
             let ctx = {
+                binding: elem,
                 data: data,
                 elem: child
             }
@@ -180,7 +179,6 @@ micro.bind.bind = function(elem, data) {
                     break;
                 case 'visible':
                     if (value) {
-                        //delete child.style.display;
                         child.style.display = '';
                     } else {
                         child.style.display = 'none';
@@ -192,26 +190,21 @@ micro.bind.bind = function(elem, data) {
             }
 
             let refs = words.filter(w => w instanceof Object);
-
             console.log(`Binding <${rootTag}><${tag}>.${elemProp} to ${refs.map(r => r.name).join(', ')}`);
-
-            //for (word of words) {
-            for (word of refs) {
-                //if (word instanceof Object) {
-                    data.watch(word.tokens[0], update);
-                    /*let subs = subscribers[word.tokens[0]];
-                    if (subs === undefined) {
-                        subs = [];
-                        subscribers[word.tokens[0]] = subs;
-                    }
-                    subs.push(update);*/
-                //}
+            for (ref of refs) {
+                ref.scope = stack.find(s => ref.tokens[0] in s );
+                if (!ref.scope) {
+                    throw new ReferenceError('TODO ref error');
+                }
+                ref.scope.watch(ref.tokens[0], update);
             }
+
+            update();
         }
 
         // TODO: check if 'shadow' in child.dataset
         if (!('content' in child.dataset)) {
-            stack.push(...child.children);
+            elems.push(...child.children);
         }
     }
 
@@ -219,6 +212,10 @@ micro.bind.bind = function(elem, data) {
 }
 
 micro.bind.transforms = {
+    exists(ctx, a) {
+        return a !== null && a !== undefined;
+    },
+
     eq(ctx, a, b) {
         return a === b;
     },
@@ -235,6 +232,11 @@ micro.bind.transforms = {
         return a > b;
     },
 
+    formatDate(ctx, date) {
+        // TODO: remove micro dependency
+        time.textContent = new Date(date).toLocaleString('en', micro.SHORT_DATE_TIME_FORMAT);
+    },
+
     list(ctx, arr, itemName) {
         // TODO
         itemName = 'item';
@@ -243,11 +245,11 @@ micro.bind.transforms = {
 
         let create = index => {
             let elem = ctx.elem._template.cloneNode(true);
-            let scope = new micro.bind.Watchable(Object.create(ctx.data.target));
+            let scope = new micro.bind.Watchable({item: arr[index]});
             scopes.set(elem, scope);
-            micro.bind.bind(elem, scope);
+            micro.bind.bind(elem, scope, {contentOnly: false, outer: ctx.binding});
             //scope[itemName] = arr[index];
-            scope.item = arr[index];
+            //scope.item = arr[index];
             /*scope.foo = 3;
             console.log(scope.__proto__);
             console.log(ctx);
@@ -267,12 +269,15 @@ micro.bind.transforms = {
             },
 
             updateItem(a, b, index) {
+                console.log('UPDATE ITEM', a, b, index);
                 let elem = ctx.elem.children[index];
                 scopes.get(elem)[itemName] = arr[index];
             }
         }
 
-        let key = Object.entries(ctx.data).find(([k, v]) => v === arr)[0];
+        // XXX target
+        let key = Object.entries(ctx.data).find(([k, v]) => v.target === arr.target)[0];
+        console.log('FOUND KEY', key);
         ctx.data.watch(key, watcher);
 
         if (!ctx.elem._template) {
@@ -283,6 +288,7 @@ micro.bind.transforms = {
             //ctx.elem._template.appendChild(ctx.elem.children);
             ctx.elem._template = ctx.elem.firstElementChild;
             ctx.elem.textContent = '';
+            console.log(ctx.elem);
         }
 
         /*for (i in arr) {

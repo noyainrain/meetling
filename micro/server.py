@@ -27,7 +27,7 @@ from tornado.web import RequestHandler, HTTPError
 from micro import Object, ValueError, InputError, AuthenticationError, PermissionError
 from micro.util import parse_slice
 
-LIST_LIMIT = 100
+LIST_LIMIT = 5
 
 class Endpoint(RequestHandler):
     """JSON REST API endpoint.

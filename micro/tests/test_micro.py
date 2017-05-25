@@ -63,7 +63,7 @@ class ApplicationTest(MicroTestCase):
         self.assertIn(self.staff_member, self.app.settings.staff)
 
     def test_login_no_redis(self):
-        app = CatApp(redis_url='//localhoax')
+        app = CatApp(redis_url='//localhost:16160')
         with self.assertRaises(RedisError):
             app.login()
 
@@ -166,7 +166,8 @@ class Cat(Object, Editable):
         if 'name' in attrs:
             self.name = attrs['name']
 
-    def json(self, restricted=False, include=False, include_users=False):
-        json = super().json(attrs={'name': self.name})
-        json.update(Editable.json(self, restricted=restricted, include_users=include_users))
+    def json(self, restricted=False, include=False):
+        json = super().json(restricted=restricted, include=include)
+        json.update(Editable.json(self, restricted=restricted, include=include))
+        json.update({'name': self.name})
         return json

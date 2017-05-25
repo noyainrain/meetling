@@ -107,5 +107,6 @@ class EmailTest(MicroTestCase):
             self.user.send_email('Subject: Important\n\nMeow!\n')
 
 class DiscardingSMTPServer(SMTPServer):
-    def process_message(self, peer, mailfrom, rcpttos, data):
+    def process_message(self, peer, mailfrom, rcpttos, data, **kwargs):
+        # pylint: disable=arguments-differ; kwargs not available in Python < 3.5
         pass

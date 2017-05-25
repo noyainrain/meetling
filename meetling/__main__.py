@@ -16,7 +16,11 @@
 
 import argparse
 from argparse import ArgumentParser
+import logging
+from logging import StreamHandler, getLogger
 import sys
+
+from tornado.log import LogFormatter
 
 from meetling.server import MeetlingServer
 
@@ -40,6 +44,14 @@ def main(args):
         '--smtp-url',
         help='URL of the SMTP server to use for outgoing email. Only host and port are considered, which default to localhost and 25 respectively.')
     args = parser.parse_args(args[1:])
+
+    logger = getLogger()
+    handler = StreamHandler()
+    handler.setFormatter(LogFormatter())
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    if 'debug' not in args:
+        getLogger('tornado.access').setLevel(logging.ERROR)
 
     MeetlingServer(**vars(args)).run()
     return 0

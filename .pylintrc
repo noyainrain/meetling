@@ -1,9 +1,10 @@
+[master]
+load-plugins=pylint.extensions.docstyle
+
 [messages control]
-disable=I,
+disable=
     # Good design is best figured out by humans (yet)
     design,
-    # Changing the type may be more readable than introducing another variable
-    redefined-variable-type,
     # There are built-ins with common names like id
     redefined-builtin,
     # Arguments should not be manipulated anyway
@@ -11,7 +12,6 @@ disable=I,
 
 [reports]
 output-format=colorized
-reports=no
 
 [basic]
 # Remove length constraint, short and long names have their use
@@ -32,7 +32,7 @@ notes=FIXME,XXX
 
 [typecheck]
 # http.client status codes are defined dynamically
-ignored-modules=http.client
+generated-members=http\.client\.[A-Z]
 
 [classes]
 # Add initialize, it is used by Tornado

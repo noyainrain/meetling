@@ -13,8 +13,9 @@
         <link rel="stylesheet" href="{{ static_url('micro.css') }}" />
         <link rel="stylesheet" href="{{ static_url('meetling.css') }}" />
 
-        <script src="{{ static_url('lib/fetch/fetch.js') }}" defer="defer"></script>
-        <script src="{{ static_url('lib/webcomponentsjs/webcomponents-lite.js') }}" defer="defer">
+        <script src="{{ static_url('lib/whatwg-fetch/fetch.js') }}" defer="defer"></script>
+        <script src="{{ static_url('lib/webcomponents.js/webcomponents-lite.min.js') }}"
+                defer="defer">
         </script>
         <script src="{{ static_url('lib/pikaday/pikaday.js') }}" defer="defer"></script>
         <script src="{{ static_url('micro/util.js') }}" defer="defer"></script>
@@ -24,24 +25,24 @@
         <style>
             @font-face {
                 font-family: 'Open Sans';
-                src: url('{{ static_url('lib/open-sans/OpenSans-Regular.ttf') }}');
+                src: url('{{ static_url('lib/typeface-open-sans/files/open-sans-latin-400.woff') }}');
             }
 
             @font-face {
                 font-family: 'Open Sans';
-                src: url('{{ static_url('lib/open-sans/OpenSans-Italic.ttf') }}');
+                src: url('{{ static_url('lib/typeface-open-sans/files/open-sans-latin-400italic.woff') }}');
                 font-style: italic;
             }
 
             @font-face {
                 font-family: 'Open Sans';
-                src: url('{{ static_url('lib/open-sans/OpenSans-Bold.ttf') }}');
+                src: url('{{ static_url('lib/typeface-open-sans/files/open-sans-latin-700.woff') }}');
                 font-weight: bold;
             }
 
             @font-face {
                 font-family: 'Open Sans';
-                src: url('{{ static_url('lib/open-sans/OpenSans-Light.ttf') }}');
+                src: url('{{ static_url('lib/typeface-open-sans/files/open-sans-latin-300.woff') }}');
                 font-weight: 300;
             }
         </style>

@@ -1,13 +1,18 @@
-Meetling Documentation
-======================
+Meetling
+========
 
-Table of contents:
+Web app for collaboratively preparing meetings.
+
+You can give it a try at `meetling.org <https://meetling.org/>`_.
+
+Documentation
+-------------
 
 .. toctree::
    :maxdepth: 2
    :numbered:
 
-   introduction
+   Introduction <README>
    webapi
    pythonapi
-   contributing
+   Contributing <CONTRIBUTING>

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Meetling Documentation &#8212; Meetling 0.15.0 documentation</title>
+    <title>Meetling &#8212; Meetling 0.16.0 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.15.0',
+        VERSION:     '0.16.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -27,7 +27,7 @@
     <link rel="shortcut icon" href="_static/favicon.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="1. Introduction" href="introduction.html" />
+    <link rel="next" title="1. Meetling" href="README.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -43,12 +43,22 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="meetling-documentation">
-<h1>Meetling Documentation<a class="headerlink" href="#meetling-documentation" title="Permalink to this headline">¶</a></h1>
-<p>Table of contents:</p>
+  <div class="section" id="meetling">
+<h1>Meetling<a class="headerlink" href="#meetling" title="Permalink to this headline">¶</a></h1>
+<p>Web app for collaboratively preparing meetings.</p>
+<p>You can give it a try at <a class="reference external" href="https://meetling.org/">meetling.org</a>.</p>
+<div class="section" id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="README.html#requirements">1.1. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#installing-dependencies">1.2. Installing dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#running-meetling">1.3. Running Meetling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#browser-support">1.4. Browser support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#contributors">1.5. Contributors</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="webapi.html">2. Web API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="webapi.html#introduction">2.1. Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="webapi.html#authentication-and-permissions">2.2. Authentication and Permissions</a></li>
@@ -81,8 +91,16 @@
 <li class="toctree-l2"><a class="reference internal" href="pythonapi.html#module-meetling.__main__">3.5. __main__</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="contributing.html">4. Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CONTRIBUTING.html">4. Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="CONTRIBUTING.html#how-to-contribute">4.1. How to contribute</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CONTRIBUTING.html#installing-development-dependencies">4.2. Installing development dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CONTRIBUTING.html#running-meetling-in-debug-mode">4.3. Running Meetling in debug mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CONTRIBUTING.html#running-the-unit-tests">4.4. Running the unit tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CONTRIBUTING.html#development-utilities">4.5. Development utilities</a></li>
 </ul>
+</li>
+</ul>
+</div>
 </div>
 </div>
 
@@ -92,24 +110,40 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="#">
-              <img class="logo" src="_static/icon.svg" alt="Logo"/>
-            </a></p>
-<h3><a href="#">Table Of Contents</a></h3>
+<p class="logo">
+  <a href="#">
+    <img class="logo" src="_static/icon.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">Meetling</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Prepare meetings together</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=noyainrain&repo=meetling&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html">1. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="webapi.html">2. Web API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pythonapi.html">3. Python API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="contributing.html">4. Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CONTRIBUTING.html">4. Contributing</a></li>
 </ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="#">Documentation overview</a><ul>
-      <li>Next: <a href="introduction.html" title="next chapter">1. Introduction</a></li>
-  </ul></li>
-</ul>
-</div>
+
+
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
@@ -128,12 +162,9 @@
       &copy;2015 Meetling contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
-      |
-      <a href="_sources/contents.rst.txt"
-          rel="nofollow">Page source</a>
     </div>
 
     

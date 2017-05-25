@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>3. Python API &#8212; Meetling 0.15.0 documentation</title>
+    <title>3. Python API &#8212; Meetling 0.16.0 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.15.0',
+        VERSION:     '0.16.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -27,7 +27,7 @@
     <link rel="shortcut icon" href="_static/favicon.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="4. Contributing" href="contributing.html" />
+    <link rel="next" title="4. Contributing to Meetling" href="CONTRIBUTING.html" />
     <link rel="prev" title="2. Web API" href="webapi.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -173,7 +173,7 @@ necessary or not.</p>
 
 <dl class="method">
 <dt id="micro.Object.json">
-<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include=False</em>, <em>attrs={}</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Object.json" title="Permalink to this definition">¶</a></dt>
+<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include=False</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Object.json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a JSON object representation of the object.</p>
 <p>The name of the object type is included as <code class="docutils literal"><span class="pre">__type__</span></code>.</p>
 <p>By default, all attributes are included. If <em>restricted</em> is <code class="docutils literal"><span class="pre">True</span></code>, a restricted view of
@@ -190,9 +190,6 @@ attributes of <a class="reference internal" href="#micro.Object" title="micro.Ob
 <dt id="micro.Editable">
 <em class="property">class </em><code class="descclassname">micro.</code><code class="descname">Editable</code><span class="sig-paren">(</span><em>authors</em>, <em>activity=None</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Editable" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#editable"><span class="std std-ref">Editable</span></a>.</p>
-<p>The <a class="reference internal" href="#micro.Object.json" title="micro.Object.json"><code class="xref py py-meth docutils literal"><span class="pre">Object.json()</span></code></a> method of editable objects accepts an additional argument
-<em>include_users</em>. If it is <code class="docutils literal"><span class="pre">True</span></code>, <a class="reference internal" href="#micro.User" title="micro.User"><code class="xref py py-class docutils literal"><span class="pre">User</span></code></a> s are included as JSON objects (instead of
-IDs).</p>
 <dl class="method">
 <dt id="micro.Editable.do_edit">
 <code class="descname">do_edit</code><span class="sig-paren">(</span><em>**attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Editable.do_edit" title="Permalink to this definition">¶</a></dt>
@@ -210,7 +207,7 @@ checking, managing <em>authors</em> and storing the updated object in the databa
 
 <dl class="method">
 <dt id="micro.Editable.json">
-<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include_users=False</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Editable.json" title="Permalink to this definition">¶</a></dt>
+<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include=False</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Editable.json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subclass API: Return a JSON object representation of the editable part of the object.</p>
 </dd></dl>
 
@@ -228,7 +225,7 @@ checking, managing <em>authors</em> and storing the updated object in the databa
 
 <dl class="method">
 <dt id="micro.User.json">
-<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include=False</em>, <em>include_users=False</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.User.json" title="Permalink to this definition">¶</a></dt>
+<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include=False</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.User.json" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="#micro.Object.json" title="micro.Object.json"><code class="xref py py-meth docutils literal"><span class="pre">Object.json()</span></code></a>.</p>
 </dd></dl>
 
@@ -243,9 +240,9 @@ checking, managing <em>authors</em> and storing the updated object in the databa
 <code class="descname">send_email</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.User.send_email" title="Permalink to this definition">¶</a></dt>
 <dd><p>Send an email message to the user.</p>
 <p><em>msg</em> is the message string of the following form: It starts with a line containing the
-subject prefixed with <a href="#id1"><span class="problematic" id="id2">``</span></a>Subject: <a href="#id3"><span class="problematic" id="id4">``</span></a>, followed by a blank line, followed by the body.</p>
-<p>If the user&#8217;s :<code class="xref py py-attr docutils literal"><span class="pre">email</span></code> is not set, a <a href="#id5"><span class="problematic" id="id6">:exception:`ValueError`</span></a> (<code class="docutils literal"><span class="pre">user_no_email</span></code>) is
-raised. If communication with the SMTP server fails, an <span class="xref std std-ref">EmailError</span> is raised.</p>
+subject prefixed with <code class="docutils literal"><span class="pre">Subject:_</span></code>, followed by a blank line, followed by the body.</p>
+<p>If the user&#8217;s :<code class="xref py py-attr docutils literal"><span class="pre">email</span></code> is not set, a <a class="reference internal" href="#micro.ValueError" title="micro.ValueError"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code></a> (<code class="docutils literal"><span class="pre">user_no_email</span></code>) is raised.
+If communication with the SMTP server fails, an <code class="xref py py-class docutils literal"><span class="pre">EmailError</span></code> is raised.</p>
 </dd></dl>
 
 <dl class="method">
@@ -407,7 +404,7 @@ this documentation is on the differences and additions to the Web API.</p>
 
 <dl class="method">
 <dt id="meetling.Meeting.json">
-<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include_users=False</em>, <em>include_items=False</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Meeting.json" title="Permalink to this definition">¶</a></dt>
+<code class="descname">json</code><span class="sig-paren">(</span><em>restricted=False</em>, <em>include=False</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Meeting.json" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <code class="xref py py-meth docutils literal"><span class="pre">Object.json()</span></code>.</p>
 <p>If <em>include_items</em> is <code class="docutils literal"><span class="pre">True</span></code>, <em>items</em> and <em>trashed_items</em> are included.</p>
 </dd></dl>
@@ -462,12 +459,34 @@ this documentation is on the differences and additions to the Web API.</p>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="contents.html">
-              <img class="logo" src="_static/icon.svg" alt="Logo"/>
-            </a></p>
-<h3><a href="contents.html">Table Of Contents</a></h3>
+<p class="logo">
+  <a href="contents.html">
+    <img class="logo" src="_static/icon.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">Meetling</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Prepare meetings together</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=noyainrain&repo=meetling&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html">1. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="webapi.html">2. Web API</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">3. Python API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-micro">3.1. micro</a></li>
@@ -477,17 +496,10 @@ this documentation is on the differences and additions to the Web API.</p>
 <li class="toctree-l2"><a class="reference internal" href="#module-meetling.__main__">3.5. __main__</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="contributing.html">4. Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CONTRIBUTING.html">4. Contributing</a></li>
 </ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="contents.html">Documentation overview</a><ul>
-      <li>Previous: <a href="webapi.html" title="previous chapter">2. Web API</a></li>
-      <li>Next: <a href="contributing.html" title="next chapter">4. Contributing</a></li>
-  </ul></li>
-</ul>
-</div>
+
+
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
@@ -506,12 +518,9 @@ this documentation is on the differences and additions to the Web API.</p>
       &copy;2015 Meetling contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
-      |
-      <a href="_sources/pythonapi.rst.txt"
-          rel="nofollow">Page source</a>
     </div>
 
     

@@ -291,7 +291,7 @@ Activity feed (of events) around a common topic/context.
 
 .. http:get:: (activity-url)
 
-   Get the list of recorded :ref:`Events`.
+   Get the list of recorded :ref:`Event` s.
 
 .. _Event:
 

@@ -207,12 +207,12 @@ class _MeetingsEndpoint(Endpoint):
                 raise micro.InputError({'time': 'bad_type'})
 
         meeting = self.app.create_meeting(**args)
-        self.write(meeting.json(restricted=True, include_users=True))
+        self.write(meeting.json(restricted=True, include=True))
 
 class _CreateExampleMeetingEndpoint(Endpoint):
     def post(self):
         meeting = self.app.create_example_meeting()
-        self.write(meeting.json(restricted=True, include_users=True))
+        self.write(meeting.json(restricted=True, include=True))
 
 class _UserEndpoint(Endpoint):
     def get(self, id):
@@ -249,7 +249,7 @@ class _UserRemoveEmailEndpoint(Endpoint):
 
 class _SettingsEndpoint(Endpoint):
     def get(self):
-        self.write(self.app.settings.json(restricted=True, include_users=True))
+        self.write(self.app.settings.json(restricted=True, include=True))
 
     def post(self):
         args = self.check_args({
@@ -269,12 +269,12 @@ class _SettingsEndpoint(Endpoint):
 
         settings = self.app.settings
         settings.edit(**args)
-        self.write(settings.json(restricted=True, include_users=True))
+        self.write(settings.json(restricted=True, include=True))
 
 class _MeetingEndpoint(Endpoint):
     def get(self, id):
         meeting = self.app.meetings[id]
-        self.write(meeting.json(restricted=True, include_users=True))
+        self.write(meeting.json(restricted=True, include=True))
 
     def post(self, id):
         args = self.check_args({
@@ -291,17 +291,17 @@ class _MeetingEndpoint(Endpoint):
 
         meeting = self.app.meetings[id]
         meeting.edit(**args)
-        self.write(meeting.json(restricted=True, include_users=True))
+        self.write(meeting.json(restricted=True, include=True))
 
 class _MeetingItemsEndpoint(Endpoint):
     def get(self, id, set):
         meeting = self.app.meetings[id]
         items = meeting.trashed_items.values() if set else meeting.items.values()
-        self.write(json.dumps([i.json(restricted=True, include_users=True) for i in items]))
+        self.write(json.dumps([i.json(restricted=True, include=True) for i in items]))
 
     def post(self, id, set):
         if set:
-            raise HTTPError(int(http.client.METHOD_NOT_ALLOWED))
+            raise HTTPError(http.client.METHOD_NOT_ALLOWED)
         args = self.check_args({
             'title': str,
             'duration': (int, None, 'opt'),
@@ -309,7 +309,7 @@ class _MeetingItemsEndpoint(Endpoint):
         })
         meeting = self.app.meetings[id]
         item = meeting.create_agenda_item(**args)
-        self.write(item.json(restricted=True, include_users=True))
+        self.write(item.json(restricted=True, include=True))
 
 class _MeetingTrashAgendaItemEndpoint(Endpoint):
     def post(self, id):
@@ -357,7 +357,7 @@ class _AgendaItemEndpoint(Endpoint):
     def get(self, meeting_id, item_id):
         meeting = self.app.meetings[meeting_id]
         item = meeting.items[item_id]
-        self.write(item.json(restricted=True, include_users=True))
+        self.write(item.json(restricted=True, include=True))
 
     def post(self, meeting_id, item_id):
         args = self.check_args({
@@ -368,4 +368,4 @@ class _AgendaItemEndpoint(Endpoint):
         meeting = self.app.meetings[meeting_id]
         item = meeting.items[item_id]
         item.edit(**args)
-        self.write(item.json(restricted=True, include_users=True))
+        self.write(item.json(restricted=True, include=True))

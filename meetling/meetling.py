@@ -223,23 +223,23 @@ class Meeting(Object, Editable):
         else:
             self.app.r.lpush(self._items_key, item.id)
 
-    def json(self, restricted=False, include_users=False, include_items=False):
+    def json(self, restricted=False, include=False):
         """See :meth:`Object.json`.
 
         If *include_items* is ``True``, *items* and *trashed_items* are included.
         """
-        # pylint: disable=arguments-differ; extended signature
-        json = super().json(attrs={
+        json = super().json(restricted=restricted, include=include)
+        json.update(Editable.json(self, restricted=restricted, include=include))
+        json.update({
             'title': self.title,
             'time': self.time.isoformat() + 'Z' if self.time else None,
             'location': self.location,
             'description': self.description
         })
-        json.update(Editable.json(self, restricted=restricted, include_users=include_users))
-        if include_items:
-            json['items'] = [i.json(restricted=restricted, include_users=include_users)
+        if include:
+            json['items'] = [i.json(restricted=restricted, include=include)
                              for i in self.items.values()]
-            json['trashed_items'] = [i.json(restricted=restricted, include_users=include_users)
+            json['trashed_items'] = [i.json(restricted=restricted, include=include)
                                      for i in self.trashed_items.values()]
         return json
 
@@ -268,11 +268,12 @@ class AgendaItem(Object, Editable):
         if 'description' in attrs:
             self.description = str_or_none(attrs['description'])
 
-    def json(self, restricted=False, include=False, include_users=False):
-        json = super().json(attrs={
+    def json(self, restricted=False, include=False):
+        json = super().json(restricted=restricted, include=include)
+        json.update(Editable.json(self, restricted=restricted, include=include))
+        json.update({
             'title': self.title,
             'duration': self.duration,
             'description': self.description
         })
-        json.update(Editable.json(self, restricted=restricted, include_users=include_users))
         return json

@@ -239,7 +239,7 @@ class Object:
         self.trashed = trashed
         self.app = app
 
-    def json(self, restricted=False, include=False, attrs={}):
+    def json(self, restricted=False, include=False):
         """Return a JSON object representation of the object.
 
         The name of the object type is included as ``__type__``.
@@ -253,20 +253,13 @@ class Object:
         attributes of :class:`Object`. *restricted* and *include* are ignored.
         """
         # pylint: disable=unused-argument; restricted is part of the subclass API
-        json = {'__type__': type(self).__name__, 'id': self.id, 'trashed': self.trashed}
-        json.update(attrs)
-        return json
+        return {'__type__': type(self).__name__, 'id': self.id, 'trashed': self.trashed}
 
     def __repr__(self):
         return '<{}>'.format(self.id)
 
 class Editable:
-    """See :ref:`Editable`.
-
-    The :meth:`Object.json` method of editable objects accepts an additional argument
-    *include_users*. If it is ``True``, :class:`User` s are included as JSON objects (instead of
-    IDs).
-    """
+    """See :ref:`Editable`."""
     # pylint: disable=no-member; mixin
 
     def __init__(self, authors, activity=None):
@@ -303,10 +296,10 @@ class Editable:
         """
         raise NotImplementedError()
 
-    def json(self, restricted=False, include_users=False):
+    def json(self, restricted=False, include=False):
         """Subclass API: Return a JSON object representation of the editable part of the object."""
         json = {'authors': self._authors}
-        if include_users:
+        if include:
             json['authors'] = [a.json(restricted=restricted) for a in self.authors]
         return json
 
@@ -378,10 +371,10 @@ class User(Object, Editable):
         """Send an email message to the user.
 
         *msg* is the message string of the following form: It starts with a line containing the
-        subject prefixed with ``Subject: ``, followed by a blank line, followed by the body.
+        subject prefixed with ``Subject:_``, followed by a blank line, followed by the body.
 
-        If the user's ::attr:`email` is not set, a :exception:`ValueError` (``user_no_email``) is
-        raised. If communication with the SMTP server fails, an :ref:`EmailError` is raised.
+        If the user's ::attr:`email` is not set, a :exc:`ValueError` (``user_no_email``) is raised.
+        If communication with the SMTP server fails, an :class:`EmailError` is raised.
         """
         if not self.email:
             raise ValueError('user_no_email')
@@ -399,11 +392,11 @@ class User(Object, Editable):
         if 'name' in attrs:
             self.name = attrs['name']
 
-    def json(self, restricted=False, include=False, include_users=False):
+    def json(self, restricted=False, include=False):
         """See :meth:`Object.json`."""
         json = super().json(restricted=restricted, include=include)
         json.update({'name': self.name, 'email': self.email, 'auth_secret': self.auth_secret})
-        json.update(Editable.json(self, restricted=restricted, include_users=include_users))
+        json.update(Editable.json(self, restricted=restricted, include=include))
         if restricted and not self.app.user == self:
             del json['email']
             del json['auth_secret']
@@ -475,7 +468,7 @@ class Settings(Object, Editable):
         if 'feedback_url' in attrs:
             self.feedback_url = str_or_none(attrs['feedback_url'])
 
-    def json(self, restricted=False, include=False, include_users=False):
+    def json(self, restricted=False, include=False):
         json = super().json()
         json.update({
             'title': self.title,
@@ -487,8 +480,8 @@ class Settings(Object, Editable):
             'feedback_url': self.feedback_url,
             'staff': self._staff
         })
-        json.update(Editable.json(self, restricted=restricted, include_users=include_users))
-        if include_users:
+        json.update(Editable.json(self, restricted=restricted, include=include))
+        if include:
             json['staff'] = [u.json(restricted=restricted) for u in self.staff]
         return json
 
@@ -565,8 +558,8 @@ class Event(Object):
             detail[key] = value
         return detail
 
-    def json(self, restricted=False, include=False, attrs={}):
-        json = super().json(restricted=restricted, include=include, attrs=attrs)
+    def json(self, restricted=False, include=False):
+        json = super().json(restricted=restricted, include=include)
         json.update({
             'type': self.type,
             'object': self._object_id,
@@ -594,8 +587,8 @@ class AuthRequest(Object):
         self._email = email
         self._code = code
 
-    def json(self, restricted=False, include=False, attrs={}):
-        json = super().json(restricted=restricted, include=include, attrs=attrs)
+    def json(self, restricted=False, include=False):
+        json = super().json(restricted=restricted, include=include)
         json.update({'email': self._email, 'code': self._code})
         if restricted:
             del json['email']

@@ -18,7 +18,7 @@
  * Various utilities.
  */
 
-'use strict;'
+'use strict';
 
 micro = micro || {};
 micro.util = {};

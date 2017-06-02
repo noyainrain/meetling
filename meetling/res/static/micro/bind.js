@@ -55,6 +55,7 @@ micro.bind.Watchable = class {
                             let splice = (start, deleteCount, ...items) => {
                                 let res = target.splice(start, deleteCount, ...items);
                                 for (let [i, item] of Object.entries(res)) {
+                                    // TODO: reverse index
                                     notify(prop, value, 'deleteItem', start + parseInt(i), item);
                                 }
                                 for (let [i, item] of Object.entries(items)) {
@@ -100,6 +101,15 @@ micro.bind.Watchable = class {
     }
 }
 
+/**
+ * Bind *elem* to :ref:`Watchable` *data*.
+ *
+ * If *data* is updated, the DOM is updated accordingly.
+ *
+ * How a DOM property is bound to data is denoted by data attributes, where the attribute name
+ * specifies the property and the attribute value...
+ **/
+// TODO: remove contentOnly, pass a DocumentFragment as elem instead
 micro.bind.bind = function(elem, data, {contentOnly=true, outer=null, template=null}={}) {
     console.log('OUTER', outer ? outer._micro_binding : 'nono');
 
@@ -128,6 +138,7 @@ micro.bind.bind = function(elem, data, {contentOnly=true, outer=null, template=n
         let tag = `${child.tagName.toLowerCase()}`;
 
         for (let [elemProp, expr] of Object.entries(child.dataset)) {
+            // TODO: introduce string type (needed for list transform item name)
             let words = expr.split(/\s+/);
             words = words.map(word => {
                 return parseFloat(word) || {
@@ -275,7 +286,8 @@ micro.bind.transforms = {
             }
         }
 
-        // XXX target
+        // TODO: how can we compare 2 proxies? should we expose watchable.target?
+        // TODO: search complete stack for key of arr (make utility function)
         let key = Object.entries(ctx.data).find(([k, v]) => v.target === arr.target)[0];
         console.log('FOUND KEY', key);
         ctx.data.watch(key, watcher);

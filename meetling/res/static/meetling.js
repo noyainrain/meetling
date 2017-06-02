@@ -18,7 +18,7 @@
  * Meetling UI.
  */
 
-"use strict";
+'use strict';
 
 var meetling = {};
 
@@ -310,7 +310,6 @@ meetling.UI = document.registerElement('meetling-ui',
     }},
 
     _update: {value: function() {
-        document.title = this.settings.title;
         this.classList.toggle('meetling-ui-user-is-staff', this.staff)
         this.classList.toggle('meetling-ui-settings-have-feedback-url', this.settings.feedback_url);
         this.querySelector('.meetling-ui-logo-text').textContent = this.settings.title;
@@ -453,8 +452,9 @@ meetling.ErrorNotification = document.registerElement("meetling-error-notificati
 /**
  * Start page.
  */
-meetling.StartPage = class extends HTMLElement {
+meetling.StartPage = class extends micro.Page {
     createdCallback() {
+        super.createdCallback();
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-start-page-template').content, true));
 
@@ -480,8 +480,10 @@ meetling.StartPage = class extends HTMLElement {
 /**
  * About page.
  */
-meetling.AboutPage = class extends HTMLElement {
+meetling.AboutPage = class extends micro.Page {
     createdCallback() {
+        super.createdCallback();
+        this.caption = `About ${ui.settings.title}`;
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-about-page-template').content, true));
 
@@ -514,10 +516,11 @@ meetling.AboutPage = class extends HTMLElement {
 /**
  * Edit user page.
  */
-meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
-        {prototype: Object.create(HTMLElement.prototype, {
-    createdCallback: {value: function() {
+meetling.EditUserPage = class extends micro.Page {
+    createdCallback() {
+        super.createdCallback();
         this._user = null;
+        this.caption = 'Edit user settings';
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-edit-user-page-template').content, true));
         this._form = this.querySelector('form');
@@ -534,9 +537,9 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
         this._setEmailAction.addEventListener('click', this);
         this._cancelSetEmailAction.addEventListener('click', this);
         this._setEmailForm.addEventListener('submit', function(e) { e.preventDefault(); });
-    }},
+    }
 
-    attachedCallback: {value: function() {
+    attachedCallback() {
         var match = /^#set-email=([^:]+):([^:]+)$/.exec(location.hash);
         if (match) {
             history.replaceState(null, null, location.pathname);
@@ -571,24 +574,23 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
                 }
             }.bind(this));
         }
-    }},
+    }
 
     /**
      * :ref:`User` to edit.
      */
-    user: {
-        get: function() {
-            return this._user;
-        },
-        set: function(value) {
-            this._user = value;
-            this.classList.toggle('meetling-edit-user-has-email', this._user.email);
-            this._form.elements['name'].value = this._user.name;
-            this._emailP.textContent = this._user.email;
-        }
-    },
+    get user() {
+        return this._user;
+    }
 
-    _setEmail: {value: function() {
+    set user(value) {
+        this._user = value;
+        this.classList.toggle('meetling-edit-user-has-email', this._user.email);
+        this._form.elements['name'].value = this._user.name;
+        this._emailP.textContent = this._user.email;
+    }
+
+    _setEmail() {
         if (!this._setEmailForm.checkValidity()) {
             return;
         }
@@ -600,13 +602,13 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
             this._setEmailForm.reset();
             this._showSetEmailPanel2();
         }.bind(this));
-    }},
+    }
 
-    _cancelSetEmail: {value: function() {
+    _cancelSetEmail() {
         this._hideSetEmailPanel2();
-    }},
+    }
 
-    _removeEmail: {value: function() {
+    _removeEmail() {
         micro.call('POST', `/api/users/${this.user.id}/remove-email`).then(function(user) {
             this.user = user;
         }.bind(this), function(e) {
@@ -614,9 +616,9 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
             this.user.email = null;
             this.user = this.user;
         }.bind(this));
-    }},
+    }
 
-    _showSetEmailPanel2: {value: function(progress) {
+    _showSetEmailPanel2(progress) {
         progress = progress || false;
         var progressP = this.querySelector('.meetling-edit-user-set-email-2 .micro-progress');
         var actions = this.querySelector('.meetling-edit-user-set-email-2 .actions');
@@ -630,15 +632,15 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
             progressP.style.display = 'none';
             actions.style.display = '';
         }
-    }},
+    }
 
-    _hideSetEmailPanel2: {value: function() {
+    _hideSetEmailPanel2() {
         this._emailP.style.display = '';
         this._setEmail1.style.display = '';
         this._setEmail2.style.display = '';
-    }},
+    }
 
-    handleEvent: {value: function(event) {
+    handleEvent(event) {
         if (event.currentTarget === this._form) {
             event.preventDefault();
             micro.call('POST', `/api/users/${this._user.id}`, {
@@ -660,14 +662,16 @@ meetling.EditUserPage = document.registerElement('meetling-edit-user-page',
         } else if (event.currentTarget === this._removeEmailAction && event.type === 'click') {
             this._removeEmail();
         }
-    }}
-})});
+    }
+};
 
 /**
  * Edit settings page.
  */
-meetling.EditSettingsPage = class extends HTMLElement {
+meetling.EditSettingsPage = class extends micro.Page {
     createdCallback() {
+        super.createdCallback();
+        this.caption = 'Edit site settings';
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-edit-settings-page-template').content, true));
         this._form = this.querySelector('form');
@@ -715,9 +719,9 @@ meetling.EditSettingsPage = class extends HTMLElement {
 /**
  * Meeting page.
  */
-meetling.MeetingPage = document.registerElement('meetling-meeting-page',
-        {prototype: Object.create(HTMLElement.prototype, {
-    createdCallback: {value: function() {
+meetling.MeetingPage = class extends micro.Page {
+    createdCallback() {
+        super.createdCallback();
         this._meeting = null;
 
         this.appendChild(document.importNode(
@@ -736,9 +740,9 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
         this._hideTrashedItemsAction.addEventListener("click", this);
         this._createAgendaItemAction.addEventListener("click", this);
         this._shareAction.addEventListener("click", this);
-    }},
+    }
 
-    attachedCallback: {value: function() {
+    attachedCallback() {
         ui.addEventListener('trash-agenda-item', this);
         ui.addEventListener('restore-agenda-item', this);
 
@@ -757,48 +761,45 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
             }
             this._update();
         }.bind(this));
-    }},
+    }
 
-    detachedCallback: {value: function() {
+    detachedCallback() {
         ui.removeEventListener('trash-agenda-item', this);
         ui.removeEventListener('restore-agenda-item', this);
-    }},
+    }
 
     /**
      * Represented :ref:`Meeting`.
      */
-    meeting: {
-        get: function() {
-            return this._meeting;
-        },
-        set: function(value) {
-            this._meeting = value;
-            this.querySelector('h1').textContent = this._meeting.title;
-            if (this._meeting.time) {
-                var time = this.querySelector('.meetling-meeting-time time');
-                time.dateTime = this._meeting.time;
-                time.textContent = new Date(this._meeting.time).toLocaleString(
-                    'en', meetling._DATE_TIME_FORMAT);
-            } else {
-                this.querySelector('.meetling-meeting-time').style.display = 'none';
-            }
-            if (this._meeting.location) {
-                this.querySelector('.meetling-meeting-location span').textContent =
-                    this._meeting.location;
-            } else {
-                this.querySelector('.meetling-meeting-location').style.display = 'none';
-            }
-            this.querySelector('.micro-multiline').textContent =
-                this._meeting.description || '';
-            this.querySelector('.meetling-detail meetling-user-listing').users =
-                this._meeting.authors;
-            this.querySelector('.meetling-meeting-edit').href =
-                `/meetings/${this._meeting.id}/edit`;
-            this._update();
-        }
-    },
+    get meeting() {
+        return this._meeting;
+    }
 
-    _update: {value: function() {
+    set meeting(value) {
+        this._meeting = value;
+        this.caption = this._meeting.title;
+        this.querySelector('h1').textContent = this._meeting.title;
+        if (this._meeting.time) {
+            var time = this.querySelector('.meetling-meeting-time time');
+            time.dateTime = this._meeting.time;
+            time.textContent = new Date(this._meeting.time).toLocaleString(
+                'en', meetling._DATE_TIME_FORMAT);
+        } else {
+            this.querySelector('.meetling-meeting-time').style.display = 'none';
+        }
+        if (this._meeting.location) {
+            this.querySelector('.meetling-meeting-location span').textContent =
+                this._meeting.location;
+        } else {
+            this.querySelector('.meetling-meeting-location').style.display = 'none';
+        }
+        this.querySelector('.micro-multiline').textContent = this._meeting.description || '';
+        this.querySelector('.meetling-detail meetling-user-listing').users = this._meeting.authors;
+        this.querySelector('.meetling-meeting-edit').href = `/meetings/${this._meeting.id}/edit`;
+        this._update();
+    }
+
+    _update() {
         var trashedItemsCoverLi = this.querySelector(".meetling-meeting-trashed-items-cover");
         var trashedItemsLi = this.querySelector(".meetling-meeting-trashed-items");
         var trashedItemElems = trashedItemsLi.querySelectorAll(".meetling-agenda-item");
@@ -808,9 +809,9 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
                 trashedItemElems.length);
         trashedItemsCoverLi.style.display = trashedItemElems.length ? "" : "none";
         trashedItemsLi.style.display = trashedItemElems.length ? "" : "none";
-    }},
+    }
 
-    _getAgendaItemElement: {value: function(id) {
+    _getAgendaItemElement(id) {
         var elems = this.querySelectorAll(".meetling-meeting-agenda .meetling-agenda-item");
         for (var i = 0; i < elems.length; i++) {
             var li = elems[i];
@@ -819,9 +820,9 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
             }
         }
         return null;
-    }},
+    }
 
-    _moveAgendaItem: {value: function(item, to) {
+    _moveAgendaItem(item, to) {
         return micro.call('POST', `/api/meetings/${this.meeting.id}/move-agenda-item`, {
             item_id: item.id,
             to_id: to ? to.id : null
@@ -842,9 +843,9 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
                 throw e;
             }
         }.bind(this));
-    }},
+    }
 
-    handleEvent: {value: function(event) {
+    handleEvent(event) {
         if (event.target === ui && event.type === 'trash-agenda-item') {
             var li = this._getAgendaItemElement(event.detail.item.id);
             li.item = event.detail.item;
@@ -884,15 +885,15 @@ meetling.MeetingPage = document.registerElement('meetling-meeting-page',
                 `${location.origin}/meetings/${this.meeting.id}`;
             ui.notify(notification);
         }
-    }}
-})});
+    }
+};
 
 /**
  * Edit meeting page.
  */
-meetling.EditMeetingPage = document.registerElement('meetling-edit-meeting-page',
-        {prototype: Object.create(HTMLElement.prototype, {
-    createdCallback: {value: function() {
+meetling.EditMeetingPage = class extends micro.Page {
+    createdCallback() {
+        super.createdCallback();
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-edit-meeting-page-template').content, true));
         this._form = this.querySelector('.meetling-edit-meeting-edit');
@@ -915,55 +916,50 @@ meetling.EditMeetingPage = document.registerElement('meetling-edit-meeting-page'
         this._clearButton.addEventListener("touchend", this);
 
         this.meeting = null;
-    }},
-
-    attachedCallback: {value: function() {
-        this._form.elements['title'].focus();
-    }},
+    }
 
     /**
      * :ref:`Meeting` to edit.
      *
      * ``null`` means the page is in create mode.
      */
-    meeting: {
-        get: function() {
-            return this._meeting;
-        },
-        set: function(value) {
-            this._meeting = value;
-            var h1 = this.querySelector('h1');
-            var action = this.querySelector('.action-cancel');
-            if (this._meeting) {
-                h1.textContent = `Edit ${this._meeting.title}`;
-                this._form.elements['title'].value = this._meeting.title;
-                if (this._meeting.time) {
-                    var time = new Date(this.meeting.time);
-                    this._pikaday.setDate(time);
-                    var hour = time.getHours();
-                    var minute = time.getMinutes();
-                    this._form.elements['time'].timeValue =
-                        `${hour < 10 ? '0' + hour : hour}:${minute < 10 ? '0' + minute : minute}`;
-                }
-                this._form.elements['location'].value = this._meeting.location || '';
-                this._form.elements['description'].value = this._meeting.description || '';
-                action.href = `/meetings/${this._meeting.id}`;
-            } else {
-                h1.textContent = 'New Meeting';
-                action.href = `/`;
+    get meeting() {
+        return this._meeting;
+    }
+
+    set meeting(value) {
+        this._meeting = value;
+        var h1 = this.querySelector('h1');
+        var action = this.querySelector('.action-cancel');
+        if (this._meeting) {
+            this.caption = h1.textContent = `Edit ${this._meeting.title}`;
+            this._form.elements['title'].value = this._meeting.title;
+            if (this._meeting.time) {
+                var time = new Date(this.meeting.time);
+                this._pikaday.setDate(time);
+                var hour = time.getHours();
+                var minute = time.getMinutes();
+                this._form.elements['time'].timeValue =
+                    `${hour < 10 ? '0' + hour : hour}:${minute < 10 ? '0' + minute : minute}`;
             }
+            this._form.elements['location'].value = this._meeting.location || '';
+            this._form.elements['description'].value = this._meeting.description || '';
+            action.href = `/meetings/${this._meeting.id}`;
+        } else {
+            this.caption = h1.textContent = 'New Meeting';
+            action.href = `/`;
         }
-    },
+    }
 
-    _formatDate: {value: function() {
+    _formatDate() {
         return this._pikaday.getDate().toLocaleDateString("en", meetling._DATE_FORMAT);
-    }},
+    }
 
-    _onDrawPikaday: {value: function() {
+    _onDrawPikaday() {
         this._pikaday.el.appendChild(this._clearButton);
-    }},
+    }
 
-    handleEvent: {value: function(event) {
+    handleEvent(event) {
         if (event.currentTarget === this._form && event.type === 'submit') {
             event.preventDefault();
 
@@ -1006,8 +1002,8 @@ meetling.EditMeetingPage = document.registerElement('meetling-edit-meeting-page'
             this._pikaday.setDate(null);
             this._pikaday.hide();
         }
-    }}
-})});
+    }
+};
 
 /**
  * Agenda item element.
@@ -1116,10 +1112,6 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
         this.replaced = null;
     }},
 
-    attachedCallback: {value: function() {
-        this.querySelector("form").elements["title"].focus();
-    }},
-
     item: {
         get: function() {
             return this._item;
@@ -1186,4 +1178,7 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
 
 document.registerElement('meetling-start-page', meetling.StartPage);
 document.registerElement('meetling-about-page', meetling.AboutPage);
+document.registerElement('meetling-edit-user-page', meetling.EditUserPage);
 document.registerElement('meetling-edit-settings-page', meetling.EditSettingsPage);
+document.registerElement('meetling-meeting-page', meetling.MeetingPage);
+document.registerElement('meetling-edit-meeting-page', meetling.EditMeetingPage);

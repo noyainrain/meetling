@@ -7,7 +7,7 @@ source_parsers = {'.md': 'recommonmark.parser.CommonMarkParser'}
 
 project = 'Meetling'
 copyright = '2015 Meetling contributors'
-version = release = '0.16.0'
+version = release = '0.16.1'
 
 html_theme_options = {
     'logo': 'icon.svg',

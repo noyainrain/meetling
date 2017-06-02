@@ -18,7 +18,7 @@
  * Client toolkit for social micro web apps.
  */
 
-'use strict;'
+'use strict';
 
 micro = micro || {};
 
@@ -59,7 +59,7 @@ micro.APIError.prototype = Object.create(Error.prototype);
  * rejects with a :class:`TypeError`.
  */
 micro.call = function(method, url, args) {
-    options = {method: method, credentials: 'include'};
+    let options = {method: method, credentials: 'include'};
     if (args) {
         options.headers = {'Content-Type': 'application/json'};
         options.body = JSON.stringify(args);
@@ -112,7 +112,7 @@ micro.findAncestor = function(elem, predicate, top) {
  *
  * .. attribute:: page
  *
- *    The current page. May be ``null``.
+ *    The current :ref:`Page`. May be ``null``.
  *
  * .. attribute:: pages
  *
@@ -121,9 +121,9 @@ micro.findAncestor = function(elem, predicate, top) {
  *    It is a list of objects with the attributes *url* and *page*, where *page* is the page to show
  *    if the requested URL matches the regular expression pattern *url*.
  *
- *    *page* is either an element name or a function. If it is an element name, the element is
+ *    *page* is either the tag of a :ref:`Page` or a function. If it is a tag, the element is
  *    created and used as page. If it is a function, it has the form *page(url)* and is responsible
- *    to prepare and return a page element. *url* is the requested URL. Groups captured from the URL
+ *    to prepare and return a :ref:`Page`. *url* is the requested URL. Groups captured from the URL
  *    pattern are passed as additional arguments. The function may return a promise.
  *
  *    May be set by subclass in :meth:`init`. Defaults to ``[]``.
@@ -134,9 +134,8 @@ micro.findAncestor = function(elem, predicate, top) {
  *    visualize :ref:`Event` s. A hook has the form *renderEvent(event)* and is responsible to
  *    render the given *event* to a :class:`Node`.
  */
-micro.UI = document.registerElement('micro-ui',
-        {extends: 'body', prototype: Object.create(HTMLBodyElement.prototype, {
-    createdCallback: {value: function() {
+micro.UI = class extends HTMLBodyElement {
+    createdCallback() {
         this.page = null;
         this._progressElem = this.querySelector('.micro-ui-progress');
         this._pageSpace = this.querySelector('main .micro-ui-inside');
@@ -160,7 +159,7 @@ micro.UI = document.registerElement('micro-ui',
         window.addEventListener('popstate', this);
 
         // Register UI as global
-        ui = this;
+        window.ui = this;
 
         // Cancel launch if platform checks failed
         if (!micro.launch) {
@@ -175,7 +174,7 @@ micro.UI = document.registerElement('micro-ui',
             this.querySelector('.micro-ui-header').style.display = 'block';
             return this._route(location.pathname);
         }.bind(this));
-    }},
+    }
 
     /**
      * Subclass API: Update the UI storage.
@@ -188,7 +187,7 @@ micro.UI = document.registerElement('micro-ui',
      *
      * May be overridden by subclass. The default implementation does nothing. Called on startup.
      */
-    update: {value: function() {}},
+    update() {}
 
     /**
      * Subclass API: Initialize the UI.
@@ -198,30 +197,31 @@ micro.UI = document.registerElement('micro-ui',
      *
      * May be overridden by subclass. The default implementation does nothing. Called on startup.
      */
-    init: {value: function() {}},
+    init() {}
 
     /**
      * Navigate to the given *url*.
      */
-    navigate: {value: function(url) {
+    navigate(url) {
         history.pushState(null, null, url);
         this._route(url);
-    }},
+    }
 
-    _open: {value: function(page) {
+    _open(page) {
         this._close();
-        this._pageSpace.appendChild(page);
         this.page = page;
-    }},
+        this._pageSpace.appendChild(page);
+        this._updateTitle();
+    }
 
-    _close: {value: function() {
+    _close() {
         if (this.page) {
             this._pageSpace.removeChild(this.page);
             this.page = null;
         }
-    }},
+    }
 
-    _route: {value: function(url) {
+    _route(url) {
         this._close();
         this._progressElem.style.display = 'block';
 
@@ -259,16 +259,20 @@ micro.UI = document.registerElement('micro-ui',
             this._progressElem.style.display = 'none';
             this._open(page);
         }.bind(this));
-    }},
+    }
 
-    _makeActivityPage: {value: function(url) {
+    _updateTitle() {
+        document.title = [this.page.caption, this.settings.title].filter(p => p).join(' - ');
+    }
+
+    _makeActivityPage(url) {
         if (!ui.staff) {
             return document.createElement('micro-forbidden-page');
         }
         return document.createElement('micro-activity-page');
-    }},
+    }
 
-    handleEvent: {value: function(event) {
+    handleEvent(event) {
         if (event.type === 'click') {
             var a = micro.findAncestor(event.target,
                 function(e) { return e instanceof HTMLAnchorElement; }, this);
@@ -284,8 +288,8 @@ micro.UI = document.registerElement('micro-ui',
         } else if (event.target === window && event.type === 'popstate') {
             this._route(location.pathname);
         }
-    }}
-})});
+    }
+};
 
 /**
  * Enhanced ordered list.
@@ -515,29 +519,56 @@ micro.Menu = document.registerElement("micro-menu",
 })});
 
 /**
+ * Page.
+ */
+micro.Page = class extends HTMLElement {
+    createdCallback() {
+        this._caption = null;
+    }
+
+    /**
+     * Page title. May be ``null``.
+     */
+    get caption() {
+        return this._caption;
+    }
+
+    set caption(value) {
+        this._caption = value;
+        if (this === ui.page) {
+            ui._updateTitle();
+        }
+    }
+};
+
+/**
  * Not found page.
  */
-micro.NotFoundPage = document.registerElement('micro-not-found-page',
-        {prototype: Object.create(HTMLElement.prototype, {
-    createdCallback: {value: function() {
+micro.NotFoundPage = class extends micro.Page {
+    createdCallback() {
+        super.createdCallback();
+        this.caption = 'Not found';
         this.appendChild(document.importNode(
             ui.querySelector('.micro-not-found-page-template').content, true));
-    }}
-})});
+    }
+};
 
 /**
  * Forbidden page.
  */
-micro.ForbiddenPage = document.registerElement('micro-forbidden-page',
-        {prototype: Object.create(HTMLElement.prototype, {
-    createdCallback: {value: function() {
+micro.ForbiddenPage = class extends micro.Page {
+    createdCallback() {
+        super.createdCallback();
+        this.caption = 'Forbidden';
         this.appendChild(document.importNode(
             ui.querySelector('.micro-forbidden-page-template').content, true));
-    }}
-})});
+    }
+};
 
-micro._ActivityPage = class extends HTMLElement {
+micro._ActivityPage = class extends micro.Page {
     createdCallback() {
+        super.createdCallback();
+        this.caption = 'Site activity';
         this.appendChild(document.importNode(
             ui.querySelector('.micro-activity-page-template').content, true));
         this._showMoreButton = this.querySelector('button');
@@ -568,5 +599,9 @@ micro._ActivityPage = class extends HTMLElement {
     }
 };
 
+document.registerElement('micro-ui', {prototype: micro.UI.protoype, extends: 'body'});
 document.registerElement('micro-button', {prototype: micro.Button.prototype, extends: 'button'});
+document.registerElement('micro-page', micro.Page);
+document.registerElement('micro-not-found-page', micro.NotFoundPage);
+document.registerElement('micro-forbidden-page', micro.ForbiddenPage);
 document.registerElement('micro-activity-page', micro._ActivityPage);

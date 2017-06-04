@@ -20,7 +20,6 @@
 import http.client
 import json
 import logging
-import os
 import re
 from urllib.parse import urlparse
 
@@ -106,10 +105,8 @@ class MeetlingServer(HTTPServer):
         ]
         handlers += make_list_endpoints(r'/api/activity', lambda *a: self.app.activity)
         # pylint: disable=protected-access; meetling is a friend
-        application = Application(
-            handlers, compress_response=True,
-            template_path=os.path.join(meetling._RES_PATH, 'templates'),
-            static_path=os.path.join(meetling._RES_PATH, 'static'), debug=debug, server=self)
+        application = Application(handlers, compress_response=True, template_path='client',
+                                  static_path='client', debug=debug, server=self)
         super().initialize(application)
 
         self.port = port
@@ -141,7 +138,7 @@ class MeetlingServer(HTTPServer):
 class _UI(RequestHandler):
     def get(self):
         self.set_header('Cache-Control', 'no-cache')
-        self.render('meetling.html')
+        self.render('index.html')
 
 class _LogClientErrorEndpoint(Endpoint):
     def post(self):

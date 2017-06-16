@@ -112,7 +112,9 @@ meetling.TimeInput = class extends HTMLInputElement {
  *    if present.
  */
 meetling.UserElement = class extends HTMLElement {
-    createdCallback() {
+    constructor() {
+        super();
+        console.log('new meetling.UserElement');
         this._user = null;
         this.appendChild(document.importNode(
             document.querySelector('.meetling-user-template').content, true));
@@ -1161,20 +1163,17 @@ meetling.AgendaItemEditor = class extends HTMLLIElement {
     }
 };
 
-document.registerElement('meetling-time-input',
-                         {prototype: meetling.TimeInput.prototype, extends: 'input'});
-document.registerElement('meetling-user', meetling.UserElement);
-document.registerElement('meetling-user-listing', meetling.UserListingElement);
-document.registerElement('meetling-ui', {prototype: meetling.UI.prototype, extends: 'body'});
-document.registerElement('meetling-simple-notification', meetling.SimpleNotification);
-document.registerElement('meetling-error-notification', meetling.ErrorNotification);
-document.registerElement('meetling-start-page', meetling.StartPage);
-document.registerElement('meetling-about-page', meetling.AboutPage);
-document.registerElement('meetling-edit-user-page', meetling.EditUserPage);
-document.registerElement('meetling-edit-settings-page', meetling.EditSettingsPage);
-document.registerElement('meetling-meeting-page', meetling.MeetingPage);
-document.registerElement('meetling-edit-meeting-page', meetling.EditMeetingPage);
-document.registerElement('meetling-agenda-item',
-                         {prototype: meetling.AgendaItemElement.prototype, extends: 'li'});
-document.registerElement('meetling-agenda-item-editor',
-                         {prototype: meetling.AgendaItemEditor.prototype, extends: 'li'});
+customElements.define('meetling-time-input', meetling.TimeInput, {extends: 'input'});
+customElements.define('meetling-user', meetling.UserElement);
+customElements.define('meetling-user-listing', meetling.UserListingElement);
+customElements.define('meetling-ui', meetling.UI, {extends: 'body'});
+customElements.define('meetling-simple-notification', meetling.SimpleNotification);
+customElements.define('meetling-error-notification', meetling.ErrorNotification);
+customElements.define('meetling-start-page', meetling.StartPage);
+customElements.define('meetling-about-page', meetling.AboutPage);
+customElements.define('meetling-edit-user-page', meetling.EditUserPage);
+customElements.define('meetling-edit-settings-page', meetling.EditSettingsPage);
+customElements.define('meetling-meeting-page', meetling.MeetingPage);
+customElements.define('meetling-edit-meeting-page', meetling.EditMeetingPage);
+customElements.define('meetling-agenda-item', meetling.AgendaItemElement, {extends: 'li'});
+customElements.define('meetling-agenda-item-editor', meetling.AgendaItemEditor, {extends: 'li'});

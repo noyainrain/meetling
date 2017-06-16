@@ -136,7 +136,9 @@ micro.findAncestor = function(elem, predicate, top) {
  *    render the given *event* to a :class:`Node`.
  */
 micro.UI = class extends HTMLBodyElement {
-    createdCallback() {
+    constructor() {
+        super();
+        console.log('new micro.UI');
         this.page = null;
         this._progressElem = this.querySelector('.micro-ui-progress');
         this._pageSpace = this.querySelector('main .micro-ui-inside');
@@ -427,7 +429,9 @@ micro.OL = class extends HTMLOListElement {
  *    promise, the button will be suspended until the promise resolves.
  */
 micro.Button = class extends HTMLButtonElement {
-    createdCallback() {
+    constructor() {
+        super();
+        console.log('new micro.Button');
         this.run = null;
         this.addEventListener('click', this);
     }
@@ -598,11 +602,11 @@ micro._ActivityPage = class extends micro.Page {
     }
 };
 
-document.registerElement('micro-ui', {prototype: micro.UI.protoype, extends: 'body'});
-document.registerElement('micro-ol', {prototype: micro.OL.prototype, extends: 'ol'});
-document.registerElement('micro-button', {prototype: micro.Button.prototype, extends: 'button'});
-document.registerElement('micro-page', micro.Page);
-document.registerElement("micro-menu", micro.Menu);
-document.registerElement('micro-not-found-page', micro.NotFoundPage);
-document.registerElement('micro-forbidden-page', micro.ForbiddenPage);
-document.registerElement('micro-activity-page', micro._ActivityPage);
+customElements.define('micro-ui', micro.UI, {extends: 'body'});
+customElements.define('micro-ol', micro.OL, {extends: 'ol'});
+customElements.define('micro-button', micro.Button, {extends: 'button'});
+customElements.define('micro-page', micro.Page);
+customElements.define("micro-menu", micro.Menu);
+customElements.define('micro-not-found-page', micro.NotFoundPage);
+customElements.define('micro-forbidden-page', micro.ForbiddenPage);
+customElements.define('micro-activity-page', micro._ActivityPage);

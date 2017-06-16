@@ -4,7 +4,7 @@
     },
     "dependencies": {
         "whatwg-fetch": "^2.0",
-        "webcomponents.js": "^0.7",
+        "@webcomponents/webcomponentsjs": "^1.0",
         "pikaday": "^1.6",
         "font-awesome": "^4.4",
         "typeface-open-sans": "^0.0"

@@ -14,7 +14,7 @@
         <link rel="stylesheet" href="{{ static_url('meetling.css') }}" />
 
         <script src="{{ static_url('lib/whatwg-fetch/fetch.js') }}" defer="defer"></script>
-        <script src="{{ static_url('lib/webcomponents.js/webcomponents-lite.min.js') }}"
+        <script src="{{ static_url('lib/@webcomponents/webcomponentsjs/webcomponents-sd-ce.js') }}"
                 defer="defer">
         </script>
         <script src="{{ static_url('lib/pikaday/pikaday.js') }}" defer="defer"></script>
@@ -49,6 +49,7 @@
     </head>
 
     <body is="meetling-ui">
+        <button is="micro-button">foo</button>
         <header class="micro-ui-header" style="display: none;">
             <nav class="micro-ui-inside">
                 <h1 class="meetling-ui-logo">

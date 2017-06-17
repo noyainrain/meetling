@@ -5,7 +5,7 @@
     "dependencies": {
         "whatwg-fetch": "^2.0",
         "webcomponents.js": "^0.7",
-        "pikaday": "~1.4",
+        "pikaday": "^1.6",
         "font-awesome": "^4.4",
         "typeface-open-sans": "^0.0"
     },

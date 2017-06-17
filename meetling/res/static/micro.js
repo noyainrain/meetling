@@ -42,12 +42,13 @@ micro.SHORT_DATE_TIME_FORMAT = {
  *
  *    The associated HTTP status code.
  */
-micro.APIError = function(error, status) {
-    Error.call(this);
-    this.error = error;
-    this.status = status;
+micro.APIError = class extends Error {
+    constructor(error, status) {
+        super();
+        this.error = error;
+        this.status = status;
+    }
 };
-micro.APIError.prototype = Object.create(Error.prototype);
 
 /**
  * Call a *method* on the HTTP JSON REST API endpoint at *url*.
@@ -308,9 +309,8 @@ micro.UI = class extends HTMLBodyElement {
  *    *to* is ``null``, it means the end of the list. Thus *from* and *to* may be used in
  *    :func:`Node.insertBefore`.
  */
-micro.OL = document.registerElement('micro-ol',
-        {extends: 'ol', prototype: Object.create(HTMLOListElement.prototype, {
-    createdCallback: {value: function() {
+micro.OL = class extends HTMLOListElement {
+    createdCallback() {
         this._li = null;
         this._from = null;
         this._to = null;
@@ -320,19 +320,19 @@ micro.OL = document.registerElement('micro-ol',
         this.addEventListener('mousemove', this);
         this.addEventListener('touchstart', this);
         this.addEventListener('touchmove', this);
-    }},
+    }
 
-    attachedCallback: {value: function() {
+    attachedCallback() {
         window.addEventListener('mouseup', this);
         window.addEventListener('touchend', this);
-    }},
+    }
 
-    detachedCallback: {value: function() {
+    detachedCallback() {
         window.removeEventListener('mouseup', this);
         window.removeEventListener('touchend', this);
-    }},
+    }
 
-    handleEvent: {value: function(event) {
+    handleEvent(event) {
         if (event.currentTarget === this) {
             switch (event.type) {
             case 'touchstart':
@@ -412,8 +412,8 @@ micro.OL = document.registerElement('micro-ol',
             }
             this._li = null;
         }
-    }}
-})});
+    }
+};
 
 /**
  * Button with an associated action that runs on click.
@@ -487,36 +487,35 @@ micro.Button = class extends HTMLButtonElement {
  * Secondary items, marked with the ``micro-menu-secondary`` class, are hidden by default and can be
  * revealed by the user with a toggle button.
  */
-micro.Menu = document.registerElement("micro-menu",
-        {prototype: Object.create(HTMLElement.prototype, {
+micro.Menu = class extends HTMLElement {
     // TODO: Watch if the user modifies the content of the element and make sure the toggle button
     // is present and at the last position.
 
-    createdCallback: {value: function() {
+    createdCallback() {
         this.appendChild(document.importNode(document.querySelector('.micro-menu-template').content,
                                              true));
         this.classList.add("micro-menu");
         this._toggleButton = this.querySelector(".micro-menu-toggle-secondary");
         this._toggleButton.addEventListener("click", this);
         this._update();
-    }},
+    }
 
-    _update: {value: function() {
+    _update() {
         var secondary = this.classList.contains("micro-menu-secondary-visible");
         var i = this._toggleButton.querySelector("i");
         i.classList.remove("fa-chevron-circle-right", "fa-chevron-circle-left");
         i.classList.add(`fa-chevron-circle-${secondary ? "left" : "right"}`);
         this.querySelector(".micro-menu-toggle-secondary").title =
             `Show ${secondary ? "less" : "more"}`;
-    }},
+    }
 
-    handleEvent: {value: function(event) {
+    handleEvent(event) {
         if (event.currentTarget === this._toggleButton && event.type === "click") {
             this.classList.toggle("micro-menu-secondary-visible");
             this._update();
         }
-    }}
-})});
+    }
+};
 
 /**
  * Page.
@@ -600,8 +599,10 @@ micro._ActivityPage = class extends micro.Page {
 };
 
 document.registerElement('micro-ui', {prototype: micro.UI.protoype, extends: 'body'});
+document.registerElement('micro-ol', {prototype: micro.OL.prototype, extends: 'ol'});
 document.registerElement('micro-button', {prototype: micro.Button.prototype, extends: 'button'});
 document.registerElement('micro-page', micro.Page);
+document.registerElement("micro-menu", micro.Menu);
 document.registerElement('micro-not-found-page', micro.NotFoundPage);
 document.registerElement('micro-forbidden-page', micro.ForbiddenPage);
 document.registerElement('micro-activity-page', micro._ActivityPage);

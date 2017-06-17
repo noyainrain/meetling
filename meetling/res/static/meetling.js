@@ -44,13 +44,12 @@ meetling._DATE_FORMAT = {year: "numeric", month: "long", day: "numeric"};
  *
  *    Value as time string. Empty if the user input is invalid or empty.
  */
-meetling.TimeInput = document.registerElement("meetling-time-input",
-        {extends: "input", prototype: Object.create(HTMLInputElement.prototype, {
+meetling.TimeInput = class extends HTMLInputElement {
     // NOTE: Instead of introducing a new property *timeValue*, a better approach would be to
     // override *value*. We should refactor according to the comments below, as soon as current
     // browsers expose getters and setters of :class:`Node` s.
 
-    createdCallback: {value: function() {
+    createdCallback() {
         this.classList.add("meetling-time-input");
         this.setAttribute("size", "5");
         this.addEventListener("change", this);
@@ -58,28 +57,27 @@ meetling.TimeInput = document.registerElement("meetling-time-input",
         // Better:
         //this._superValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
         this._evaluate();
-    }},
+    }
 
-    // Better: value: {
-    timeValue: {
-        get: function() {
-            return this._value;
-        },
-        set: function(value) {
-            this._value = this._parseInput(value);
-            this.value = this._value;
-            // Better: this._superValue.set.call(this, this._value);
-            this.setCustomValidity("");
-        }
-    },
+    // Better: value
+    get timeValue() {
+        return this._value;
+    }
 
-    handleEvent: {value: function(event) {
+    set timeValue(value) {
+        this._value = this._parseInput(value);
+        this.value = this._value;
+        // Better: this._superValue.set.call(this, this._value);
+        this.setCustomValidity("");
+    }
+
+    handleEvent(event) {
         if (event.currentTarget === this && event.type === "change") {
             this._evaluate();
         }
-    }},
+    }
 
-    _evaluate: {value: function() {
+    _evaluate() {
         var input = this.value;
         // Better: var input = this._superValue.get.call(this);
         this._value = this._parseInput(input);
@@ -88,9 +86,9 @@ meetling.TimeInput = document.registerElement("meetling-time-input",
         } else {
             this.setCustomValidity("input_bad_format");
         }
-    }},
+    }
 
-    _parseInput: {value: function(input) {
+    _parseInput(input) {
         var tokens = input.match(/^([0-1]?\d|2[0-3])(\D?([0-5]\d))?$/);
         if (!tokens) {
             return "";
@@ -102,8 +100,8 @@ meetling.TimeInput = document.registerElement("meetling-time-input",
         }
         var minute = tokens[3] || "00";
         return hour + ":" + minute;
-    }}
-})});
+    }
+};
 
 /**
  * User element.
@@ -113,28 +111,26 @@ meetling.TimeInput = document.registerElement("meetling-time-input",
  *    Represented :ref:`User`. Initialized from the JSON value of the corresponding HTML attribute,
  *    if present.
  */
-meetling.UserElement = document.registerElement("meetling-user",
-        {prototype: Object.create(HTMLElement.prototype, {
-    createdCallback: {value: function() {
+meetling.UserElement = class extends HTMLElement {
+    createdCallback() {
         this._user = null;
         this.appendChild(document.importNode(
             document.querySelector('.meetling-user-template').content, true));
         this.classList.add("meetling-user");
-    }},
+    }
 
-    user: {
-        get: function() {
-            return this._user;
-        },
-        set: function(value) {
-            this._user = value;
-            if (this._user) {
-                this.querySelector("span").textContent = this._user.name;
-                this.setAttribute("title", this._user.name);
-            }
+    get user() {
+        return this._user;
+    }
+
+    set user(value) {
+        this._user = value;
+        if (this._user) {
+            this.querySelector("span").textContent = this._user.name;
+            this.setAttribute("title", this._user.name);
         }
     }
-})});
+};
 
 /**
  * Compact listing of users.
@@ -144,32 +140,30 @@ meetling.UserElement = document.registerElement("meetling-user",
  *    List of :ref:`User` s to display. Initialized from the JSON value of the corresponding HTML
  *    attribute, if present.
  */
-meetling.UserListingElement = document.registerElement("meetling-user-listing",
-        {prototype: Object.create(HTMLElement.prototype, {
-    createdCallback: {value: function() {
+meetling.UserListingElement = class extends HTMLElement {
+    createdCallback() {
         this._users = [];
         this.classList.add("meetling-user-listing");
-    }},
+    }
 
-    users: {
-        get: function() {
-            return this._users;
-        },
-        set: function(value) {
-            this._users = value;
-            this.innerHTML = "";
-            for (var i = 0; i < this._users.length; i++) {
-                var user = this._users[i];
-                if (i > 0) {
-                    this.appendChild(document.createTextNode(", "));
-                }
-                var elem = document.createElement("meetling-user");
-                elem.user = user;
-                this.appendChild(elem);
+    get users() {
+        return this._users;
+    }
+
+    set users(value) {
+        this._users = value;
+        this.innerHTML = "";
+        for (var i = 0; i < this._users.length; i++) {
+            var user = this._users[i];
+            if (i > 0) {
+                this.appendChild(document.createTextNode(", "));
             }
+            var elem = document.createElement("meetling-user");
+            elem.user = user;
+            this.appendChild(elem);
         }
     }
-})});
+};
 
 /**
  * Meetling UI.
@@ -182,9 +176,8 @@ meetling.UserListingElement = document.registerElement("meetling-user-listing",
  *
  *    App :ref:`Settings`.
  */
-meetling.UI = document.registerElement('meetling-ui',
-        {extends: 'body', prototype: Object.create(micro.UI.prototype, {
-    update: {value: function() {
+meetling.UI = class extends micro.UI {
+    update() {
         var version = localStorage.version || null;
         if (!version) {
             // Compatibility for server side authentication (obsolete since 0.10.0)
@@ -193,9 +186,9 @@ meetling.UI = document.registerElement('meetling-ui',
                 localStorage.version = 1;
             }.bind(this));
         }
-    }},
+    }
 
-    init: {value: function() {
+    init() {
         this.user = JSON.parse(localStorage.user);
         this.settings = null;
 
@@ -272,17 +265,15 @@ meetling.UI = document.registerElement('meetling-ui',
                 throw e;
             }
         }.bind(this));
-    }},
+    }
 
     /**
      * Is the current :attr:`user` a staff member?
      */
-    staff: {
-        get: function() {
-            return this.settings.staff.map(function(s) { return s.id; }).indexOf(this.user.id) !=
-                   -1;
-        }
-    },
+    get staff() {
+        return this.settings.staff.map(function(s) { return s.id; }).indexOf(this.user.id) !=
+               -1;
+    }
 
     /**
      * Show a *notification* to the user.
@@ -290,7 +281,7 @@ meetling.UI = document.registerElement('meetling-ui',
      * *notification* is a :class:`HTMLElement`, like for example :class:`SimpleNotification`.
      * Alternatively, *notification* can be a simple message string to display.
      */
-    notify: {value: function(notification) {
+    notify(notification) {
         if (typeof notification === "string") {
             var elem = document.createElement("meetling-simple-notification");
             var p = document.createElement("p");
@@ -302,14 +293,14 @@ meetling.UI = document.registerElement('meetling-ui',
         var space = this.querySelector('.meetling-ui-notification-space');
         space.textContent = "";
         space.appendChild(notification);
-    }},
+    }
 
-    synthesizeMeetingTrashAgendaItemEvent: {value: function(item) {
+    synthesizeMeetingTrashAgendaItemEvent(item) {
         var item = Object.assign({}, item, {trashed: true});
         this.dispatchEvent(new CustomEvent('trash-agenda-item', {detail: {item: item}}));
-    }},
+    }
 
-    _update: {value: function() {
+    _update() {
         this.classList.toggle('meetling-ui-user-is-staff', this.staff)
         this.classList.toggle('meetling-ui-settings-have-feedback-url', this.settings.feedback_url);
         this.querySelector('.meetling-ui-logo-text').textContent = this.settings.title;
@@ -325,9 +316,9 @@ meetling.UI = document.registerElement('meetling-ui',
 
         this.querySelector('.micro-ui-header meetling-user').user = this.user;
         this.querySelector('.meetling-ui-edit-settings').style.display = this.staff ? '' : 'none';
-    }},
+    }
 
-    _storeUser: {value: function(user) {
+    _storeUser(user) {
         this.user = user;
         if (user) {
             localStorage.user = JSON.stringify(user);
@@ -337,9 +328,9 @@ meetling.UI = document.registerElement('meetling-ui',
             localStorage.user = null;
             document.cookie = 'auth_secret=; path=/; max-age=0';
         }
-    }},
+    }
 
-    _makeEditUserPage: {value: function(url, id) {
+    _makeEditUserPage(url, id) {
         id = id || this.user.id;
         return micro.call('GET', `/api/users/${id}`).then(function(user) {
             if (!(this.user.id === user.id)) {
@@ -349,33 +340,33 @@ meetling.UI = document.registerElement('meetling-ui',
             page.user = user;
             return page;
         }.bind(this));
-    }},
+    }
 
-    _makeEditSettingsPage: {value: function(url) {
+    _makeEditSettingsPage(url) {
         if (!this.staff) {
             return document.createElement('micro-forbidden-page');
         }
         return document.createElement('meetling-edit-settings-page');
-    }},
+    }
 
-    _makeMeetingPage: {value: function(url, id) {
+    _makeMeetingPage(url, id) {
         return micro.call('GET', `/api/meetings/${id}`).then(function(meeting) {
             var page = document.createElement('meetling-meeting-page');
             page.meeting = meeting;
             return page;
         });
-    }},
+    }
 
-    _makeEditMeetingPage: {value: function(url, id) {
+    _makeEditMeetingPage(url, id) {
         return micro.call('GET', `/api/meetings/${id}`).then(function(meeting) {
             var page = document.createElement('meetling-edit-meeting-page');
             page.meeting = meeting;
             return page;
         });
-    }},
+    }
 
-    handleEvent: {value: function(event) {
-        micro.UI.prototype.handleEvent.call(this, event);
+    handleEvent(event) {
+        super.handleEvent(event);
 
         if (event.currentTarget === window && event.type === "error") {
             this.notify(document.createElement("meetling-error-notification"));
@@ -405,49 +396,47 @@ meetling.UI = document.registerElement('meetling-ui',
             this.settings = event.detail.settings;
             this._update();
         }
-    }}
-})});
+    }
+};
 
 /**
  * Simple notification.
  */
-meetling.SimpleNotification = document.registerElement("meetling-simple-notification",
-        {prototype: Object.create(HTMLElement.prototype, {
-    createdCallback: {value: function() {
+meetling.SimpleNotification = class extends HTMLElement {
+    createdCallback() {
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-simple-notification-template').content, true));
         this.classList.add("meetling-notification", "meetling-simple-notification");
         this.querySelector(".meetling-simple-notification-dismiss").addEventListener("click", this);
         this.content = this.querySelector(".meetling-simple-notification-content");
-    }},
+    }
 
-    handleEvent: {value: function(event) {
+    handleEvent(event) {
         if (event.currentTarget === this.querySelector(".meetling-simple-notification-dismiss") &&
                 event.type === "click") {
             this.parentNode.removeChild(this);
         }
-    }}
-})});
+    }
+};
 
 /**
  * Notification that informs the user about app errors.
  */
-meetling.ErrorNotification = document.registerElement("meetling-error-notification",
-        {prototype: Object.create(HTMLElement.prototype, {
-    createdCallback: {value: function() {
+meetling.ErrorNotification = class extends HTMLElement {
+    createdCallback() {
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-error-notification-template').content, true));
         this.classList.add("meetling-notification", "meetling-error-notification");
         this.querySelector(".meetling-error-notification-reload").addEventListener("click", this);
-    }},
+    }
 
-    handleEvent: {value: function(event) {
+    handleEvent(event) {
         if (event.currentTarget === this.querySelector(".meetling-error-notification-reload") &&
                 event.type === "click") {
             location.reload();
         }
-    }}
-})});
+    }
+};
 
 /**
  * Start page.
@@ -872,7 +861,7 @@ meetling.MeetingPage = class extends micro.Page {
 
         } else if (event.currentTarget === this._createAgendaItemAction && event.type === "click") {
             var li = this.querySelector(".meetling-meeting-create-agenda-item");
-            var editor = new meetling.AgendaItemEditor();
+            var editor = document.createElement('li', 'meetling-agenda-item-editor');
             editor.replaced = li;
             this._agendaUl.insertBefore(editor, li);
             this._agendaUl.removeChild(li);
@@ -1013,9 +1002,8 @@ meetling.EditMeetingPage = class extends micro.Page {
  *    Represented :ref:`AgendaItem`. The initial value is set from the JSON value of the HTML
  *    attribute of the same name.
  */
-meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
-        {extends: "li", prototype: Object.create(HTMLLIElement.prototype, {
-    createdCallback: {value: function() {
+meetling.AgendaItemElement = class extends HTMLLIElement {
+    createdCallback() {
         this._item = null;
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-agenda-item-template').content, true));
@@ -1025,34 +1013,33 @@ meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
         this._trashAction.addEventListener("click", this);
         this._restoreAction.addEventListener("click", this);
         this.querySelector(".meetling-agenda-item-edit").addEventListener("click", this);
-    }},
+    }
 
-    item: {
-        get: function() {
-            return this._item;
-        },
-        set: function(value) {
-            this._item = value;
-            if (this._item) {
-                this.classList.toggle("meetling-agenda-item-trashed", this._item.trashed);
-                this.querySelector("h1").textContent = this._item.title;
-                var p = this.querySelector(".meetling-agenda-item-duration");
-                if (this._item.duration) {
-                    p.querySelector("span").textContent = this._item.duration + "m";
-                    p.style.display = "";
-                } else {
-                    p.style.display = "none";
-                }
-                this.querySelector(".meetling-agenda-item-description").textContent =
-                    this._item.description || "";
-                this.querySelector("meetling-user-listing").users = this._item.authors;
+    get item() {
+        return this._item;
+    }
+
+    set item(value) {
+        this._item = value;
+        if (this._item) {
+            this.classList.toggle("meetling-agenda-item-trashed", this._item.trashed);
+            this.querySelector("h1").textContent = this._item.title;
+            var p = this.querySelector(".meetling-agenda-item-duration");
+            if (this._item.duration) {
+                p.querySelector("span").textContent = this._item.duration + "m";
+                p.style.display = "";
+            } else {
+                p.style.display = "none";
             }
+            this.querySelector(".meetling-agenda-item-description").textContent =
+                this._item.description || "";
+            this.querySelector("meetling-user-listing").users = this._item.authors;
         }
-    },
+    }
 
-    handleEvent: {value: function(event) {
+    handleEvent(event) {
         if (event.currentTarget === this.querySelector(".meetling-agenda-item-edit")) {
-            var editor = new meetling.AgendaItemEditor();
+            var editor = document.createElement('li', 'meetling-agenda-item-editor');
             editor.item = this._item;
             editor.replaced = this;
             this.parentNode.insertBefore(editor, this);
@@ -1086,8 +1073,8 @@ meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
                     new CustomEvent('restore-agenda-item', {detail: {item: this._item}}));
             }.bind(this));
         }
-    }}
-})});
+    }
+};
 
 /**
  * Agenda item editor.
@@ -1100,9 +1087,8 @@ meetling.AgendaItemElement = document.registerElement("meetling-agenda-item",
  *
  *    ``li`` that was temporarily replaced with the editor.
  */
-meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-editor",
-        {extends: "li", prototype: Object.create(HTMLLIElement.prototype, {
-    createdCallback: {value: function() {
+meetling.AgendaItemEditor = class extends HTMLLIElement {
+    createdCallback() {
         this.appendChild(document.importNode(
             ui.querySelector('.meetling-agenda-item-editor-template').content, true));
         this.classList.add("meetling-agenda-item-editor");
@@ -1110,25 +1096,24 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
         this.querySelector('.action-cancel').run = this._close.bind(this);
         this.item = null;
         this.replaced = null;
-    }},
+    }
 
-    item: {
-        get: function() {
-            return this._item;
-        },
-        set: function(value) {
-            this._item = value;
-            if (this._item) {
-                this.querySelector('h1').textContent = "Edit " + this._item.title;
-                var form = this.querySelector("form");
-                form.elements["title"].value = this._item.title;
-                form.elements["duration"].value = this._item.duration || "";
-                form.elements["description"].value = this._item.description || "";
-            }
+    get item() {
+        return this._item;
+    }
+
+    set item(value) {
+        this._item = value;
+        if (this._item) {
+            this.querySelector('h1').textContent = "Edit " + this._item.title;
+            var form = this.querySelector("form");
+            form.elements["title"].value = this._item.title;
+            form.elements["duration"].value = this._item.duration || "";
+            form.elements["description"].value = this._item.description || "";
         }
-    },
+    }
 
-    _edit: {value: function() {
+    _edit() {
         let form = this.querySelector('form');
 
         if (!form.elements['duration'].checkValidity()) {
@@ -1152,7 +1137,7 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
                 this.replaced.item = item;
             } else {
                 // In create mode, append a new meetling-agenda-item to the list
-                let li = new meetling.AgendaItemElement();
+                let li = document.createElement('li', 'meetling-agenda-item');
                 li.item = item;
                 this.parentNode.querySelector('.meetling-meeting-items > ol').appendChild(li);
             }
@@ -1168,17 +1153,28 @@ meetling.AgendaItemEditor = document.registerElement("meetling-agenda-item-edito
                 throw e;
             }
         });
-    }},
+    }
 
-    _close: {value: function() {
+    _close() {
         this.parentNode.insertBefore(this.replaced, this);
         this.parentNode.removeChild(this);
-    }}
-})});
+    }
+};
 
+document.registerElement('meetling-time-input',
+                         {prototype: meetling.TimeInput.prototype, extends: 'input'});
+document.registerElement('meetling-user', meetling.UserElement);
+document.registerElement('meetling-user-listing', meetling.UserListingElement);
+document.registerElement('meetling-ui', {prototype: meetling.UI.prototype, extends: 'body'});
+document.registerElement('meetling-simple-notification', meetling.SimpleNotification);
+document.registerElement('meetling-error-notification', meetling.ErrorNotification);
 document.registerElement('meetling-start-page', meetling.StartPage);
 document.registerElement('meetling-about-page', meetling.AboutPage);
 document.registerElement('meetling-edit-user-page', meetling.EditUserPage);
 document.registerElement('meetling-edit-settings-page', meetling.EditSettingsPage);
 document.registerElement('meetling-meeting-page', meetling.MeetingPage);
 document.registerElement('meetling-edit-meeting-page', meetling.EditMeetingPage);
+document.registerElement('meetling-agenda-item',
+                         {prototype: meetling.AgendaItemElement.prototype, extends: 'li'});
+document.registerElement('meetling-agenda-item-editor',
+                         {prototype: meetling.AgendaItemEditor.prototype, extends: 'li'});

@@ -10,9 +10,11 @@ You can give it a try at [meetling.org](https://meetling.org/).
 
 The following software is required and must be set up on your system:
 
-* Python >= 3.4
-* Node.js >= 0.10
+* Python >= 3.5
+* Node.js >= 5.0
 * Redis >= 2.8
+
+Support for Python 3.4 and Node.js 0.10 is deprecated since 0.16.4.
 
 Meetling should work on any [POSIX](https://en.wikipedia.org/wiki/POSIX) system.
 
@@ -36,6 +38,10 @@ python3 -m meetling
 
 Meetling supports the latest version of popular browsers (i.e. Chrome, Edge, Firefox and Safari; see
 http://caniuse.com/ ).
+
+## Deprecation policy
+
+Features marked as deprecated are removed after a period of six months.
 
 ## Contributors
 

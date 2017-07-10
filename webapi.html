@@ -1,12 +1,12 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>2. Web API &#8212; Meetling 0.16.0 documentation</title>
+    <title>2. Web API &#8212; Meetling 0.16.4 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.16.0',
+        VERSION:     '0.16.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -36,7 +36,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body role="document">
+  <body>
   
 
     <div class="document">
@@ -51,13 +51,13 @@
 <p>Meetling provides a JSON REST API.</p>
 <p>Arguments are passed to an endpoint simply as JSON object and the result is returned as JSON value.
 <em>Objects</em> contain a <code class="docutils literal"><span class="pre">__type__</span></code> attribute that holds the name of the object type.</p>
-<p>If a requested endpoint doesn&#8217;t exist, a <a class="reference internal" href="#notfounderror"><span class="std std-ref">NotFoundError</span></a> is returned. For any endpoint, an
+<p>If a requested endpoint doesn’t exist, a <a class="reference internal" href="#notfounderror"><span class="std std-ref">NotFoundError</span></a> is returned. For any endpoint, an
 <a class="reference internal" href="#inputerror"><span class="std std-ref">InputError</span></a> is returned if the input contains invalid arguments.</p>
 </div>
 <div class="section" id="authentication-and-permissions">
 <h2>2.2. Authentication and Permissions<a class="headerlink" href="#authentication-and-permissions" title="Permalink to this headline">¶</a></h2>
 <p>To make an API request authenticated as some user, include a cookie named <code class="docutils literal"><span class="pre">auth_secret</span></code> with the
-<a class="reference internal" href="#user"><span class="std std-ref">User</span></a> &#8216;s <em>auth_secret</em>.</p>
+<a class="reference internal" href="#user"><span class="std std-ref">User</span></a> ‘s <em>auth_secret</em>.</p>
 <p>If user authentication with the given secret fails, an <a class="reference internal" href="#authenticationerror"><span class="std std-ref">AuthenticationError</span></a> is returned. For
 any endpoint, a <a class="reference internal" href="#permissionerror"><span class="std std-ref">PermissionError</span></a> is returned if the current user is not allowed to perform the
 action.</p>
@@ -90,7 +90,7 @@ language tag.</p>
 </pre></div>
 </div>
 <p>To authenticate further API calls, the returned <em>auth_secret</em> is set as cookie.</p>
-<p>Setting a user&#8217;s <em>email</em> address requires multiple steps. First:</p>
+<p>Setting a user’s <em>email</em> address requires multiple steps. First:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ curl -b &quot;auth_secret=wxyz&quot; -d &#39;{&quot;email&quot;: &quot;happy@example.org&quot;}&#39; \
        https://meetling.org/api/users/abcd/set-email
 {
@@ -137,7 +137,7 @@ registered as staff member.</p>
 <div class="section" id="authrequest">
 <span id="id2"></span><h2>2.7. AuthRequest<a class="headerlink" href="#authrequest" title="Permalink to this headline">¶</a></h2>
 <p>Third party authentication request.</p>
-<p>To set an <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> &#8216;s email address, a third party authentication via the email provider is
+<p>To set an <a class="reference internal" href="#user"><span class="std std-ref">User</span></a> ‘s email address, a third party authentication via the email provider is
 performed to proof ownership over the address: First an email message containing a secret
 authentication code is sent to the user. The email provider authenticates the user by login to their
 mailbox, where they retrieve the code. Finally the code is passed back to and verified by the
@@ -232,8 +232,8 @@ a <a class="reference internal" href="#meeting"><span class="std std-ref">Meetin
 <dl class="post">
 <dt id="post--api-users-(id)-set-email">
 <code class="descname">POST </code><code class="descname">/api/users/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/set-email</code><a class="headerlink" href="#post--api-users-(id)-set-email" title="Permalink to this definition">¶</a></dt>
-<dd><p>{&#8220;email&#8221;}</p>
-<p>Start to set the user&#8217;s <em>email</em> address.</p>
+<dd><p>{“email”}</p>
+<p>Start to set the user’s <em>email</em> address.</p>
 <p>A third party authentication via the email provider (as layed out in <a class="reference internal" href="#authrequest"><span class="std std-ref">AuthRequest</span></a>) is
 triggered and a corresponding <a class="reference internal" href="#authrequest"><span class="std std-ref">AuthRequest</span></a> is returned. To finish setting the email address
 use <a class="reference internal" href="#post--api-users-(id)-finish-set-email" title="POST /api/users/(id)/finish-set-email"><code class="xref http http-post docutils literal"><span class="pre">POST</span> <span class="pre">/api/users/(id)/finish-set-email</span></code></a>.</p>
@@ -243,8 +243,8 @@ use <a class="reference internal" href="#post--api-users-(id)-finish-set-email" 
 <dl class="post">
 <dt id="post--api-users-(id)-finish-set-email">
 <code class="descname">POST </code><code class="descname">/api/users/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/finish-set-email</code><a class="headerlink" href="#post--api-users-(id)-finish-set-email" title="Permalink to this definition">¶</a></dt>
-<dd><p>{&#8220;auth_request_id&#8221;, &#8220;auth&#8221;}</p>
-<p>Finish setting the user&#8217;s <em>email</em> address and return the user.</p>
+<dd><p>{“auth_request_id”, “auth”}</p>
+<p>Finish setting the user’s <em>email</em> address and return the user.</p>
 <p><em>auth</em> is the authentication code, resulting from the <a class="reference internal" href="#authrequest"><span class="std std-ref">AuthRequest</span></a> with <em>auth_request_id</em>,
 to be verified. If the verification fails, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> (<code class="docutils literal"><span class="pre">auth_invalid</span></code>) is returned. If
 the given email address is already associated with another user, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a>
@@ -255,8 +255,8 @@ the given email address is already associated with another user, a <a class="ref
 <dl class="post">
 <dt id="post--api-users-(id)-remove-email">
 <code class="descname">POST </code><code class="descname">/api/users/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/remove-email</code><a class="headerlink" href="#post--api-users-(id)-remove-email" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove the user&#8217;s current <em>email</em> address and return the user.</p>
-<p>If the user&#8217;s <em>email</em> is not set, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> (<code class="docutils literal"><span class="pre">user_no_email</span></code>) is returned.</p>
+<dd><p>Remove the user’s current <em>email</em> address and return the user.</p>
+<p>If the user’s <em>email</em> is not set, a <a class="reference internal" href="#valueerror"><span class="std std-ref">ValueError</span></a> (<code class="docutils literal"><span class="pre">user_no_email</span></code>) is returned.</p>
 <p>Permission: The user oneself.</p>
 </dd></dl>
 
@@ -404,7 +404,7 @@ the given email address is already associated with another user, a <a class="ref
 <dl class="get">
 <dt id="get--api-meetings-(id)-items">
 <code class="descname">GET </code><code class="descname">/api/meetings/</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><code class="descname">/items</code><a class="headerlink" href="#get--api-meetings-(id)-items" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the list of <a class="reference internal" href="#agendaitem"><span class="std std-ref">AgendaItem</span></a> s on the meeting&#8217;s agenda.</p>
+<dd><p>Get the list of <a class="reference internal" href="#agendaitem"><span class="std std-ref">AgendaItem</span></a> s on the meeting’s agenda.</p>
 <p>If <code class="docutils literal"><span class="pre">/trashed</span></code> is appended to the URL, only trashed (deleted) items are returned.</p>
 </dd></dl>
 
@@ -450,7 +450,7 @@ returned.</p>
 </div>
 <div class="section" id="agendaitem">
 <span id="id11"></span><h2>2.16. AgendaItem<a class="headerlink" href="#agendaitem" title="Permalink to this headline">¶</a></h2>
-<p>Item on a <a class="reference internal" href="#meeting"><span class="std std-ref">Meeting</span></a> &#8216;s agenda.</p>
+<p>Item on a <a class="reference internal" href="#meeting"><span class="std std-ref">Meeting</span></a> ‘s agenda.</p>
 <p>AgendaItem is an <a class="reference internal" href="#object"><span class="std std-ref">Object</span></a> and <a class="reference internal" href="#editable"><span class="std std-ref">Editable</span></a>.</p>
 <dl class="describe">
 <dt>
@@ -593,7 +593,7 @@ returned.</p>
       &copy;2015 Meetling contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.5</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

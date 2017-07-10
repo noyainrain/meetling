@@ -17,6 +17,7 @@
 import asyncore
 from smtpd import SMTPServer
 from threading import Thread
+from warnings import catch_warnings
 
 from micro import EmailError
 from micro.tests.test_micro import MicroTestCase
@@ -25,7 +26,12 @@ class EmailTest(MicroTestCase):
     def setUp(self):
         super().setUp()
         self.app.smtp_url = '//localhost:52525'
-        self.smtpd = DiscardingSMTPServer(('localhost', 52525), None)
+        # NOTE: Omitting decode_data triggers a warning in Python 3.5, which we can safely ignore
+        # because we do not touch data
+        with catch_warnings(record=True):
+            self.smtpd = DiscardingSMTPServer(('localhost', 52525), None)
+        # NOTE: asyncore is deprecated, but needed for smtpd, which is not (yet). aiosmtpd may be
+        # added to the standard library as replacement.
         self.thread = Thread(target=asyncore.loop, kwargs={'timeout': 0.1})
         self.thread.start()
 

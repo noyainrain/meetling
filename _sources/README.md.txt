@@ -47,4 +47,4 @@ Features marked as deprecated are removed after a period of six months.
 
 * Sven James &lt;sven.jms AT gmail.com>
 
-Copyright (C) 2015 Meetling contributors
+Copyright (C) 2017 Meetling contributors

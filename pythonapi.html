@@ -5,16 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>3. Python API &#8212; Meetling 0.16.4 documentation</title>
-    
+    <title>3. Python API &#8212; Meetling 0.17.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.16.4',
+        VERSION:     '0.17.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -53,7 +50,7 @@
 communicating with the Redis server.</p>
 <dl class="class">
 <dt id="micro.Application">
-<em class="property">class </em><code class="descclassname">micro.</code><code class="descname">Application</code><span class="sig-paren">(</span><em>redis_url=”</em>, <em>email=’bot&#64;localhost’</em>, <em>smtp_url=”</em>, <em>render_email_auth_message=None</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Application" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">micro.</code><code class="descname">Application</code><span class="sig-paren">(</span><em>redis_url=''</em>, <em>email='bot&#64;localhost'</em>, <em>smtp_url=''</em>, <em>render_email_auth_message=None</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Application" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#application"><span class="std std-ref">Application</span></a>.</p>
 <dl class="attribute">
 <dt id="micro.Application.user">
@@ -131,7 +128,7 @@ initializing) micro specific data. The default implementation does nothing.</p>
 
 <dl class="method">
 <dt id="micro.Application.get_object">
-<code class="descname">get_object</code><span class="sig-paren">(</span><em>id</em>, <em>default=&lt;class ‘KeyError’&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Application.get_object" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_object</code><span class="sig-paren">(</span><em>id</em>, <em>default=&lt;class 'KeyError'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.Application.get_object" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the <a class="reference internal" href="#micro.Object" title="micro.Object"><code class="xref py py-class docutils literal"><span class="pre">Object</span></code></a> given by <em>id</em>.</p>
 <p><em>default</em> is the value to return if no object with <em>id</em> is found. If it is an
 <code class="xref py py-exc docutils literal"><span class="pre">Exception</span></code>, it is raised instead.</p>
@@ -315,7 +312,7 @@ If communication with the SMTP server fails, an <code class="xref py py-class do
 
 <dl class="function">
 <dt id="micro.util.randstr">
-<code class="descclassname">micro.util.</code><code class="descname">randstr</code><span class="sig-paren">(</span><em>length=16</em>, <em>charset=’abcdefghijklmnopqrstuvwxyz’</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.util.randstr" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">micro.util.</code><code class="descname">randstr</code><span class="sig-paren">(</span><em>length=16</em>, <em>charset='abcdefghijklmnopqrstuvwxyz'</em><span class="sig-paren">)</span><a class="headerlink" href="#micro.util.randstr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a random string.</p>
 <p>The string will have the given <em>length</em> and consist of characters from <em>charset</em>.</p>
 </dd></dl>
@@ -358,7 +355,7 @@ maximum size of the slice may be given by <em>limit</em>, which caps the maximum
 this documentation is on the differences and additions to the Web API.</p>
 <dl class="class">
 <dt id="meetling.Meetling">
-<em class="property">class </em><code class="descclassname">meetling.</code><code class="descname">Meetling</code><span class="sig-paren">(</span><em>redis_url=”</em>, <em>email=’bot&#64;localhost’</em>, <em>smtp_url=”</em>, <em>render_email_auth_message=None</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Meetling" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">meetling.</code><code class="descname">Meetling</code><span class="sig-paren">(</span><em>redis_url=''</em>, <em>email='bot&#64;localhost'</em>, <em>smtp_url=''</em>, <em>render_email_auth_message=None</em><span class="sig-paren">)</span><a class="headerlink" href="#meetling.Meetling" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="webapi.html#meetling"><span class="std std-ref">Meetling</span></a>.</p>
 <dl class="attribute">
 <dt id="meetling.Meetling.meetings">
@@ -515,10 +512,10 @@ this documentation is on the differences and additions to the Web API.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2015 Meetling contributors.
+      &copy;2017 Meetling contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>

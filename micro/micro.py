@@ -1,5 +1,5 @@
 # Meetling
-# Copyright (C) 2015 Meetling contributors
+# Copyright (C) 2017 Meetling contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # General Public License as published by the Free Software Foundation, either version 3 of the
@@ -101,17 +101,13 @@ class Application:
         nothing will be done. It is thus safe to call :meth:`update` without knowing if an update is
         necessary or not.
         """
-        # Compatibility for databases without micro_version (obsolete since 0.13.0)
-        if not self.r.exists('micro_version') and self.r.exists('Settings'):
-            self.r.set('micro_version', 0)
-
         version = self.r.get('micro_version')
 
         # If fresh, initialize database
         if not version:
             settings = self.create_settings()
             self.r.oset(settings.id, settings)
-            self.r.set('micro_version', 1)
+            self.r.set('micro_version', 3)
             self.do_update()
             return
 
@@ -119,12 +115,7 @@ class Application:
         r = JSONRedis(self.r.r)
         r.caching = False
 
-        if version < 2:
-            settings = r.oget('Settings')
-            settings['feedback_url'] = None
-            r.oset(settings['id'], settings)
-            r.set('micro_version', 2)
-
+        # Deprecated since 0.15.0
         if version < 3:
             settings = r.oget('Settings')
             settings['provider_name'] = None

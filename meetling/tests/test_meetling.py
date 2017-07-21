@@ -1,5 +1,5 @@
 # Meetling
-# Copyright (C) 2015 Meetling contributors
+# Copyright (C) 2017 Meetling contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # General Public License as published by the Free Software Foundation, either version 3 of the
@@ -15,7 +15,6 @@
 # pylint: disable=missing-docstring; test module
 
 from datetime import datetime
-import os
 from subprocess import check_call, check_output
 from tempfile import mkdtemp
 
@@ -54,12 +53,6 @@ class MeetlingUpdateTest(AsyncTestCase):
         d = mkdtemp()
         check_call(['git', '-c', 'advice.detachedHead=false', 'clone', '-q', '--single-branch',
                     '--branch', tag, '.', d])
-
-        # Compatibility for misc/sample.py (obsolete since 0.9.4)
-        if os.path.isfile(os.path.join(d, 'misc/sample.py')):
-            check_output(['./misc/sample.py', '--redis-url=15'], cwd=d)
-            return
-
         check_output(['make', '-s', 'sample', 'REDISURL=15'], cwd=d)
 
     def test_update_db_fresh(self):
@@ -69,37 +62,19 @@ class MeetlingUpdateTest(AsyncTestCase):
         self.assertEqual(app.settings.title, 'My Meetling')
 
     def test_update_db_version_previous(self):
-        self.setup_db('0.11.3')
+        self.setup_db('0.16.4')
         app = Meetling(redis_url='15')
         app.update()
 
-        settings = app.settings
-        user = settings.staff[0]
-        self.assertIsNone(user.email)
+        self.assertIsNone(app.settings.staff[0].email)
 
     def test_update_db_version_first(self):
-        self.setup_db('0.5.0')
+        self.setup_db('0.16.4')
         app = Meetling(redis_url='15')
         app.update()
 
-        settings = app.settings
-        user = settings.staff[0]
-        meeting = next(m for m in app.meetings.values() if m.title == 'Cat hangout')
-        item = list(meeting.items.values())[0]
-        # Update to version 2
-        self.assertEqual(user.name, 'Guest')
-        self.assertEqual(user.authors, [user])
-        # Update to version 3
-        self.assertIsNone(meeting.time)
-        self.assertIsNone(meeting.location)
-        self.assertIsNone(item.duration)
-        # Update to version 4
-        self.assertFalse(settings.trashed)
-        self.assertFalse(user.trashed)
-        self.assertFalse(meeting.trashed)
-        self.assertFalse(item.trashed)
         # Update to version 5
-        self.assertIsNone(user.email)
+        self.assertIsNone(app.settings.staff[0].email)
 
 class SettingsTest(MeetlingTestCase):
     def test_edit(self):

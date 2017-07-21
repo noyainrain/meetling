@@ -1,5 +1,5 @@
 # Meetling
-# Copyright (C) 2015 Meetling contributors
+# Copyright (C) 2017 Meetling contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # General Public License as published by the Free Software Foundation, either version 3 of the
@@ -54,7 +54,6 @@ class MeetlingServerTest(AsyncTestCase):
         yield self.request(
             '/log-client-error', method='POST',
             body='{"type": "Error", "stack": "meetling.Page.prototype.createdCallback", "url": "/"}')
-        yield self.request('/replace-auth', method='POST', body='')
 
         # API
         now = datetime.utcnow()

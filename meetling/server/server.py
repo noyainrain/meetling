@@ -1,5 +1,5 @@
 # Meetling
-# Copyright (C) 2015 Meetling contributors
+# Copyright (C) 2017 Meetling contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # General Public License as published by the Free Software Foundation, either version 3 of the
@@ -87,7 +87,6 @@ class MeetlingServer(HTTPServer):
         handlers = [
             # UI
             (r'/log-client-error$', _LogClientErrorEndpoint),
-            (r'/replace-auth$', _ReplaceAuthEndpoint),
             (r'/(?!api/).*$', _UI),
             # API
             (r'/api/login$', _LoginEndpoint),
@@ -170,21 +169,6 @@ class _LogClientErrorEndpoint(Endpoint):
             _CLIENT_ERROR_LOG_TEMPLATE, args['type'], message_part, args['stack'].strip(),
             args['url'], self.app.user.name, self.app.user.id,
             self.request.headers.get('user-agent', '-'))
-
-class _ReplaceAuthEndpoint(RequestHandler):
-    # Compatibility for server side authentication (obsolete since 0.10.0)
-
-    def post(self):
-        app = self.application.settings['server'].app
-        app.user = None
-        auth_secret = self.get_cookie('auth_secret')
-        if auth_secret:
-            try:
-                app.authenticate(auth_secret)
-            except micro.AuthenticationError:
-                pass
-            self.clear_cookie('auth_secret')
-        self.write(app.user.json(restricted=True) if app.user else 'null')
 
 class _LoginEndpoint(Endpoint):
     def post(self):

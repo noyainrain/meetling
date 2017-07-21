@@ -41,6 +41,11 @@ doc:
 sample:
 	scripts/sample.py
 
+.PHONY: show-deprecated
+show-deprecated:
+	git grep -in -C1 deprecate $$(git describe --tags $$(git rev-list -1 --first-parent \
+	                                                     --until="6 months ago" master))
+
 .PHONY: clean
 clean:
 	rm -rf doc/build
@@ -48,16 +53,18 @@ clean:
 
 .PHONY: help
 help:
-	@echo "test:       Run all unit tests"
-	@echo "test-ext:   Run all extended/integration tests"
-	@echo "watch-test: Watch source files and run all unit tests on change"
-	@echo "lint:       Lint and check the style of the code"
-	@echo "check:      Run all code quality checks (test and lint)"
-	@echo "deps:       Update the dependencies"
-	@echo "deps-dev:   Update the development dependencies"
-	@echo "doc:        Build the documentation"
-	@echo "sample:     Set up some sample data. Warning: All existing data in the database"
-	@echo "            will be deleted."
-	@echo "            REDISURL: URL of the Redis database. See"
-	@echo "                      python3 -m meetling --redis-url command line option."
-	@echo "clean:      Remove temporary files"
+	@echo "test:            Run all unit tests"
+	@echo "test-ext:        Run all extended/integration tests"
+	@echo "watch-test:      Watch source files and run all unit tests on change"
+	@echo "lint:            Lint and check the style of the code"
+	@echo "check:           Run all code quality checks (test and lint)"
+	@echo "deps:            Update the dependencies"
+	@echo "deps-dev:        Update the development dependencies"
+	@echo "doc:             Build the documentation"
+	@echo "sample:          Set up some sample data. Warning: All existing data in the"
+	@echo "                 database will be deleted."
+	@echo "                 REDISURL: URL of the Redis database. See"
+	@echo "                           python3 -m meetling --redis-url command line option."
+	@echo "show-deprecated: Show deprecated code ready for removal (deprecated for at"
+	@echo "                 least six months)"
+	@echo "clean:           Remove temporary files"

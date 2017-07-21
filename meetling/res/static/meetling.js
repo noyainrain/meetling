@@ -178,13 +178,10 @@ meetling.UserListingElement = class extends HTMLElement {
  */
 meetling.UI = class extends micro.UI {
     update() {
-        var version = localStorage.version || null;
+        let version = localStorage.version || null;
         if (!version) {
-            // Compatibility for server side authentication (obsolete since 0.10.0)
-            return micro.call('POST', '/replace-auth').then(function(user) {
-                this._storeUser(user);
-                localStorage.version = 1;
-            }.bind(this));
+            this._storeUser(null);
+            localStorage.version = 1;
         }
     }
 

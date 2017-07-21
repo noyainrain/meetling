@@ -28,9 +28,7 @@ from micro.tests.test_micro import CatApp
 app = CatApp(redis_url='15')
 app.r.flushdb()
 app.update()
-# Compatibility for CatApp without sample (obsolete since 0.13.0)
-if hasattr(app, 'sample'):
-    app.sample()
+app.sample()
 """
 
 class MicroTestCase(AsyncTestCase):
@@ -97,12 +95,10 @@ class ApplicationUpdateTest(AsyncTestCase):
         self.assertFalse(app.settings.provider_description)
 
     def test_update_db_version_first(self):
-        self.setup_db('0.12.3')
+        self.setup_db('0.14.0')
         app = CatApp(redis_url='15')
         app.update()
 
-        # Update to version 2
-        self.assertIsNone(app.settings.feedback_url)
         # Update to version 3
         self.assertFalse(app.settings.provider_description)
 

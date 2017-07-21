@@ -54,7 +54,6 @@ class MeetlingServerTest(AsyncTestCase):
         yield self.request(
             '/log-client-error', method='POST',
             body='{"type": "Error", "stack": "meetling.Page.prototype.createdCallback", "url": "/"}')
-        yield self.request('/replace-auth', method='POST', body='')
 
         # API
         now = datetime.utcnow()

@@ -15,7 +15,6 @@
 """Core parts of Meetling."""
 
 from datetime import datetime, timedelta
-from itertools import chain
 
 from micro import (Application, Object, Editable, Settings, Event, ValueError, InputError,
                    PermissionError)
@@ -49,40 +48,7 @@ class Meetling(Application):
         r = JSONRedis(self.r.r)
         r.caching = False
 
-        if db_version < 2:
-            users = r.omget(r.lrange('users', 0, -1))
-            for user in users:
-                user['name'] = 'Guest'
-                user['authors'] = [user['id']]
-            r.omset({u['id']: u for u in users})
-            r.set('version', 2)
-
-        if db_version < 3:
-            meetings = r.omget(r.lrange('meetings', 0, -1))
-            for meeting in meetings:
-                meeting['time'] = None
-                meeting['location'] = None
-
-                items = r.omget(r.lrange(meeting['id'] + '.items', 0, -1))
-                for item in items:
-                    item['duration'] = None
-                r.omset({i['id']: i for i in items})
-            r.omset({m['id']: m for m in meetings})
-            r.set('version', 3)
-
-        if db_version < 4:
-            meeting_ids = r.lrange('meetings', 0, -1)
-            objects = r.omget(chain(
-                ['Settings'],
-                r.lrange('users', 0, -1),
-                meeting_ids,
-                chain.from_iterable(r.lrange(i + b'.items', 0, -1) for i in meeting_ids)
-            ))
-            for object in objects:
-                object['trashed'] = False
-            r.omset({o['id']: o for o in objects})
-            r.set('version', 4)
-
+        # Deprecated since 0.12.0
         if db_version < 5:
             users = r.omget(r.lrange('users', 0, -1))
             for user in users:

@@ -6,7 +6,7 @@ source_suffix = ['.rst', '.md']
 source_parsers = {'.md': 'recommonmark.parser.CommonMarkParser'}
 
 project = 'Meetling'
-copyright = '2015 Meetling contributors'
+copyright = '2017 Meetling contributors'
 version = release = '0.16.4'
 
 html_theme_options = {

@@ -30,8 +30,25 @@ meetling._DATE_TIME_FORMAT = {
     hour: "numeric",
     minute: "numeric"
 };
-
 meetling._DATE_FORMAT = {year: "numeric", month: "long", day: "numeric"};
+meetling.SHORT_DATE_FORMAT = {year: "2-digit", month: "2-digit", day: "2-digit"};
+
+meetling.makeMeetingURL = meeting => {
+    let slug = micro.util.slugify(meeting.title,
+                                  {max: meeting.time ? 32 - 11 : 32, reserved: ["edit"]});
+    if (slug && meeting.time) {
+        slug += `-${meeting.time.slice(0, 10)}`;
+    }
+    return `/meetings/${meeting.id.split(":")[1]}${slug}`;
+}
+
+meetling.makeMeetingLabel = meeting => {
+    let label = meeting.title;
+    if (meeting.time) {
+        label += ` ${new Date(meeting.time).toLocaleDateString("en", meetling.SHORT_DATE_FORMAT)}`;
+    }
+    return label;
+}
 
 /**
  * Input for entering a time of day.
@@ -195,16 +212,22 @@ meetling.UI = class extends micro.UI {
             {url: '^/create-meeting$', page: 'meetling-edit-meeting-page'},
             {url: '^/(?:users/([^/]+)|user)/edit$', page: this._makeEditUserPage.bind(this)},
             {url: '^/settings/edit$', page: this._makeEditSettingsPage.bind(this)},
-            {url: '^/meetings/([^/]+)$', page: this._makeMeetingPage.bind(this)},
-            {url: '^/meetings/([^/]+)/edit$', page: this._makeEditMeetingPage.bind(this)}
+            // Compatibility routes for old meeting URLs (deprecated since 0.17.1)
+            {url: '^/meetings/Meeting:([^/]+)$', page: this._makeMeetingPage.bind(this)},
+            {url: '^/meetings/Meeting:([^/]+)/edit$', page: this._makeEditMeetingPage.bind(this)},
+            {
+                url: '^/meetings/([^/]+)(?:/[^/]+)?/edit$',
+                page: this._makeEditMeetingPage.bind(this)
+            },
+            {url: '^/meetings/([^/]+)(?:/[^/]+)?$', page: this._makeMeetingPage.bind(this)}
         ]);
 
         Object.assign(this.renderEvent, {
             'create-meeting': event => {
                 var a = document.createElement('a');
                 a.classList.add('link');
-                a.href = `/meetings/${event.detail.meeting.id}`;
-                a.textContent = event.detail.meeting.title;
+                a.href = meetling.makeMeetingURL(event.detail.meeting);
+                a.textContent = meetling.makeMeetingLabel(event.detail.meeting);
                 var userElem = document.createElement('meetling-user');
                 userElem.user = event.user;
                 return micro.util.formatFragment('{meeting} was created by {user}',
@@ -347,7 +370,7 @@ meetling.UI = class extends micro.UI {
     }
 
     _makeMeetingPage(url, id) {
-        return micro.call('GET', `/api/meetings/${id}`).then(function(meeting) {
+        return micro.call('GET', `/api/meetings/Meeting:${id}`).then(function(meeting) {
             var page = document.createElement('meetling-meeting-page');
             page.meeting = meeting;
             return page;
@@ -355,7 +378,7 @@ meetling.UI = class extends micro.UI {
     }
 
     _makeEditMeetingPage(url, id) {
-        return micro.call('GET', `/api/meetings/${id}`).then(function(meeting) {
+        return micro.call('GET', `/api/meetings/Meeting:${id}`).then(function(meeting) {
             var page = document.createElement('meetling-edit-meeting-page');
             page.meeting = meeting;
             return page;
@@ -458,7 +481,7 @@ meetling.StartPage = class extends micro.Page {
 
     _createExampleMeeting() {
         return micro.call('POST', '/api/create-example-meeting').then(meeting => {
-            ui.navigate(`/meetings/${meeting.id}`);
+            ui.navigate(meetling.makeMeetingURL(meeting));
         });
     }
 }
@@ -763,7 +786,8 @@ meetling.MeetingPage = class extends micro.Page {
 
     set meeting(value) {
         this._meeting = value;
-        this.caption = this._meeting.title;
+        this.caption = meetling.makeMeetingLabel(this._meeting);
+        history.replaceState(null, null, meetling.makeMeetingURL(this._meeting));
         this.querySelector('h1').textContent = this._meeting.title;
         if (this._meeting.time) {
             var time = this.querySelector('.meetling-meeting-time time');
@@ -781,7 +805,8 @@ meetling.MeetingPage = class extends micro.Page {
         }
         this.querySelector('.micro-multiline').textContent = this._meeting.description || '';
         this.querySelector('.meetling-detail meetling-user-listing').users = this._meeting.authors;
-        this.querySelector('.meetling-meeting-edit').href = `/meetings/${this._meeting.id}/edit`;
+        this.querySelector('.meetling-meeting-edit').href =
+            `${meetling.makeMeetingURL(this._meeting)}/edit`;
         this._update();
     }
 
@@ -868,7 +893,7 @@ meetling.MeetingPage = class extends micro.Page {
             notification.content.appendChild(document.importNode(
                 ui.querySelector('.meetling-share-notification-template').content, true));
             notification.content.querySelector("input").value =
-                `${location.origin}/meetings/${this.meeting.id}`;
+                `${location.origin}${meetling.makeMeetingURL(this.meeting)}`;
             ui.notify(notification);
         }
     }
@@ -918,7 +943,8 @@ meetling.EditMeetingPage = class extends micro.Page {
         var h1 = this.querySelector('h1');
         var action = this.querySelector('.action-cancel');
         if (this._meeting) {
-            this.caption = h1.textContent = `Edit ${this._meeting.title}`;
+            this.caption = h1.textContent = `Edit ${meetling.makeMeetingLabel(this._meeting)}`;
+            history.replaceState(null, null, `${meetling.makeMeetingURL(this._meeting)}/edit`);
             this._form.elements['title'].value = this._meeting.title;
             if (this._meeting.time) {
                 var time = new Date(this.meeting.time);
@@ -930,7 +956,7 @@ meetling.EditMeetingPage = class extends micro.Page {
             }
             this._form.elements['location'].value = this._meeting.location || '';
             this._form.elements['description'].value = this._meeting.description || '';
-            action.href = `/meetings/${this._meeting.id}`;
+            action.href = meetling.makeMeetingURL(this._meeting);
         } else {
             this.caption = h1.textContent = 'New Meeting';
             action.href = `/`;
@@ -974,7 +1000,7 @@ meetling.EditMeetingPage = class extends micro.Page {
                 location: this._form.elements['location'].value,
                 description: this._form.elements['description'].value
             }).then(function(meeting) {
-                ui.navigate(`/meetings/${meeting.id}`);
+                ui.navigate(meetling.makeMeetingURL(meeting));
             }, function(e) {
                 if (e instanceof micro.APIError) {
                     ui.notify('The title is missing.');

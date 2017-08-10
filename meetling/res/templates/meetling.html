@@ -202,13 +202,19 @@
                 features.es6Class = false;
             }
             try {
+                eval('var [a, b] = [1, 2];');
+                features.es6Destructuring = true;
+            } catch (e) {
+                features.es6Destructuring = false;
+            }
+            try {
                 eval('let x = 42;');
                 features.es6Let = true;
             } catch (e) {
                 features.es6Let = false;
             }
             features.es6Promise = 'Promise' in window;
-            features.es6String = 'startsWith' in String.prototype;
+            features.es6String = 'normalize' in String.prototype;
             try {
                 eval('var x = `${42}`;');
                 features.es6TemplateLiteral = true;

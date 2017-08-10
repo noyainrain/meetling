@@ -24,6 +24,23 @@ micro = micro || {};
 micro.util = {};
 
 /**
+ * Convert *str* to a slug, i.e. a human readable URL path segment.
+ *
+ * All characters are mapped to lower case, approximate ASCII characters (e.g. with diacritics
+ * removed) and all non-alphanumeric symbols are replaced with a dash. The slug is limited to *max*
+ * characters and prefixed with a single slash (not counting towards the limit). Note that the
+ * result is an empty string if *str* does not contain any alphanumeric symbols.
+ *
+ * Optionally, the computed slug is checked against a list of *reserved* strings, resulting in an
+ * empty string if there is a match.
+ */
+micro.util.slugify = (str, {max = 32, reserved = []} = {}) => {
+    let slug = str.normalize('NFKD').replace(/[^\x00-\x7F]/g, "").toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-").slice(0, max).replace(/^-|-$/g, "");
+    return slug && !reserved.includes(slug) ? `/${slug}` : "";
+}
+
+/**
  * Format a string containing placeholders, producing a :class:`DocumentFragment`.
  *
  * *str* is a format string containing placeholders of the form ``{key}``, where *key* may consist

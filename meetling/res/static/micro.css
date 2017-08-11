@@ -17,7 +17,8 @@ body {
 h1,
 p,
 ul,
-ol {
+ol,
+pre {
     display: block;
     margin: 1.5rem 0;
     font-weight: normal;
@@ -40,9 +41,23 @@ ol {
     padding-left: 1.5rem;
 }
 
-small {
-    font-size: 0.875rem;
+pre {
+    /* Prevent browsers from manipulating the font size if the font family equals "monospace" */
+    font: 0.875em / 1.5 monospace, monospace;
+    white-space: pre-wrap;
+}
+
+.micro-small, small {
+    font-size: 0.875em;
     color: #888;
+}
+
+.micro-small h1,
+.micro-small p,
+.micro-small ul,
+.micro-small ol,
+.micro-small pre {
+    margin: calc(0.875 * 1.5rem) 0;
 }
 
 .group {
@@ -60,7 +75,8 @@ small {
 .compact h1,
 .compact p,
 .compact ul,
-.compact ol {
+.compact ol,
+.compact pre {
     margin: calc(0.25 * 1.5rem) 0;
 }
 
@@ -329,6 +345,11 @@ form > label {
 
 .micro-boot-page h1 {
     color: #f00;
+}
+
+.micro-boot-page-detail {
+    margin-top: calc(3 * 1.5rem);
+    text-align: left;
 }
 
 /* ---- NotFoundPage ---- */

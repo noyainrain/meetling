@@ -122,6 +122,12 @@
                         outdated and not able to run this web app. Please update your
                         browser/device.
                     </p>
+                    <div class="micro-boot-page-detail micro-small">
+                        <p>
+                            Here follow some technical details which might be helpful for support:
+                        </p>
+                        <pre id="micro-compatibility-boot-page-detail"></pre>
+                    </div>
                 </div>
                 <div class="micro-storage-boot-page micro-boot-page"
                      style="display: none;">
@@ -214,7 +220,7 @@
                 features.es6Let = false;
             }
             features.es6Promise = 'Promise' in window;
-            features.es6String = 'normalize' in String.prototype;
+            features.es6String = "includes" in String.prototype;
             try {
                 eval('var x = `${42}`;');
                 features.es6TemplateLiteral = true;
@@ -226,10 +232,13 @@
             features.html5Storage = 'localStorage' in window;
             features.html5Template = 'content' in document.createElement('template');
 
+
             var compatible = Object.keys(features).reduce(
                 function(p, c) { return p && features[c]; }, true);
             if (!compatible) {
                 micro.launch = false;
+                document.getElementById("micro-compatibility-boot-page-detail").textContent =
+                    JSON.stringify({device: navigator.userAgent, features: features}, null, 4);
                 document.getElementById('micro-compatibility-boot-page').style.display = 'block';
             }
 

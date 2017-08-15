@@ -703,9 +703,7 @@ meetling.EditSettingsPage = class extends micro.Page {
                 return;
             }
 
-            function toStringOrNull(str) {
-                return str.trim() ? str : null;
-            }
+            let toStringOrNull = str => str.trim() ? str : null;
             let description = toStringOrNull(this._form.elements['provider_description'].value);
             description = description ? {en: description} : {};
 

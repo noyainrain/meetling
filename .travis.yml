@@ -1,10 +1,30 @@
+dist: trusty
 language: python
 python:
-    - "3.4"
-    - "3.5"
-    - "3.6"
-services: redis-server
+    - 3.4
+    - 3.5
+    - 3.6
+services:
+    - redis-server
+before_install:
+    - nvm install 8
 install:
     - make deps
     - make deps-dev
-script: make check
+script:
+    - make test
+    - make test-ext
+    - make lint
+jobs:
+    include:
+        - &test-ui
+          stage: test-ui
+          addons:
+              sauce_connect:
+                  username: noyainrain
+              jwt:
+                  secure: qs/qdVrVbeeT3iS7d/6t30Xb3KEDR7+pxyP0dtJ7vGq0yL2RIO15rPksdZN4V3jd6CkUUUTsnQE9QdNMCLfDFvAeiJAK3wbZgIcQxj2q8DRdAwDKrOes0QV6lRoGQT1GVje6pca+g8h9uoE9XBMeCYsgFoAM48+66ejFCs1XIoVFRQSHPPKK3zk3CSUIkdPxxwTXT22bxj2dB/pX6GgUKTk/bu7gJC0VTud8PpKiKvC6e0yA4ugjUFkEPnqrxugU1SFb23DY8deYVpTd1lux1+cILVPlcWHrD2wOPDnSktvX4qS2b5TO7MsU7kRM1BYATD3qvPBzmGhprzpaA8fA0/YDNsd4gxwsvLDK/o1WmF3ZBH/tUTixN5l21q7e0v8gE3JzNf9iI9RvlJTcAPO0Y+8642Q2WjPWguMPwx7T4EGwk7QVPk56hf/zPc0+J3+mL9FW5ykGkLSEkun+l/qBAmWIqvwUsw5GpIXQI141pXTD+ZtiZvG+J9wbKBClpU3N/w6OeA7EhKPZiepvDBRAm6iKqFBi+Zbz8rhHYyfIJT/BIy3kBBuqGuX+af9uA/HH6JXTNJ8EGxDXi9GgtWjM91RcQLOgySMI3YDTLVMSmYzmaOlpyFZnMbhgcUmPJPbdlZ7FNIaS2+U2iiQBx7/1OHAWZ1u14thqWkIbTgspC8A=
+          script: make test-ui WEBDRIVER_URL="https://$SAUCE_USERNAME:$SAUCE_ACCESS_KEY@ondemand.saucelabs.com/wd/hub" TUNNEL_ID="$TRAVIS_JOB_NUMBER" SUBJECT="#$TRAVIS_JOB_NUMBER"
+          env: BROWSER=chrome PLATFORM="Windows 10"
+        - <<: *test-ui
+          env: BROWSER=MicrosoftEdge PLATFORM="Windows 10"

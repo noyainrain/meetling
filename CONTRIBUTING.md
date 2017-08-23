@@ -21,6 +21,11 @@
 * If a new dependency is introduced, a short description of the dependency and possible alternatives
   and the reason why it is the best option
 
+## Requirements
+
+A supported browser (e.g. Firefox) along with a WebDriver implementation (e.g. geckodriver) are
+required for the UI tests and must be set up on your system.
+
 ## Installing development dependencies
 
 To install the development dependencies for Meetling, type:

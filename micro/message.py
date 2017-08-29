@@ -8,6 +8,8 @@ from urllib.request import urlopen, Request
 import json
 from time import sleep
 
+# TODO: Move TelegramChannel to new design
+
 def randstr(length=16, charset=string.ascii_lowercase):
     """Generate a random string.
 
@@ -18,53 +20,83 @@ def randstr(length=16, charset=string.ascii_lowercase):
 class MessageError(Exception):
     pass
 
+class MessageHub:
+    def __init__(self, services):
+        self.services = services
+        self.channel_types = {'email': EmailChannel, 'telegram': TelegramChannel}
+
+    def connect(self, service, to=None, auth=True):
+        return self.channel_types[service].connect(to, auth, self)
+
 class Channel:
-    def __init__(self, token):
-        self.token = token
+    def __new__(cls, str, hub):
+        if isinstance(cls, Channel):
+            service = str.split(':')[0]
+            return hub.channel_types[service](str, hub)
+        return super().__new__(cls)
+
+    def __init__(self, str, hub):
+        tokens = str.split(':')
+        self.to = tokens[1] or None
+        self.secret = tokens[2] or None
+        self.connected = tokens[3] == 'true'
+        self.hub = hub
 
     @staticmethod
-    def auth():
+    def connect(to, auth, hub):
         raise NotImplementedError()
 
-    @staticmethod
-    def finish_auth(auth_request, auth):
+    def finish_connect(self, auth):
         raise NotImplementedError()
 
     def send(self, msg):
         raise NotImplementedError()
+
+    def __str__(self):
+        return '{}:{}:{}:{}'.format(self.service, self.to or '', self.secret or '',
+                                    'true' if self.connected else 'false')
 
 class EmailChannel(Channel):
-    def __init__(self, token, sender, smtp_url):
-        super().__init__(token)
-        self.sender = sender
-        self.smtp_url = smtp_url
+    service = 'email'
 
     @staticmethod
-    def auth(email, render, sender, smtp_url):
-        code = randstr()
-        auth_request = '{}:{}'.format(email, code)
-        EmailChannel(email, sender, smtp_url).send(render(email, code))
-        return auth_request
+    def connect(to, auth, hub):
+        # TODO: check to
+        if auth:
+            # TODO: check
+            render_connect_msg = hub.services['email']['render_connect_msg']
+            channel = EmailChannel('email:{}:{}:false'.format(to, randstr()), hub)
+            EmailChannel('email:{}::true'.format(to), hub).send(render_connect_msg(channel))
+        else:
+            channel = EmailChannel('email:{}::true'.format(to), hub)
+        return channel
 
-    @staticmethod
-    def finish_auth(auth_request, auth):
-        email, code = tuple(auth_request.split(':'))
-        if auth != code:
+    def finish_connect(self, auth):
+        if self.connected:
+            raise ValueError('channel_already_connected')
+        if auth != self.secret:
             raise ValueError('auth_invalid')
-        return email
+        self.secret = None
+        self.connected = True
 
     def send(self, msg):
+        if not self.connected:
+            raise ValueError('channel_not_connected')
+        # TODO: check
+        sender = self.hub.services['email']['sender']
+        smtp_url = self.hub.services['email']['smtp_url']
+
         match = re.fullmatch(r'Subject: ([^\n]+)\n\n(.+)', msg, re.DOTALL)
         if not match:
             raise ValueError('msg_invalid')
 
         msg = EmailMessage()
-        msg['To'] = self.token
-        msg['From'] = self.sender
+        msg['To'] = self.to
+        msg['From'] = sender
         msg['Subject'] = match.group(1)
         msg.set_content(match.group(2))
 
-        components = urlparse(self.smtp_url)
+        components = urlparse(smtp_url)
         host = components.hostname or 'localhost'
         port = components.port or 25
         try:

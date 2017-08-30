@@ -18,8 +18,8 @@ html_theme_options = {
     'github_button': True,
     'github_type': 'star'
 }
-html_favicon = '../meetling/res/static/images/favicon.png'
-html_static_path = ['../meetling/res/static/images/icon.svg']
+html_favicon = '../client/images/favicon.png'
+html_static_path = ['../client/images/icon.svg']
 html_sidebars = {'**': ['about.html', 'navigation.html', 'searchbox.html']}
 html_show_sourcelink = False
 

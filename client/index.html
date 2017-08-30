@@ -190,48 +190,47 @@
 
         <script>
             // Run the platform checks
-            micro = {launch: true};
+            window.micro = {launch: true};
 
             var features = {};
-            features.dom4ClassList = 'classList' in document.createElement('div');
-            features.dom4QuerySelector = 'querySelector' in document;
+            features.dom4ClassList = "classList" in document.createElement("div");
+            features.dom4QuerySelector = "querySelector" in document;
             try {
-                eval('var x = () => {};');
+                eval("var x = () => {};");
                 features.es6ArrowFunction = true;
             } catch (e) {
                 features.es6ArrowFunction = false;
             }
             try {
-                eval('var x = class {};');
+                eval("var x = class {};");
                 features.es6Class = true;
             } catch (e) {
                 features.es6Class = false;
             }
             try {
-                eval('var [a, b] = [1, 2];');
+                eval("var [a, b] = [1, 2];");
                 features.es6Destructuring = true;
             } catch (e) {
                 features.es6Destructuring = false;
             }
             try {
-                eval('let x = 42;');
+                eval("let x = 42;");
                 features.es6Let = true;
             } catch (e) {
                 features.es6Let = false;
             }
-            features.es6Promise = 'Promise' in window;
+            features.es6Promise = "Promise" in window;
             features.es6String = "includes" in String.prototype;
             try {
-                eval('var x = `${42}`;');
+                eval("var x = `${42}`;");
                 features.es6TemplateLiteral = true;
             } catch (e) {
                 features.es6TemplateLiteral = false;
             }
-            features.html5Constraints = 'validity' in document.createElement('input');
-            features.html5History = 'pushState' in history;
-            features.html5Storage = 'localStorage' in window;
-            features.html5Template = 'content' in document.createElement('template');
-
+            features.html5Constraints = "validity" in document.createElement("input");
+            features.html5History = "pushState" in history;
+            features.html5Storage = "localStorage" in window;
+            features.html5Template = "content" in document.createElement("template");
 
             var compatible = Object.keys(features).reduce(
                 function(p, c) { return p && features[c]; }, true);
@@ -239,13 +238,13 @@
                 micro.launch = false;
                 document.getElementById("micro-compatibility-boot-page-detail").textContent =
                     JSON.stringify({device: navigator.userAgent, features: features}, null, 4);
-                document.getElementById('micro-compatibility-boot-page').style.display = 'block';
+                document.getElementById("micro-compatibility-boot-page").style.display = "block";
             }
 
             // From here on we make use of the checked features
             if (compatible && !navigator.cookieEnabled) {
                 micro.launch = false;
-                document.querySelector('.micro-storage-boot-page').style.display = 'block';
+                document.querySelector(".micro-storage-boot-page").style.display = "block";
             }
         </script>
     </body>

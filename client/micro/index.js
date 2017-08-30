@@ -18,17 +18,15 @@
  * Client toolkit for social micro web apps.
  */
 
-'use strict';
-
-micro = micro || {};
+"use strict";
 
 micro.LIST_LIMIT = 100;
 micro.SHORT_DATE_TIME_FORMAT = {
-    year: '2-digit',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
+    year: "2-digit",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
 };
 
 /**
@@ -60,24 +58,24 @@ micro.APIError = class extends Error {
  * rejects with a :class:`TypeError`.
  */
 micro.call = function(method, url, args) {
-    let options = {method: method, credentials: 'include'};
+    let options = {method, credentials: "include"};
     if (args) {
-        options.headers = {'Content-Type': 'application/json'};
+        options.headers = {"Content-Type": "application/json"};
         options.body = JSON.stringify(args);
     }
 
-    return fetch(url, options).then(function(response) {
+    return fetch(url, options).then(response => {
         if (response.status > 500) {
             // Consider server errors IO errors
             throw new TypeError();
         }
 
-        return response.json().then(function(result) {
+        return response.json().then(result => {
             if (!response.ok) {
                 throw new micro.APIError(result, response.status);
             }
             return result;
-        }, function(e) {
+        }, e => {
             if (e instanceof SyntaxError) {
                 // Consider invalid JSON an IO error
                 throw new TypeError();
@@ -85,7 +83,7 @@ micro.call = function(method, url, args) {
                 throw e;
             }
         });
-    })
+    });
 };
 
 /**
@@ -98,11 +96,12 @@ micro.call = function(method, url, args) {
  */
 micro.findAncestor = function(elem, predicate, top) {
     top = top || document.documentElement;
-    for (var e = elem; e && e !== top; e = e.parentElement) {
+    for (let e = elem; e && e !== top; e = e.parentElement) {
         if (predicate(e)) {
             return e;
         }
     }
+    return undefined;
 };
 
 /**
@@ -138,26 +137,26 @@ micro.findAncestor = function(elem, predicate, top) {
 micro.UI = class extends HTMLBodyElement {
     createdCallback() {
         this.page = null;
-        this._progressElem = this.querySelector('.micro-ui-progress');
-        this._pageSpace = this.querySelector('main .micro-ui-inside');
+        this._progressElem = this.querySelector(".micro-ui-progress");
+        this._pageSpace = this.querySelector("main .micro-ui-inside");
 
-        this.pages = [{url: '^/activity$', page: this._makeActivityPage}];
+        this.pages = [{url: "^/activity$", page: micro.ActivityPage.make}];
 
         this.renderEvent = {
-            'editable-edit': event => {
-                var a = document.createElement('a');
-                a.classList.add('link');
-                a.href = '/settings/edit';
-                a.textContent = 'site settings';
-                var userElem = document.createElement('meetling-user');
+            "editable-edit": event => {
+                let a = document.createElement("a");
+                a.classList.add("link");
+                a.href = "/settings/edit";
+                a.textContent = "site settings";
+                let userElem = document.createElement("meetling-user");
                 userElem.user = event.user;
-                return micro.util.formatFragment('The {settings} were edited by {user}',
+                return micro.util.formatFragment("The {settings} were edited by {user}",
                                                  {settings: a, user: userElem});
             }
-        }
+        };
 
-        this.addEventListener('click', this);
-        window.addEventListener('popstate', this);
+        this.addEventListener("click", this);
+        window.addEventListener("popstate", this);
 
         // Register UI as global
         window.ui = this;
@@ -168,13 +167,11 @@ micro.UI = class extends HTMLBodyElement {
         }
 
         // Go!
-        this._progressElem.style.display = 'block';
-        Promise.resolve(this.update()).then(function() {
-            return this.init();
-        }.bind(this)).then(function() {
-            this.querySelector('.micro-ui-header').style.display = 'block';
+        this._progressElem.style.display = "block";
+        Promise.resolve(this.update()).then(() => this.init()).then(() => {
+            this.querySelector(".micro-ui-header").style.display = "block";
             return this._route(location.pathname);
-        }.bind(this));
+        });
     }
 
     /**
@@ -224,10 +221,10 @@ micro.UI = class extends HTMLBodyElement {
 
     _route(url) {
         this._close();
-        this._progressElem.style.display = 'block';
+        this._progressElem.style.display = "block";
 
-        var match = null;
-        var route = null;
+        let match = null;
+        let route = null;
         for (route of this.pages) {
             match = new RegExp(route.url).exec(url);
             if (match) {
@@ -235,48 +232,44 @@ micro.UI = class extends HTMLBodyElement {
             }
         }
 
-        return Promise.resolve().then(function() {
+        return Promise.resolve().then(() => {
             if (!match) {
-                return document.createElement('micro-not-found-page');
+                return document.createElement("micro-not-found-page");
             }
 
-            if (typeof route.page === 'string') {
+            if (typeof route.page === "string") {
                 return document.createElement(route.page);
-            } else {
-                var args = [url].concat(match.slice(1));
-                return Promise.resolve(route.page.apply(null, args)).catch(function(e) {
-                    if (e instanceof micro.APIError) {
-                        switch(e.error.__type__) {
-                        case 'NotFoundError':
-                            return document.createElement('micro-not-found-page');
-                        case 'PermissionError':
-                            return document.createElement('micro-forbidden-page');
-                        }
-                    }
-                    throw e;
-                });
             }
-        }).then(function(page) {
-            this._progressElem.style.display = 'none';
+
+            let args = [url].concat(match.slice(1));
+            return Promise.resolve(route.page(...args)).catch(e => {
+                if (e instanceof micro.APIError) {
+                    switch (e.error.__type__) {
+                    case "NotFoundError":
+                        return document.createElement("micro-not-found-page");
+                    case "PermissionError":
+                        return document.createElement("micro-forbidden-page");
+                    default:
+                        // Unreachable
+                        throw new Error();
+                    }
+                }
+                throw e;
+            });
+
+        }).then(page => {
+            this._progressElem.style.display = "none";
             this._open(page);
-        }.bind(this));
+        });
     }
 
     _updateTitle() {
-        document.title = [this.page.caption, this.settings.title].filter(p => p).join(' - ');
-    }
-
-    _makeActivityPage(url) {
-        if (!ui.staff) {
-            return document.createElement('micro-forbidden-page');
-        }
-        return document.createElement('micro-activity-page');
+        document.title = [this.page.caption, this.settings.title].filter(p => p).join(" - ");
     }
 
     handleEvent(event) {
-        if (event.type === 'click') {
-            var a = micro.findAncestor(event.target,
-                function(e) { return e instanceof HTMLAnchorElement; }, this);
+        if (event.type === "click") {
+            let a = micro.findAncestor(event.target, e => e instanceof HTMLAnchorElement, this);
             // NOTE: `a.origin === location.origin` would be more elegant, but Edge does not support
             // HTMLHyperlinkElementUtils yet (see
             // https://developer.microsoft.com/en-us/microsoft-edge/platform/documentation/apireference/interfaces/htmlanchorelement/
@@ -286,7 +279,7 @@ micro.UI = class extends HTMLBodyElement {
                 this.navigate(a.pathname);
             }
 
-        } else if (event.target === window && event.type === 'popstate') {
+        } else if (event.target === window && event.type === "popstate") {
             this._route(location.pathname);
         }
     }
@@ -316,35 +309,35 @@ micro.OL = class extends HTMLOListElement {
         this._to = null;
         this._over = null;
 
-        this.addEventListener('mousedown', this);
-        this.addEventListener('mousemove', this);
-        this.addEventListener('touchstart', this);
-        this.addEventListener('touchmove', this);
+        this.addEventListener("mousedown", this);
+        this.addEventListener("mousemove", this);
+        this.addEventListener("touchstart", this);
+        this.addEventListener("touchmove", this);
     }
 
     attachedCallback() {
-        window.addEventListener('mouseup', this);
-        window.addEventListener('touchend', this);
+        window.addEventListener("mouseup", this);
+        window.addEventListener("touchend", this);
     }
 
     detachedCallback() {
-        window.removeEventListener('mouseup', this);
-        window.removeEventListener('touchend', this);
+        window.removeEventListener("mouseup", this);
+        window.removeEventListener("touchend", this);
     }
 
     handleEvent(event) {
         if (event.currentTarget === this) {
+            let handle, x, y, over;
             switch (event.type) {
-            case 'touchstart':
-            case 'mousedown':
+            case "touchstart":
+            case "mousedown":
                 // Locate li intended for moving
-                var handle = micro.findAncestor(event.target,
-                    function(e) { return e.classList.contains('micro-ol-handle'); }, this);
+                handle = micro.findAncestor(event.target,
+                                            e => e.classList.contains("micro-ol-handle"), this);
                 if (!handle) {
                     break;
                 }
-                this._li = micro.findAncestor(handle,
-                    function(e) { return e.parentElement === this; }.bind(this), this);
+                this._li = micro.findAncestor(handle, e => e.parentElement === this, this);
                 if (!this._li) {
                     break;
                 }
@@ -354,28 +347,26 @@ micro.OL = class extends HTMLOListElement {
                 this._from = this._li.nextElementSibling;
                 this._to = null;
                 this._over = this._li;
-                this._li.classList.add('micro-ol-li-moving');
-                ui.classList.add('micro-ui-dragging');
+                this._li.classList.add("micro-ol-li-moving");
+                ui.classList.add("micro-ui-dragging");
                 break;
 
-            case 'touchmove':
-            case 'mousemove':
+            case "touchmove":
+            case "mousemove":
                 if (!this._li) {
                     break;
                 }
 
                 // Locate li the pointer is over
-                var x;
-                var y;
-                if (event.type === 'touchmove') {
+                if (event.type === "touchmove") {
                     x = event.targetTouches[0].clientX;
                     y = event.targetTouches[0].clientY;
                 } else {
                     x = event.clientX;
                     y = event.clientY;
                 }
-                var over = micro.findAncestor(document.elementFromPoint(x, y),
-                    function(e) { return e.parentElement === this; }.bind(this), this);
+                over = micro.findAncestor(document.elementFromPoint(x, y),
+                                          e => e.parentElement === this, this);
                 if (!over) {
                     break;
                 }
@@ -396,19 +387,24 @@ micro.OL = class extends HTMLOListElement {
                 }
                 this.insertBefore(this._li, this._to);
                 break;
+
+            default:
+                // Unreachable
+                throw new Error();
             }
 
         } else if (event.currentTarget === window &&
-                   ['touchend', 'mouseup'].indexOf(event.type) !== -1) {
+                   ["touchend", "mouseup"].indexOf(event.type) !== -1) {
             if (!this._li) {
                 return;
             }
 
-            this._li.classList.remove('micro-ol-li-moving');
-            ui.classList.remove('micro-ui-dragging');
+            this._li.classList.remove("micro-ol-li-moving");
+            ui.classList.remove("micro-ui-dragging");
             if (this._to !== this._from) {
-                this.dispatchEvent(new CustomEvent('moveitem',
-                    {detail: {li: this._li, from: this._from, to: this._to}}));
+                this.dispatchEvent(
+                    new CustomEvent("moveitem",
+                                    {detail: {li: this._li, from: this._from, to: this._to}}));
             }
             this._li = null;
         }
@@ -429,7 +425,7 @@ micro.OL = class extends HTMLOListElement {
 micro.Button = class extends HTMLButtonElement {
     createdCallback() {
         this.run = null;
-        this.addEventListener('click', this);
+        this.addEventListener("click", this);
     }
 
     /**
@@ -443,13 +439,13 @@ micro.Button = class extends HTMLButtonElement {
             return Promise.resolve();
         }
 
-        let i = this.querySelector('i');
+        let i = this.querySelector("i");
         let classes = i ? i.className : null;
 
         let suspend = () => {
             this.disabled = true;
             if (i) {
-                i.className = 'fa fa-spinner fa-spin';
+                i.className = "fa fa-spinner fa-spin";
             }
         };
 
@@ -471,8 +467,8 @@ micro.Button = class extends HTMLButtonElement {
     }
 
     handleEvent(event) {
-        if (event.currentTarget === this && event.type === 'click') {
-            if (this.form && this.type === 'submit') {
+        if (event.currentTarget === this && event.type === "click") {
+            if (this.form && this.type === "submit") {
                 // Prevent default form submission
                 event.preventDefault();
             }
@@ -488,11 +484,10 @@ micro.Button = class extends HTMLButtonElement {
  * revealed by the user with a toggle button.
  */
 micro.Menu = class extends HTMLElement {
-    // TODO: Watch if the user modifies the content of the element and make sure the toggle button
-    // is present and at the last position.
-
     createdCallback() {
-        this.appendChild(document.importNode(document.querySelector('.micro-menu-template').content,
+        // NOTE: We should watch if the user modifies the content of the element and make sure the
+        // toggle button is present and at the last position.
+        this.appendChild(document.importNode(document.querySelector(".micro-menu-template").content,
                                              true));
         this.classList.add("micro-menu");
         this._toggleButton = this.querySelector(".micro-menu-toggle-secondary");
@@ -501,8 +496,8 @@ micro.Menu = class extends HTMLElement {
     }
 
     _update() {
-        var secondary = this.classList.contains("micro-menu-secondary-visible");
-        var i = this._toggleButton.querySelector("i");
+        let secondary = this.classList.contains("micro-menu-secondary-visible");
+        let i = this._toggleButton.querySelector("i");
         i.classList.remove("fa-chevron-circle-right", "fa-chevron-circle-left");
         i.classList.add(`fa-chevron-circle-${secondary ? "left" : "right"}`);
         this.querySelector(".micro-menu-toggle-secondary").title =
@@ -535,6 +530,7 @@ micro.Page = class extends HTMLElement {
     set caption(value) {
         this._caption = value;
         if (this === ui.page) {
+            // eslint-disable-next-line no-underscore-dangle
             ui._updateTitle();
         }
     }
@@ -546,9 +542,9 @@ micro.Page = class extends HTMLElement {
 micro.NotFoundPage = class extends micro.Page {
     createdCallback() {
         super.createdCallback();
-        this.caption = 'Not found';
+        this.caption = "Not found";
         this.appendChild(document.importNode(
-            ui.querySelector('.micro-not-found-page-template').content, true));
+            ui.querySelector(".micro-not-found-page-template").content, true));
     }
 };
 
@@ -558,19 +554,26 @@ micro.NotFoundPage = class extends micro.Page {
 micro.ForbiddenPage = class extends micro.Page {
     createdCallback() {
         super.createdCallback();
-        this.caption = 'Forbidden';
+        this.caption = "Forbidden";
         this.appendChild(document.importNode(
-            ui.querySelector('.micro-forbidden-page-template').content, true));
+            ui.querySelector(".micro-forbidden-page-template").content, true));
     }
 };
 
-micro._ActivityPage = class extends micro.Page {
+micro.ActivityPage = class extends micro.Page {
+    static make() {
+        if (!ui.staff) {
+            return document.createElement("micro-forbidden-page");
+        }
+        return document.createElement("micro-activity-page");
+    }
+
     createdCallback() {
         super.createdCallback();
-        this.caption = 'Site activity';
+        this.caption = "Site activity";
         this.appendChild(document.importNode(
-            ui.querySelector('.micro-activity-page-template').content, true));
-        this._showMoreButton = this.querySelector('button');
+            ui.querySelector(".micro-activity-page-template").content, true));
+        this._showMoreButton = this.querySelector("button");
         this._showMoreButton.run = this._showMore.bind(this);
         this._start = 0;
     }
@@ -580,29 +583,29 @@ micro._ActivityPage = class extends micro.Page {
     }
 
     _showMore() {
-        return micro.call('GET', `/api/activity/${this._start}:`).then(events => {
-            let ul = this.querySelector('.micro-timeline');
+        return micro.call("GET", `/api/activity/${this._start}:`).then(events => {
+            let ul = this.querySelector(".micro-timeline");
             for (let event of events) {
-                let li = document.createElement('li');
-                let time = document.createElement('time');
+                let li = document.createElement("li");
+                let time = document.createElement("time");
                 time.dateTime = event.time;
                 time.textContent =
-                    new Date(event.time).toLocaleString('en', micro.SHORT_DATE_TIME_FORMAT);
+                    new Date(event.time).toLocaleString("en", micro.SHORT_DATE_TIME_FORMAT);
                 li.appendChild(time);
                 li.appendChild(ui.renderEvent[event.type](event));
                 ul.appendChild(li);
             }
-            this.classList.toggle('micro-activity-all', events.length < micro.LIST_LIMIT);
+            this.classList.toggle("micro-activity-all", events.length < micro.LIST_LIMIT);
             this._start += micro.LIST_LIMIT;
         });
     }
 };
 
-document.registerElement('micro-ui', {prototype: micro.UI.protoype, extends: 'body'});
-document.registerElement('micro-ol', {prototype: micro.OL.prototype, extends: 'ol'});
-document.registerElement('micro-button', {prototype: micro.Button.prototype, extends: 'button'});
-document.registerElement('micro-page', micro.Page);
+document.registerElement("micro-ui", {prototype: micro.UI.protoype, extends: "body"});
+document.registerElement("micro-ol", {prototype: micro.OL.prototype, extends: "ol"});
+document.registerElement("micro-button", {prototype: micro.Button.prototype, extends: "button"});
+document.registerElement("micro-page", micro.Page);
 document.registerElement("micro-menu", micro.Menu);
-document.registerElement('micro-not-found-page', micro.NotFoundPage);
-document.registerElement('micro-forbidden-page', micro.ForbiddenPage);
-document.registerElement('micro-activity-page', micro._ActivityPage);
+document.registerElement("micro-not-found-page", micro.NotFoundPage);
+document.registerElement("micro-forbidden-page", micro.ForbiddenPage);
+document.registerElement("micro-activity-page", micro.ActivityPage);

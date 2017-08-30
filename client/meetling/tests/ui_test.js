@@ -14,6 +14,9 @@
  * not, see <http://www.gnu.org/licenses/>.
  */
 
+/* eslint-env mocha, node */
+/* eslint-disable no-invalid-this, require-jsdoc, prefer-arrow-callback */
+
 "use strict";
 
 let promisify = require("util").promisify;
@@ -28,11 +31,11 @@ let URL = "http://localhost:8081";
 
 function untilElementTextLocated(locator, text) {
     let msg = `for element containing "${text}" to be located by ${JSON.stringify(locator)}`;
-    return new WebElementCondition(msg, async function(browser) {
+    return new WebElementCondition(msg, async browser => {
         let elem;
         try {
             elem = await browser.findElement(locator);
-        } catch(e) {
+        } catch (e) {
             return null;
         }
         let t = await elem.getText();

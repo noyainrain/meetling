@@ -78,12 +78,12 @@ class JSONRedis:
 
     def omget(self, keys):
         """Return a list of objects for the given *keys*."""
-        # TODO: make atomic
+        # NOTE: Not atomic at the moment
         return [self.oget(k) for k in keys]
 
     def omset(self, mapping):
         """Set each key in *mapping* to its corresponding object."""
-        # TODO: make atomic
+        # NOTE: Not atomic at the moment
         for key, object in mapping.items():
             self.oset(key, object)
 

@@ -18,9 +18,8 @@
  * Various utilities.
  */
 
-'use strict';
+"use strict";
 
-micro = micro || {};
 micro.util = {};
 
 /**
@@ -38,7 +37,7 @@ micro.util.slugify = (str, {max = 32, reserved = []} = {}) => {
     let slug = str.replace(/[^\x00-\x7F]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-")
         .slice(0, max).replace(/^-|-$/g, "");
     return slug && !reserved.includes(slug) ? `/${slug}` : "";
-}
+};
 
 /**
  * Format a string containing placeholders, producing a :class:`DocumentFragment`.

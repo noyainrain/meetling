@@ -7,42 +7,42 @@
         <title>Meetling</title>
 
         <link rel="icon" />
-        <link rel="stylesheet" href="{{ static_url('lib/pikaday/css/pikaday.css') }}" />
+        <link rel="stylesheet" href="{{ static_url('node_modules/pikaday/css/pikaday.css') }}" />
         <link rel="stylesheet"
-              href="{{ static_url('lib/font-awesome/css/font-awesome.min.css') }}" />
+              href="{{ static_url('node_modules/font-awesome/css/font-awesome.min.css') }}" />
         <link rel="stylesheet" href="{{ static_url('micro.css') }}" />
         <link rel="stylesheet" href="{{ static_url('meetling.css') }}" />
 
-        <script src="{{ static_url('lib/whatwg-fetch/fetch.js') }}" defer="defer"></script>
-        <script src="{{ static_url('lib/webcomponents.js/webcomponents-lite.min.js') }}"
+        <script src="{{ static_url('node_modules/whatwg-fetch/fetch.js') }}" defer="defer"></script>
+        <script src="{{ static_url('node_modules/webcomponents.js/webcomponents-lite.min.js') }}"
                 defer="defer">
         </script>
-        <script src="{{ static_url('lib/pikaday/pikaday.js') }}" defer="defer"></script>
+        <script src="{{ static_url('node_modules/pikaday/pikaday.js') }}" defer="defer"></script>
         <script src="{{ static_url('micro/util.js') }}" defer="defer"></script>
-        <script src="{{ static_url('micro.js') }}" defer="defer"></script>
-        <script src="{{ static_url('meetling.js') }}" defer="defer"></script>
+        <script src="{{ static_url('micro/index.js') }}" defer="defer"></script>
+        <script src="{{ static_url('meetling/index.js') }}" defer="defer"></script>
 
         <style>
             @font-face {
                 font-family: 'Open Sans';
-                src: url('{{ static_url('lib/typeface-open-sans/files/open-sans-latin-400.woff') }}');
+                src: url('{{ static_url('node_modules/typeface-open-sans/files/open-sans-latin-400.woff') }}');
             }
 
             @font-face {
                 font-family: 'Open Sans';
-                src: url('{{ static_url('lib/typeface-open-sans/files/open-sans-latin-400italic.woff') }}');
+                src: url('{{ static_url('node_modules/typeface-open-sans/files/open-sans-latin-400italic.woff') }}');
                 font-style: italic;
             }
 
             @font-face {
                 font-family: 'Open Sans';
-                src: url('{{ static_url('lib/typeface-open-sans/files/open-sans-latin-700.woff') }}');
+                src: url('{{ static_url('node_modules/typeface-open-sans/files/open-sans-latin-700.woff') }}');
                 font-weight: bold;
             }
 
             @font-face {
                 font-family: 'Open Sans';
-                src: url('{{ static_url('lib/typeface-open-sans/files/open-sans-latin-300.woff') }}');
+                src: url('{{ static_url('node_modules/typeface-open-sans/files/open-sans-latin-300.woff') }}');
                 font-weight: 300;
             }
         </style>
@@ -141,7 +141,7 @@
         </main>
 
         <div class="templates">
-            {% include micro.html %}
+            {% include templates/micro.html %}
 
             <template class="micro-menu-template">
                 <button class="micro-menu-toggle-secondary action action-subtle">
@@ -180,58 +180,57 @@
                 </div>
             </template>
 
-            {% include start.html %}
-            {% include about.html %}
-            {% include edit-user.html %}
-            {% include edit-settings.html %}
-            {% include meeting.html %}
-            {% include edit-meeting.html %}
+            {% include templates/start.html %}
+            {% include templates/about.html %}
+            {% include templates/edit-user.html %}
+            {% include templates/edit-settings.html %}
+            {% include templates/meeting.html %}
+            {% include templates/edit-meeting.html %}
         </div>
 
         <script>
             // Run the platform checks
-            micro = {launch: true};
+            window.micro = {launch: true};
 
             var features = {};
-            features.dom4ClassList = 'classList' in document.createElement('div');
-            features.dom4QuerySelector = 'querySelector' in document;
+            features.dom4ClassList = "classList" in document.createElement("div");
+            features.dom4QuerySelector = "querySelector" in document;
             try {
-                eval('var x = () => {};');
+                eval("var x = () => {};");
                 features.es6ArrowFunction = true;
             } catch (e) {
                 features.es6ArrowFunction = false;
             }
             try {
-                eval('var x = class {};');
+                eval("var x = class {};");
                 features.es6Class = true;
             } catch (e) {
                 features.es6Class = false;
             }
             try {
-                eval('var [a, b] = [1, 2];');
+                eval("var [a, b] = [1, 2];");
                 features.es6Destructuring = true;
             } catch (e) {
                 features.es6Destructuring = false;
             }
             try {
-                eval('let x = 42;');
+                eval("let x = 42;");
                 features.es6Let = true;
             } catch (e) {
                 features.es6Let = false;
             }
-            features.es6Promise = 'Promise' in window;
+            features.es6Promise = "Promise" in window;
             features.es6String = "includes" in String.prototype;
             try {
-                eval('var x = `${42}`;');
+                eval("var x = `${42}`;");
                 features.es6TemplateLiteral = true;
             } catch (e) {
                 features.es6TemplateLiteral = false;
             }
-            features.html5Constraints = 'validity' in document.createElement('input');
-            features.html5History = 'pushState' in history;
-            features.html5Storage = 'localStorage' in window;
-            features.html5Template = 'content' in document.createElement('template');
-
+            features.html5Constraints = "validity" in document.createElement("input");
+            features.html5History = "pushState" in history;
+            features.html5Storage = "localStorage" in window;
+            features.html5Template = "content" in document.createElement("template");
 
             var compatible = Object.keys(features).reduce(
                 function(p, c) { return p && features[c]; }, true);
@@ -239,13 +238,13 @@
                 micro.launch = false;
                 document.getElementById("micro-compatibility-boot-page-detail").textContent =
                     JSON.stringify({device: navigator.userAgent, features: features}, null, 4);
-                document.getElementById('micro-compatibility-boot-page').style.display = 'block';
+                document.getElementById("micro-compatibility-boot-page").style.display = "block";
             }
 
             // From here on we make use of the checked features
             if (compatible && !navigator.cookieEnabled) {
                 micro.launch = false;
-                document.querySelector('.micro-storage-boot-page').style.display = 'block';
+                document.querySelector(".micro-storage-boot-page").style.display = "block";
             }
         </script>
     </body>

@@ -126,7 +126,8 @@ class Endpoint(RequestHandler):
                     e.errors[arg] = 'missing'
             else:
                 types = tuple(t for t in types if isinstance(t, type))
-                # TODO: Raise error if types is empty (e.g. if it contained only keywords)
+                # NOTE: We currently do not handle types being empty (e.g. it contained only
+                # keywords)
                 if not isinstance(args.get(arg), types):
                     e.errors[arg] = 'bad_type'
         e.trigger()

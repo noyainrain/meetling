@@ -25,6 +25,7 @@ watch-test:
 .PHONY: lint
 lint:
 	pylint -j 0 meetling micro
+	$(NPM) $(NPMFLAGS) run lint
 
 .PHONY: check
 check: test test-ext test-ui lint

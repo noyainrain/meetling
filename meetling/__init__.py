@@ -21,5 +21,3 @@ this documentation is on the differences and additions to the Web API.
 import os
 
 from meetling.meetling import Meetling, Meeting, AgendaItem
-
-_RES_PATH = os.path.join(os.path.dirname(__file__), 'res')

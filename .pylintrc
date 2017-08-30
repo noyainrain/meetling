@@ -26,10 +26,6 @@ method-rgx=%(function-rgx)s
 # Long URLs and strings may be more readable
 ignore-long-lines=://|'.+'|".+"
 
-[miscellaneous]
-# Remove TODO, reminders may be helpful
-notes=FIXME,XXX
-
 [typecheck]
 # http.client status codes are defined dynamically
 generated-members=http\.client\.[A-Z]

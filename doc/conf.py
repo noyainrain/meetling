@@ -1,5 +1,8 @@
+import os
 import sys
-sys.path.insert(0, '.')
+sys.path.insert(0, os.path.abspath('..'))
+
+import micro
 
 extensions = ['sphinx.ext.autodoc', 'sphinxcontrib.httpdomain']
 source_suffix = ['.rst', '.md']
@@ -24,3 +27,9 @@ html_sidebars = {'**': ['about.html', 'navigation.html', 'searchbox.html']}
 html_show_sourcelink = False
 
 autodoc_member_order = 'bysource'
+
+# Make micro documentation snippets available
+try:
+    os.symlink(micro.DOC_PATH, 'micro')
+except FileExistsError:
+    pass

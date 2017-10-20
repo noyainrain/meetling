@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+        <title>Hello</title>
+
+        {% raw micro_dependencies() %}
+        <script src="{{ static_url('hello.js') }}" defer="defer"></script>
+    </head>
+
+    <body is="hello-ui">
+        {% raw micro_boot() %}
+
+        {% raw micro_templates() %}
+
+        <template class="hello-start-page-template">
+            <div class="hello-start-intro">
+                <h1 class="micro-logo"><a class="link"></a></h1>
+                <p>A micro toolkit example</p>
+            </div>
+            <ul>
+                <li class="hello-start-create-greeting">
+                    <p>Leave a greeting for everyone to read:</p>
+                    <form>
+                        <label>
+                            <textarea name="text"></textarea>
+                        </label>
+                        <button is="micro-button" class="action">
+                            <i class="fa fa-comment"></i> Publish
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </template>
+        <style>
+            .hello-start-intro {
+                margin: calc(1.5rem * 3) 0;
+                text-align: center;
+            }
+
+            .hello-start-intro p {
+                color: #888;
+            }
+
+            .hello-start-intro .micro-logo {
+                font-size: 3em;
+            }
+
+            .hello-start-create-greeting textarea {
+                height: calc(2 * 1.5em + 2 * 1.5em / 4);
+            }
+
+            hello-start-page ul {
+                padding: 0;
+                list-style: none;
+            }
+
+            hello-start-page ul li {
+                padding: calc(1.5em / 2) 0;
+            }
+
+            hello-start-page ul li:not(:first-child) {
+                border-top: 1px solid #ddd;
+            }
+
+            .hello-start-create-greeting p {
+                margin-top: 0;
+            }
+
+            hello-start-page q {
+                quotes: "«" "»";
+            }
+
+            hello-start-page q::before,
+            hello-start-page q::after {
+                color: #888;
+            }
+        </style>
+
+        <template class="hello-greeting-template">
+            <li class="hello-greeting">
+                <span><micro-user></micro-user>:</span> <q></q>
+            </li>
+        </template>
+        <style>
+            .hello-greeting span {
+                color: #888;
+            }
+        </style>
+
+        <template class="hello-about-page-template">
+            <micro-about-page
+                short="{title} is a micro toolkit example." project-title="micro"
+                project-url="https://github.com/noyainrain/micro"
+                project-copyright="Copyright © 2017 micro contributors">
+            </micro-about-page>
+        </template>
+    </body>
+</html>

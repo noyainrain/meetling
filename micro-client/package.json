@@ -1,7 +1,7 @@
 {
+    "name": "micro",
+    "version": "0.0.0",
     "scripts": {
-        "link-micro": "mkdir -p node_modules/micro && cp -l ../micro-client/*.* node_modules/micro",
-        "test-ui": "mocha '!(node_modules)/**/ui_test*.js'",
         "lint": "eslint .",
         "clean": "rm -rf package-lock.json node_modules"
     },
@@ -10,13 +10,10 @@
         "webcomponents.js": "^0.7",
         "font-awesome": "^4.4",
         "typeface-open-sans": "^0.0",
-        "selenium-webdriver": "^3.5",
-        "pikaday": "^1.6"
+        "selenium-webdriver": "^3.5"
     },
     "devDependencies": {
         "eslint": "^4.0",
-        "eslint-config-eslint": "^4.0",
-        "mocha": "^3.4"
-    },
-    "private": true
+        "eslint-config-eslint": "^4.0"
+    }
 }

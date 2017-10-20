@@ -1,3 +1,15 @@
+/*
+ * micro style.
+ *
+ * Color palette:
+ *
+ * - text: #333
+ * - text subtle: #888
+ * - text inverse: #fff
+ * - delimiter: #ddd
+ * - border: #bbb
+ */
+
 /* ---- General ---- */
 
 * {
@@ -105,7 +117,7 @@ pre {
 }
 
 .micro-progress {
-    color: #4d8dd9;
+    color: #08f;
 }
 
 /* ---- Links ---- */
@@ -115,7 +127,7 @@ pre {
     margin: 0;
     padding: 0;
     border: none;
-    color: #d94b1f;
+    color: #f80;
     background: none;
     font: inherit;
     text-decoration: none;
@@ -145,10 +157,10 @@ h1 .link:hover {
     margin: 0;
     padding: calc(0.25 * 1.5em);
     border: none;
-    border-bottom: 2px solid #225ca0;
+    border-bottom: 2px solid #005aa8;
     border-radius: calc(0.25 * 1.5em);
     color: #fff;
-    background: #4d8dd9;
+    background: #08f;
     font: inherit;
     line-height: 1;
     text-decoration: none;
@@ -164,7 +176,7 @@ h1 .link:hover {
     padding: 0;
     border: none;
     border-radius: 0;
-    color: #4d8dd9;
+    color: #08f;
     background: none;
     font-size: 0.9em;
     line-height: 1.5;
@@ -193,7 +205,7 @@ h1 .link:hover {
 }
 
 .actions > .action:nth-child(n+2) {
-    border-left: 1px solid #225ca0;
+    border-left: 1px solid #005aa8;
 }
 
 .actions > .action-subtle:nth-child(n+2) {
@@ -245,6 +257,28 @@ form > label {
 
 .compact form > label {
     margin: calc(0.25 * 1.5rem) 0;
+}
+
+/* ---- Logo ---- */
+
+.micro-logo {
+    border-bottom: none;
+    font-size: 2rem;
+    font-weight: 300;
+    text-align: center;
+}
+
+.micro-logo .link {
+    color: inherit;
+}
+
+.micro-logo .link:hover {
+    text-decoration: none;
+}
+
+.micro-logo img {
+    height: 2em;
+    vertical-align: text-bottom;
 }
 
 /* ---- Timeline ---- */
@@ -311,6 +345,21 @@ form > label {
     display: none;
 }
 
+/* ---- UserElement ---- */
+
+.micro-user {
+    display: inline-block;
+    vertical-align: bottom;
+    max-width: 20ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.micro-user i {
+    color: #888;
+}
+
 /* ---- UI ---- */
 
 .micro-ui-dragging {
@@ -324,11 +373,154 @@ form > label {
     margin: 0 auto;
 }
 
+.micro-ui-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.33);
+    background: #fff;
+}
+
+.micro-ui-header nav {
+    display: flex;
+    white-space: nowrap;
+}
+
+.micro-ui-logo {
+    border-bottom: none;
+    margin: 0;
+    font-size: 1rem;
+}
+
+.micro-ui-logo .link {
+    display: block;
+    padding: calc(0.25 * 1.5em) 0;
+}
+
+.micro-ui-logo img {
+    vertical-align: middle;
+}
+
+.micro-ui-beta {
+    color: #888;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+}
+
+.micro-ui-header-fill {
+    flex: auto;
+    min-width: calc(0.25 * 1.5rem);
+}
+
+body:not(.micro-ui-settings-have-feedback-url) .micro-ui-feedback {
+    display: none;
+}
+
+body:not(.micro-ui-user-is-staff) .micro-ui-activity {
+    display: none;
+}
+
+main {
+    padding-top: calc(1.5 * 1.5rem);
+}
+
 .micro-ui-progress {
     margin: calc(3 * 1.5rem) 0;
-    color: #00f;
+    color: #08f;
     font-size: 3rem;
     text-align: center;
+}
+
+/* ---- UIMenu ---- */
+
+.micro-ui-menu {
+    position: relative;
+    border-left: 1px solid #ddd;
+}
+
+.micro-ui-menu:last-child {
+    border-right: 1px solid #ddd;
+}
+
+.micro-ui-menu .link,
+.micro-ui-menu .action {
+    display: block;
+    padding: calc(0.25 * 1.5em);
+    border: none;
+    border-radius: 0;
+    background: none;
+    line-height: 1.5;
+}
+
+.micro-ui-menu .link:hover,
+.micro-ui-menu .action:hover {
+    background: #ddd;
+    text-decoration: none;
+}
+
+.micro-ui-menu .action {
+    color: #08f;
+}
+
+.micro-ui-menu > .link {
+    color: inherit;
+}
+
+.micro-ui-menu:hover > .link {
+    background: #ddd;
+}
+
+.micro-ui-menu > .link i {
+    color: #888;
+}
+
+.micro-ui-menu ul {
+    display: none;
+    position: absolute;
+    right: 0;
+    padding: 0;
+    margin: 0;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.33);
+    background: #fff;
+    list-style: none;
+}
+
+.micro-ui-menu:hover ul {
+    display: block;
+}
+
+.micro-ui-menu li {
+    border-top: 1px solid #ddd;
+}
+
+/* ---- Notification ---- */
+
+.micro-notification {
+    display: block;
+    padding: calc(0.5 * 1.5em) 0;
+    border-top: 1px solid #ddd;
+}
+
+.micro-notification .micro-ui-inside > :first-child {
+    margin-top: 0;
+}
+
+.micro-notification .micro-ui-inside > :last-child {
+    margin-bottom: 0;
+}
+
+/* ---- SimpleNotification ---- */
+
+.micro-simple-notification-content > :first-child {
+    margin-top: 0;
+}
+
+/* ---- ErrorNotification ---- */
+
+.micro-error-notification i {
+    color: red;
 }
 
 /* ---- OL ---- */
@@ -364,7 +556,38 @@ micro-forbidden-page {
     text-align: center;
 }
 
-/* ---- _ActivityPage ---- */
+/* ---- EditUserPage ---- */
+
+.micro-edit-user-email header {
+    align-items: flex-end;
+}
+
+.micro-edit-user-email header h1 {
+    flex: auto;
+}
+
+micro-edit-user-page:not(.micro-edit-user-has-email) .micro-edit-user-remove-email {
+    display: none;
+}
+
+.micro-edit-user-has-email .micro-edit-user-set-email-1 {
+    display: none;
+}
+
+.micro-edit-user-set-email-2 {
+    display: none;
+}
+
+.micro-edit-user-set-email-2 h1 {
+    border-bottom: none;
+    font-size: 1rem;
+}
+
+micro-edit-user-page:not(.micro-edit-user-has-email) .micro-edit-user-email-value {
+    display: none;
+}
+
+/* ---- ActivityPage ---- */
 
 micro-activity-page > ul {
     list-style: none;

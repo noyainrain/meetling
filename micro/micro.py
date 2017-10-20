@@ -1,16 +1,16 @@
-# Meetling
-# Copyright (C) 2017 Meetling contributors
+# micro
+# Copyright (C) 2017 micro contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
-# General Public License as published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
+# Lesser General Public License as published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-# even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License along with this program. If not,
-# see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License along with this program.
+# If not, see <http://www.gnu.org/licenses/>.
 
 """Core parts of micro."""
 
@@ -27,7 +27,7 @@ from micro.jsonredis import JSONRedis, JSONRedisSequence, JSONRedisMapping
 from micro.util import check_email, randstr, parse_isotime, str_or_none
 
 class Application:
-    """See :ref:`Application`.
+    """Social micro web app.
 
     .. attribute:: user
 
@@ -218,7 +218,7 @@ class Application:
         return type(app=self, **json)
 
 class Object:
-    """See :ref:`Object`.
+    """Object in the application universe.
 
     .. attribute:: app
 
@@ -237,8 +237,8 @@ class Object:
 
         By default, all attributes are included. If *restricted* is ``True``, a restricted view of
         the object is returned, i.e. attributes that should not be available to the current
-        :attr:`Meetling.user` are excluded. If *include* is ``True``, additional fields that may be
-        of interest to the caller are included.
+        :attr:`Application.user` are excluded. If *include* is ``True``, additional fields that may
+        be of interest to the caller are included.
 
         Subclass API: May be overridden by subclass. The default implementation returns the
         attributes of :class:`Object`. *restricted* and *include* are ignored.
@@ -250,7 +250,7 @@ class Object:
         return '<{}>'.format(self.id)
 
 class Editable:
-    """See :ref:`Editable`."""
+    """:class:`Object` that can be edited."""
     # pylint: disable=no-member; mixin
 
     def __init__(self, authors, activity=None):

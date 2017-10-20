@@ -3,8 +3,6 @@ PIP=pip3
 NPM=npm
 
 PIPFLAGS=$$([ -z "$$VIRTUAL_ENV" ] && echo --user) -U
-# Compatibility for npm 0.2 (deprecated since 0.16.4)
-NPMFLAGS=--prefix client
 
 .PHONY: test
 test:
@@ -16,7 +14,7 @@ test-ext:
 
 .PHONY: test-ui
 test-ui:
-	$(NPM) $(NPMFLAGS) run test-ui
+	$(NPM) -C hello run test-ui
 
 .PHONY: watch-test
 watch-test:
@@ -24,8 +22,9 @@ watch-test:
 
 .PHONY: lint
 lint:
-	pylint -j 0 meetling
-	$(NPM) $(NPMFLAGS) run lint
+	pylint -j 0 micro hello/hello.py
+	$(NPM) -C micro-client run lint
+	$(NPM) -C hello run lint
 
 .PHONY: check
 check: test test-ext test-ui lint
@@ -33,24 +32,14 @@ check: test test-ext test-ui lint
 .PHONY: deps
 deps:
 	$(PIP) install $(PIPFLAGS) -r requirements.txt
-	@# Compatibility for npm 0.2 (deprecated since 0.16.4)
-	$(NPM) $(NPMFLAGS) update --prod --no-optional --no-save
-	$(NPM) $(NPMFLAGS) run link-micro
+	$(NPM) -C hello update --only=prod --no-optional --no-save
+	$(NPM) -C hello run link-micro
 
 .PHONY: deps-dev
 deps-dev:
 	$(PIP) install $(PIPFLAGS) -r requirements-dev.txt
-	@# Compatibility for npm 0.2 (deprecated since 0.16.4)
-	$(NPM) $(NPMFLAGS) update --no-optional --no-save
-	$(NPM) $(NPMFLAGS) run link-micro
-
-.PHONY: doc
-doc:
-	sphinx-build doc doc/build
-
-.PHONY: sample
-sample:
-	scripts/sample.py
+	$(NPM) -C micro-client update --only=dev --no-optional --no-save
+	$(NPM) -C hello update --only=dev --no-optional --no-save
 
 .PHONY: show-deprecated
 show-deprecated:
@@ -59,8 +48,8 @@ show-deprecated:
 
 .PHONY: clean
 clean:
-	rm -rf doc/build
-	$(NPM) $(NPMFLAGS) run clean
+	$(NPM) -C micro-client run clean
+	$(NPM) -C hello run clean
 
 .PHONY: help
 help:
@@ -79,11 +68,6 @@ help:
 	@echo "check:           Run all code quality checks (test and lint)"
 	@echo "deps:            Update the dependencies"
 	@echo "deps-dev:        Update the development dependencies"
-	@echo "doc:             Build the documentation"
-	@echo "sample:          Set up some sample data. Warning: All existing data in the"
-	@echo "                 database will be deleted."
-	@echo "                 REDISURL: URL of the Redis database. See"
-	@echo "                           python3 -m meetling --redis-url command line option."
 	@echo "show-deprecated: Show deprecated code ready for removal (deprecated for at"
 	@echo "                 least six months)"
 	@echo "clean:           Remove temporary files"

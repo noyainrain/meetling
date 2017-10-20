@@ -1,23 +1,29 @@
-# Meetling
-# Copyright (C) 2017 Meetling contributors
+# micro
+# Copyright (C) 2017 micro contributors
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
-# General Public License as published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
+# Lesser General Public License as published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-# even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License along with this program. If not,
-# see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License along with this program.
+# If not, see <http://www.gnu.org/licenses/>.
 
 """Various utilities."""
 
+import argparse
+from argparse import ArgumentParser
+import logging
+from logging import StreamHandler, getLogger
 import re
 import string
 import random
 from datetime import datetime
+
+from tornado.log import LogFormatter
 
 def str_or_none(str):
     """Return *str* unmodified if it has content, otherwise return ``None``.
@@ -77,3 +83,38 @@ def check_email(email):
         raise ValueError('email_empty')
     if len(email.splitlines()) > 1:
         raise ValueError('email_newline')
+
+def make_command_line_parser():
+    """Create a :class:`argparse.ArgumentParser` handy for micro apps.
+
+    The parser is preconfigured to handle common command line arguments.
+    """
+    parser = ArgumentParser(argument_default=argparse.SUPPRESS)
+    parser.add_argument(
+        '--port',
+        help='Port number the server listens on for incoming connections. Defaults to 8080.')
+    parser.add_argument(
+        '--url',
+        help='Public URL of the server. Defaults to http://localhost with the port option value.')
+    parser.add_argument('--debug', action='store_true', help='Debug mode.')
+    parser.add_argument(
+        '--redis-url',
+        help='URL of the Redis database. Only host, port and path (representing the database index) are considered, which default to localhost, 6379 and 0 respectively.')
+    parser.add_argument(
+        '--smtp-url',
+        help='URL of the SMTP server to use for outgoing email. Only host and port are considered, which default to localhost and 25 respectively.')
+    return parser
+
+def setup_logging(debug=False):
+    """Configure logging handy for micro apps.
+
+    By default, all :attr:`logging.INFO` messages are logged, along with only :attr:`loggin.ERROR`
+    messages for the access log. In *debug* mode, the access log is not filtered.
+    """
+    logger = getLogger()
+    handler = StreamHandler()
+    handler.setFormatter(LogFormatter())
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    if not debug:
+        getLogger('tornado.access').setLevel(logging.ERROR)

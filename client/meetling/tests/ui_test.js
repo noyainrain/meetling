@@ -15,59 +15,33 @@
  */
 
 /* eslint-env mocha, node */
-/* eslint-disable no-invalid-this, require-jsdoc, prefer-arrow-callback */
+/* eslint-disable no-invalid-this, prefer-arrow-callback */
 
 "use strict";
 
-let promisify = require("util").promisify;
-let exec = promisify(require("child_process").exec);
-let spawn = require("child_process").spawn;
+let {exec, spawn} = require("child_process");
+let {promisify} = require("util");
 
-let Builder = require("selenium-webdriver").Builder;
-let WebElementCondition = require("selenium-webdriver").WebElementCondition;
-let until = require("selenium-webdriver").until;
+let {until} = require("selenium-webdriver");
+
+let {startBrowser, untilElementTextLocated} = require("micro/test");
 
 let URL = "http://localhost:8081";
-
-function untilElementTextLocated(locator, text) {
-    let msg = `for element containing "${text}" to be located by ${JSON.stringify(locator)}`;
-    return new WebElementCondition(msg, async browser => {
-        let elem;
-        try {
-            elem = await browser.findElement(locator);
-        } catch (e) {
-            return null;
-        }
-        let t = await elem.getText();
-        return t.includes(text) ? elem : null;
-    });
-}
 
 describe("UI", function() {
     let server;
     let browser;
-    let timeout = 1000;
+    let timeout;
 
     this.timeout(5 * 60 * 1000);
 
     beforeEach(async function() {
-        await exec("redis-cli -n 15 flushdb");
+        await promisify(exec)("redis-cli -n 15 flushdb");
         server = spawn("python3",
                        ["-m", "meetling", "--port", "8081", "--url", URL, "--redis-url", "15"],
                        {cwd: "..", stdio: "inherit"});
-
-        let webdriverURL = process.env.WEBDRIVER_URL || null;
-        if (webdriverURL) {
-            timeout = 10 * 1000;
-        }
-        let tag = process.env.SUBJECT ? ` [${process.env.SUBJECT}]` : "";
-        let capabilities = {
-            browserName: process.env.BROWSER || "firefox",
-            platform: process.env.PLATFORM,
-            tunnelIdentifier: process.env.TUNNEL_ID,
-            name: `[Meetling]${tag} ${this.currentTest.fullTitle()}`
-        };
-        browser = new Builder().usingServer(webdriverURL).withCapabilities(capabilities).build();
+        browser = startBrowser(this.currentTest, "Meetling");
+        timeout = browser.remote ? 10 * 1000 : 1000;
     });
 
     afterEach(async function() {
@@ -83,7 +57,7 @@ describe("UI", function() {
         // View start page
         await browser.get(`${URL}/`);
         await browser.wait(
-            untilElementTextLocated({css: ".meetling-logo"}, "My Meetling"), timeout);
+            untilElementTextLocated({css: ".micro-logo"}, "My Meetling"), timeout);
 
         // Create meeting
         await browser.findElement({css: ".meetling-start-create-meeting"}).click();
@@ -98,7 +72,7 @@ describe("UI", function() {
             untilElementTextLocated({css: "meetling-meeting-page h1"}, "Cat hangout"), timeout);
 
         // Create example meeting
-        await browser.findElement({css: ".meetling-ui-logo"}).click();
+        await browser.findElement({css: ".micro-ui-logo"}).click();
         await browser.findElement({css: ".meetling-start-create-example-meeting"}).click();
         await browser.wait(
             untilElementTextLocated({css: "meetling-meeting-page h1"}, "Working group meeting"),
@@ -156,70 +130,11 @@ describe("UI", function() {
             untilElementTextLocated({css: "[is=meetling-agenda-item]:last-child h1"}, "Intro"),
             timeout);
 
-        // Edit user
-        let menu = await browser.findElement({css: ".micro-ui-header-user"});
-        await browser.actions().mouseMove(menu).perform();
-        await browser.findElement({css: ".meetling-ui-edit-user"}).click();
-        await browser.wait(
-            untilElementTextLocated({css: "meetling-edit-user-page h1"}, "Edit user settings"),
-            timeout);
-        form = await browser.findElement({css: ".meetling-edit-user-edit"});
-        input = await form.findElement({name: "name"});
-        await input.clear();
-        await input.sendKeys("Happy");
-        await form.findElement({css: "button"}).click();
-        await browser.wait(
-            until.elementTextContains(
-                await browser.findElement({css: ".micro-ui-header meetling-user"}),
-                "Happy"),
-            timeout);
-
         // View about page
-        menu = await browser.findElement({css: ".micro-ui-header-menu"});
-        await browser.actions().mouseMove(menu).perform();
-        await browser.findElement({css: ".meetling-ui-about"}).click();
-        await browser.wait(
-            untilElementTextLocated({css: "meetling-about-page h1"}, "About My Meetling"), timeout);
-    });
-
-    it("should work for staff", async function() {
-        // Create sample data
-        await browser.get(`${URL}/`);
-        await browser
-            .wait(until.elementLocated({css: ".meetling-start-create-example-meeting"}), timeout)
-            .click();
-        await browser.wait(
-            untilElementTextLocated({css: "meetling-meeting-page h1"}, "Working group meeting"),
-            timeout);
-
-        // View activity page
         let menu = await browser.findElement({css: ".micro-ui-header-menu"});
         await browser.actions().mouseMove(menu).perform();
-        await browser.findElement({css: ".meetling-ui-activity"}).click();
+        await browser.findElement({css: ".micro-ui-about"}).click();
         await browser.wait(
-            untilElementTextLocated({css: "micro-activity-page .micro-timeline li"},
-                                    "Working group meeting"),
-            timeout);
-
-        // Edit site settings
-        await browser.actions().mouseMove(menu).perform();
-        await browser.findElement({css: ".meetling-ui-edit-settings"}).click();
-        await browser.wait(
-            untilElementTextLocated({css: "meetling-edit-settings-page h1"}, "Edit site settings"),
-            timeout);
-        let form = await browser.findElement({css: ".meetling-edit-settings-edit"});
-        let input = await form.findElement({name: "title"});
-        await input.clear();
-        await input.sendKeys("CatApp");
-        await form.findElement({name: "icon"}).sendKeys("/static/images/icon.svg");
-        await form.findElement({name: "favicon"}).sendKeys("/static/images/favicon.png");
-        await form.findElement({name: "provider_name"}).sendKeys("Happy");
-        await form.findElement({name: "provider_url"}).sendKeys("https://happy.example.org/");
-        await form.findElement({name: "feedback_url"}).sendKeys("https://feedback.example.org/");
-        await form.findElement({css: "button"}).click();
-        await browser.wait(
-            until.elementTextContains(await browser.findElement({css: ".meetling-ui-logo"}),
-                                      "CatApp"),
-            timeout);
+            untilElementTextLocated({css: "micro-about-page h1"}, "About My Meetling"), timeout);
     });
 });

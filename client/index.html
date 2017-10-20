@@ -3,249 +3,31 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width; initial-scale=1; user-scalable=no" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
         <title>Meetling</title>
 
-        <link rel="icon" />
+        {% raw micro_dependencies() %}
         <link rel="stylesheet" href="{{ static_url('node_modules/pikaday/css/pikaday.css') }}" />
-        <link rel="stylesheet"
-              href="{{ static_url('node_modules/font-awesome/css/font-awesome.min.css') }}" />
-        <link rel="stylesheet" href="{{ static_url('micro.css') }}" />
         <link rel="stylesheet" href="{{ static_url('meetling.css') }}" />
-
-        <script src="{{ static_url('node_modules/whatwg-fetch/fetch.js') }}" defer="defer"></script>
-        <script src="{{ static_url('node_modules/webcomponents.js/webcomponents-lite.min.js') }}"
-                defer="defer">
-        </script>
         <script src="{{ static_url('node_modules/pikaday/pikaday.js') }}" defer="defer"></script>
-        <script src="{{ static_url('micro/util.js') }}" defer="defer"></script>
-        <script src="{{ static_url('micro/index.js') }}" defer="defer"></script>
         <script src="{{ static_url('meetling/index.js') }}" defer="defer"></script>
-
-        <style>
-            @font-face {
-                font-family: 'Open Sans';
-                src: url('{{ static_url('node_modules/typeface-open-sans/files/open-sans-latin-400.woff') }}');
-            }
-
-            @font-face {
-                font-family: 'Open Sans';
-                src: url('{{ static_url('node_modules/typeface-open-sans/files/open-sans-latin-400italic.woff') }}');
-                font-style: italic;
-            }
-
-            @font-face {
-                font-family: 'Open Sans';
-                src: url('{{ static_url('node_modules/typeface-open-sans/files/open-sans-latin-700.woff') }}');
-                font-weight: bold;
-            }
-
-            @font-face {
-                font-family: 'Open Sans';
-                src: url('{{ static_url('node_modules/typeface-open-sans/files/open-sans-latin-300.woff') }}');
-                font-weight: 300;
-            }
-        </style>
     </head>
 
     <body is="meetling-ui">
-        <header class="micro-ui-header" style="display: none;">
-            <nav class="micro-ui-inside">
-                <h1 class="meetling-ui-logo">
-                    <a class="link" href="/">
-                        <img /> <span class="meetling-ui-logo-text"></span>
-                        <span class="meetling-ui-beta">Beta</span>
-                    </a>
-                </h1>
+        {% raw micro_boot() %}
 
-                <div class="meetling-ui-header-fill"></div>
+        {% raw micro_templates() %}
+        {% include templates/start.html %}
+        {% include templates/meeting.html %}
+        {% include templates/edit-meeting.html %}
 
-                <div class="micro-ui-header-user meetling-ui-menu">
-                    <button class="link"><meetling-user></meetling-user></button>
-                    <ul>
-                        <li class="meetling-ui-edit-user">
-                            <a class="action" href="/user/edit">
-                                <i class="fa fa-fw fa-wrench"></i> Edit user settings
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="micro-ui-header-menu meetling-ui-menu">
-                    <button class="link"><i class="fa fa-fw fa-bars"></i></button>
-                    <ul>
-                        <li class="meetling-ui-feedback">
-                            <a class="link">
-                                <i class="fa fa-fw fa-question-circle"></i> Feedback &amp; help
-                            </a>
-                        </li>
-                        <li class="meetling-ui-about">
-                            <a class="link" href="/about">
-                                <i class="fa fa-fw fa-info-circle"></i> About
-                            </a>
-                        </li>
-                        <li class="meetling-ui-activity">
-                            <a class="link" href="/activity">
-                                <i class="fa fa-fw fa-history"></i> Activity
-                            </a>
-                        </li>
-                        <li class="meetling-ui-edit-settings">
-                            <a class="action" href="/settings/edit">
-                                <i class="fa fa-fw fa-wrench"></i> Edit site settings
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-
-            <div class="meetling-ui-notification-space"></div>
-        </header>
-
-        <main>
-            <div class="micro-ui-inside">
-                <p class="micro-ui-progress" style="display: none;">
-                    <i class="fa fa-spin fa-spinner"></i>
-                </p>
-
-                <noscript class="micro-boot-page">
-                    <h1 class="micro-icon-title"><i class="fa fa-cogs"></i></h1>
-                    <p>
-                        Unfortunately, we couldn't get started because scripting is disabled. Please
-                        enable scripting for this web app.
-                    </p>
-                </noscript>
-                <div id="micro-compatibility-boot-page" class="micro-boot-page"
-                     style="display: none;">
-                    <h1 class="micro-icon-title"><i class="fa fa-cogs"></i></h1>
-                    <p>
-                        Unfortunately, we couldn't get started because your browser/device is
-                        outdated and not able to run this web app. Please update your
-                        browser/device.
-                    </p>
-                    <div class="micro-boot-page-detail micro-small">
-                        <p>
-                            Here follow some technical details which might be helpful for support:
-                        </p>
-                        <pre id="micro-compatibility-boot-page-detail"></pre>
-                    </div>
-                </div>
-                <div class="micro-storage-boot-page micro-boot-page"
-                     style="display: none;">
-                    <h1 class="micro-icon-title"><i class="fa fa-cogs"></i></h1>
-                    <p>
-                        Unfortunately, we couldn't get started because cookies are disabled. Please
-                        enable cookies for this web app.
-                    </p>
-                </div>
-            </div>
-        </main>
-
-        <div class="templates">
-            {% include templates/micro.html %}
-
-            <template class="micro-menu-template">
-                <button class="micro-menu-toggle-secondary action action-subtle">
-                    <i class="fa"></i>
-                </button>
-            </template>
-
-            <template class="meetling-user-template">
-                <i class="fa fa-user"></i><span></span>
-            </template>
-
-            <template class="meetling-simple-notification-template">
-                <div class="micro-ui-inside compact">
-                    <div class="meetling-simple-notification-content"></div>
-                    <p class="group">
-                        <button class="meetling-simple-notification-dismiss action action-subtle">
-                            Dismiss
-                        </button>
-                    </p>
-                </div>
-            </template>
-
-            <template class="meetling-error-notification-template">
-                <div class="micro-ui-inside compact">
-                    <p>
-                        <i class="fa fa-exclamation-triangle"></i> Oops, something went very wrong!
-                        We have been notified and will do our best to fix the problem as soon as
-                        possible. We are sorry for the inconvenience!
-                    </p>
-                    <p>In the meantime, you may reload the page and give it another try.</p>
-                    <p class="group">
-                        <button class="meetling-error-notification-reload action">
-                            Reload the page
-                        </button>
-                    </p>
-                </div>
-            </template>
-
-            {% include templates/start.html %}
-            {% include templates/about.html %}
-            {% include templates/edit-user.html %}
-            {% include templates/edit-settings.html %}
-            {% include templates/meeting.html %}
-            {% include templates/edit-meeting.html %}
-        </div>
-
-        <script>
-            // Run the platform checks
-            window.micro = {launch: true};
-
-            var features = {};
-            features.dom4ClassList = "classList" in document.createElement("div");
-            features.dom4QuerySelector = "querySelector" in document;
-            try {
-                eval("var x = () => {};");
-                features.es6ArrowFunction = true;
-            } catch (e) {
-                features.es6ArrowFunction = false;
-            }
-            try {
-                eval("var x = class {};");
-                features.es6Class = true;
-            } catch (e) {
-                features.es6Class = false;
-            }
-            try {
-                eval("var [a, b] = [1, 2];");
-                features.es6Destructuring = true;
-            } catch (e) {
-                features.es6Destructuring = false;
-            }
-            try {
-                eval("let x = 42;");
-                features.es6Let = true;
-            } catch (e) {
-                features.es6Let = false;
-            }
-            features.es6Promise = "Promise" in window;
-            features.es6String = "includes" in String.prototype;
-            try {
-                eval("var x = `${42}`;");
-                features.es6TemplateLiteral = true;
-            } catch (e) {
-                features.es6TemplateLiteral = false;
-            }
-            features.html5Constraints = "validity" in document.createElement("input");
-            features.html5History = "pushState" in history;
-            features.html5Storage = "localStorage" in window;
-            features.html5Template = "content" in document.createElement("template");
-
-            var compatible = Object.keys(features).reduce(
-                function(p, c) { return p && features[c]; }, true);
-            if (!compatible) {
-                micro.launch = false;
-                document.getElementById("micro-compatibility-boot-page-detail").textContent =
-                    JSON.stringify({device: navigator.userAgent, features: features}, null, 4);
-                document.getElementById("micro-compatibility-boot-page").style.display = "block";
-            }
-
-            // From here on we make use of the checked features
-            if (compatible && !navigator.cookieEnabled) {
-                micro.launch = false;
-                document.querySelector(".micro-storage-boot-page").style.display = "block";
-            }
-        </script>
+        <template class="meetling-about-page-template">
+            <micro-about-page
+                short="{title} is a service for collaboratively preparing meetings."
+                project-title="Meetling" project-url="https://github.com/noyainrain/meetling"
+                project-icon="{{ static_url('images/icon.svg') }}"
+                project-copyright="Copyright © 2017 Meetling contributors">
+            </micro-about-page>
+        </template>
     </body>
 </html>

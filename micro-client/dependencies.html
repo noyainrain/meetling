@@ -1,0 +1,37 @@
+<link rel="icon" />
+<link rel="stylesheet"
+      href="{{ static_url('{}/font-awesome/css/font-awesome.min.css'.format(modules_path)) }}" />
+<link rel="stylesheet" href="{{ static_url('{}/micro/micro.css'.format(modules_path)) }}" />
+
+<script src="{{ static_url('{}/whatwg-fetch/fetch.js'.format(modules_path)) }}" defer="defer">
+</script>
+<script src="{{ static_url('{}/webcomponents.js/webcomponents-lite.min.js'.format(modules_path)) }}"
+        defer="defer">
+</script>
+<script src="{{ static_url('{}/micro/util.js'.format(modules_path)) }}" defer="defer"></script>
+<script src="{{ static_url('{}/micro/index.js'.format(modules_path)) }}" defer="defer"></script>
+
+<style>
+    @font-face {
+        font-family: 'Open Sans';
+        src: url('{{ static_url('{}/typeface-open-sans/files/open-sans-latin-400.woff'.format(modules_path)) }}');
+    }
+
+    @font-face {
+        font-family: 'Open Sans';
+        src: url('{{ static_url('{}/typeface-open-sans/files/open-sans-latin-400italic.woff'.format(modules_path)) }}');
+        font-style: italic;
+    }
+
+    @font-face {
+        font-family: 'Open Sans';
+        src: url('{{ static_url('{}/typeface-open-sans/files/open-sans-latin-700.woff'.format(modules_path)) }}');
+        font-weight: bold;
+    }
+
+    @font-face {
+        font-family: 'Open Sans';
+        src: url('{{ static_url('{}/typeface-open-sans/files/open-sans-latin-300.woff'.format(modules_path)) }}');
+        font-weight: 300;
+    }
+</style>

@@ -19,159 +19,28 @@
 
 import http.client
 import json
-import logging
-import re
-from urllib.parse import urlparse
 
 import micro
-from micro import AuthRequest
-from micro.server import Endpoint, make_list_endpoints
-from micro.util import str_or_none, parse_isotime, check_polyglot
-from tornado.httpserver import HTTPServer
-from tornado.ioloop import IOLoop
-from tornado.template import DictLoader, filter_whitespace
-from tornado.web import Application, RequestHandler, HTTPError
+from micro.server import Server, Endpoint
+from micro.util import parse_isotime
+from tornado.web import HTTPError
 
-import meetling
 from meetling import Meetling
-import meetling.server.templates
 
-_CLIENT_ERROR_LOG_TEMPLATE = """\
-Client error occurred
-%s%s
-Stack:
-%s
-URL: %s
-User: %s (%s)
-Device info: %s"""
-
-_LOGGER = logging.getLogger(__name__)
-
-class MeetlingServer(HTTPServer):
-    """Meetling server.
-
-    .. attribute:: app
-
-       Underlying :class:`meetling.Meetling` application.
-
-    .. attribute:: port
-
-       See ``--port`` command line option.
-
-    .. attribute:: url
-
-       See ``--url`` command line option.
-
-    .. attribute:: debug
-
-       See ``--debug`` command line option.
-
-    Additional *args* are passed to the :class:`meetling.Meetling` constructor and any errors raised
-    by it are passed through.
-    """
-
-    def __init__(self, port=8080, url=None, debug=False, **args):
-        # pylint: disable=super-init-not-called; Configurable classes use initialize() instead of
-        #                                        __init__()
-        url = url or 'http://localhost:{}'.format(port)
-        try:
-            urlparts = urlparse(url)
-        except ValueError:
-            raise ValueError('url_invalid')
-        not_allowed = {'username', 'password', 'path', 'params', 'query', 'fragment'}
-        if not (urlparts.scheme in {'http', 'https'} and urlparts.hostname and
-                not any(getattr(urlparts, k) for k in not_allowed)):
-            raise ValueError('url_invalid')
-
-        handlers = [
-            # UI
-            (r'/log-client-error$', _LogClientErrorEndpoint),
-            (r'/(?!api/).*$', _UI),
-            # API
-            (r'/api/login$', _LoginEndpoint),
-            (r'/api/meetings$', _MeetingsEndpoint),
-            (r'/api/create-example-meeting$', _CreateExampleMeetingEndpoint),
-            (r'/api/users/([^/]+)$', _UserEndpoint),
-            (r'/api/users/([^/]+)/set-email$', _UserSetEmailEndpoint),
-            (r'/api/users/([^/]+)/finish-set-email$', _UserFinishSetEmailEndpoint),
-            (r'/api/users/([^/]+)/remove-email$', _UserRemoveEmailEndpoint),
-            (r'/api/settings$', _SettingsEndpoint),
-            (r'/api/meetings/([^/]+)$', _MeetingEndpoint),
-            (r'/api/meetings/([^/]+)/items(/trashed)?$', _MeetingItemsEndpoint),
-            (r'/api/meetings/([^/]+)/trash-agenda-item$', _MeetingTrashAgendaItemEndpoint),
-            (r'/api/meetings/([^/]+)/restore-agenda-item$', _MeetingRestoreAgendaItemEndpoint),
-            (r'/api/meetings/([^/]+)/move-agenda-item$', _MeetingMoveAgendaItemEndpoint),
-            (r'/api/meetings/([^/]+)/items/([^/]+)$', _AgendaItemEndpoint)
-        ]
-        handlers += make_list_endpoints(r'/api/activity', lambda *a: self.app.activity)
-        # pylint: disable=protected-access; meetling is a friend
-        application = Application(handlers, compress_response=True, template_path='client',
-                                  static_path='client', debug=debug, server=self)
-        super().initialize(application)
-
-        self.port = port
-        self.url = url
-        self.debug = debug
-        self.app = Meetling(email='bot@' + urlparts.hostname,
-                            render_email_auth_message=self._render_email_auth_message, **args)
-
-        self._message_templates = DictLoader(meetling.server.templates.MESSAGE_TEMPLATES,
-                                             autoescape=None)
-
-    def initialize(self, *args, **kwargs):
-        # Configurable classes call initialize() instead of __init__()
-        self.__init__(*args, **kwargs)
-
-    def run(self):
-        """Run the server."""
-        self.app.update()
-        self.listen(self.port)
-        IOLoop.instance().start()
-
-    def _render_email_auth_message(self, email, auth_request, auth):
-        template = self._message_templates.load('email_auth')
-        msg = template.generate(email=email, auth_request=auth_request, auth=auth, app=self.app,
-                                server=self).decode()
-        return '\n\n'.join([filter_whitespace('oneline', p.strip()) for p in
-                            re.split(r'\n{2,}', msg)])
-
-class _UI(RequestHandler):
-    def get(self):
-        self.set_header('Cache-Control', 'no-cache')
-        self.render('index.html')
-
-class _LogClientErrorEndpoint(Endpoint):
-    def post(self):
-        if not self.app.user:
-            raise micro.PermissionError()
-
-        args = self.check_args({
-            'type': str,
-            'stack': str,
-            'url': str,
-            'message': (str, None, 'opt')
-        })
-        e = micro.InputError()
-        if str_or_none(args['type']) is None:
-            e.errors['type'] = 'empty'
-        if str_or_none(args['stack']) is None:
-            e.errors['stack'] = 'empty'
-        if str_or_none(args['url']) is None:
-            e.errors['url'] = 'empty'
-        e.trigger()
-
-        message = str_or_none(args.get('message'))
-        message_part = ': ' + message if message else ''
-        _LOGGER.error(
-            _CLIENT_ERROR_LOG_TEMPLATE, args['type'], message_part, args['stack'].strip(),
-            args['url'], self.app.user.name, self.app.user.id,
-            self.request.headers.get('user-agent', '-'))
-
-class _LoginEndpoint(Endpoint):
-    def post(self):
-        args = self.check_args({'code': (str, 'opt')})
-        user = self.app.login(**args)
-        self.write(user.json(restricted=True))
+def make_server(port=8080, url=None, client_path='client', debug=False, redis_url='', smtp_url=''):
+    """Create a Meetling server."""
+    app = Meetling(redis_url, smtp_url=smtp_url)
+    handlers = [
+        (r'/api/meetings$', _MeetingsEndpoint),
+        (r'/api/create-example-meeting$', _CreateExampleMeetingEndpoint),
+        (r'/api/meetings/([^/]+)$', _MeetingEndpoint),
+        (r'/api/meetings/([^/]+)/items(/trashed)?$', _MeetingItemsEndpoint),
+        (r'/api/meetings/([^/]+)/trash-agenda-item$', _MeetingTrashAgendaItemEndpoint),
+        (r'/api/meetings/([^/]+)/restore-agenda-item$', _MeetingRestoreAgendaItemEndpoint),
+        (r'/api/meetings/([^/]+)/move-agenda-item$', _MeetingMoveAgendaItemEndpoint),
+        (r'/api/meetings/([^/]+)/items/([^/]+)$', _AgendaItemEndpoint)
+    ]
+    return Server(app, handlers, port, url, client_path, 'node_modules', debug)
 
 class _MeetingsEndpoint(Endpoint):
     def post(self):
@@ -194,63 +63,6 @@ class _CreateExampleMeetingEndpoint(Endpoint):
     def post(self):
         meeting = self.app.create_example_meeting()
         self.write(meeting.json(restricted=True, include=True))
-
-class _UserEndpoint(Endpoint):
-    def get(self, id):
-        self.write(self.app.users[id].json(restricted=True))
-
-    def post(self, id):
-        user = self.app.users[id]
-        args = self.check_args({'name': (str, 'opt')})
-        user.edit(**args)
-        self.write(user.json(restricted=True))
-
-class _UserSetEmailEndpoint(Endpoint):
-    def post(self, id):
-        user = self.app.users[id]
-        args = self.check_args({'email': str})
-        auth_request = user.set_email(**args)
-        self.write(auth_request.json(restricted=True))
-
-class _UserFinishSetEmailEndpoint(Endpoint):
-    def post(self, id):
-        user = self.app.users[id]
-        args = self.check_args({'auth_request_id': str, 'auth': str})
-        args['auth_request'] = self.app.get_object(args.pop('auth_request_id'), None)
-        if not isinstance(args['auth_request'], AuthRequest):
-            raise micro.ValueError('auth_request_not_found')
-        user.finish_set_email(**args)
-        self.write(user.json(restricted=True))
-
-class _UserRemoveEmailEndpoint(Endpoint):
-    def post(self, id):
-        user = self.app.users[id]
-        user.remove_email()
-        self.write(user.json(restricted=True))
-
-class _SettingsEndpoint(Endpoint):
-    def get(self):
-        self.write(self.app.settings.json(restricted=True, include=True))
-
-    def post(self):
-        args = self.check_args({
-            'title': (str, 'opt'),
-            'icon': (str, None, 'opt'),
-            'favicon': (str, None, 'opt'),
-            'provider_name': (str, None, 'opt'),
-            'provider_url': (str, None, 'opt'),
-            'provider_description': (dict, 'opt'),
-            'feedback_url': (str, None, 'opt')
-        })
-        if 'provider_description' in args:
-            try:
-                check_polyglot(args['provider_description'])
-            except ValueError:
-                raise micro.ValueError('provider_description_bad_type')
-
-        settings = self.app.settings
-        settings.edit(**args)
-        self.write(settings.json(restricted=True, include=True))
 
 class _MeetingEndpoint(Endpoint):
     def get(self, id):

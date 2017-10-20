@@ -1,3 +1,90 @@
+<template class="micro-ui-template">
+    <header class="micro-ui-header" style="display: none;">
+        <nav class="micro-ui-inside">
+            <h1 class="micro-ui-logo">
+                <a class="link" href="/">
+                    <img/> <span class="micro-ui-logo-text"></span>
+                    <span class="micro-ui-beta">Beta</span>
+                </a>
+            </h1>
+
+            <div class="micro-ui-header-fill"></div>
+
+            <div class="micro-ui-header-user micro-ui-menu">
+                <button class="link"><micro-user></micro-user></button>
+                <ul>
+                    <li class="micro-ui-edit-user">
+                        <a class="action" href="/user/edit">
+                            <i class="fa fa-fw fa-wrench"></i> Edit user settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="micro-ui-header-menu micro-ui-menu">
+                <button class="link"><i class="fa fa-fw fa-bars"></i></button>
+                <ul>
+                    <li class="micro-ui-feedback">
+                        <a class="link">
+                            <i class="fa fa-fw fa-question-circle"></i> Feedback &amp; help
+                        </a>
+                    </li>
+                    <li class="micro-ui-about">
+                        <a class="link" href="/about">
+                            <i class="fa fa-fw fa-info-circle"></i> About
+                        </a>
+                    </li>
+                    <li class="micro-ui-activity">
+                        <a class="link" href="/activity">
+                            <i class="fa fa-fw fa-history"></i> Activity
+                        </a>
+                    </li>
+                    <li class="micro-ui-edit-settings">
+                        <a class="action" href="/settings/edit">
+                            <i class="fa fa-fw fa-wrench"></i> Edit site settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="micro-ui-notification-space"></div>
+    </header>
+</template>
+
+<template class="micro-simple-notification-template">
+    <div class="micro-ui-inside compact">
+        <div class="micro-simple-notification-content"></div>
+        <p class="group">
+            <button class="micro-simple-notification-dismiss action action-subtle">
+                Dismiss
+            </button>
+        </p>
+    </div>
+</template>
+
+<template class="micro-error-notification-template">
+    <div class="micro-ui-inside compact">
+        <p>
+            <i class="fa fa-exclamation-triangle"></i> Oops, something went very wrong! We have been
+            notified and will do our best to fix the problem as soon as possible. We are sorry for
+            the inconvenience!
+        </p>
+        <p>In the meantime, you may reload the page and give it another try.</p>
+        <p class="group">
+            <button class="micro-error-notification-reload action">Reload the page</button>
+        </p>
+    </div>
+</template>
+
+<template class="micro-menu-template">
+    <button class="micro-menu-toggle-secondary action action-subtle"><i class="fa"></i></button>
+</template>
+
+<template class="micro-user-template">
+    <i class="fa fa-user"></i><span></span>
+</template>
+
 <template class="micro-not-found-page-template">
     <h1 class="micro-icon-title"><i class="fa fa-map-signs"></i></h1>
     <p>Oops, we have not found the page you are looking for!</p>
@@ -8,6 +95,119 @@
     <h1 class="micro-icon-title"><i class="fa fa-lock"></i></h1>
     <p>Oops, you are not allowed to view this page!<p>
     <p><small>If you've been here before, someone has revoked your permission.</small></p>
+</template>
+
+<template class="micro-about-page-template">
+    <h1 data-text="About {title}"></h1>
+    <p class="micro-about-short"></p>
+    <p class="micro-about-provider"></p>
+
+    <section>
+        <h1>Powered by</h1>
+        <p class="micro-logo"><a class="link" target="_blank"><img /> <span></span></a></p>
+        <p class="micro-about-project-text">
+            The service is powered by <a class="link" target="_blank"></a>, a
+            <em>free and open-source software</em> licensed under the
+            <a class="link" href="https://gnu.org/licenses/gpl.html" target="_blank">GPL</a>.
+        </p>
+        <p class="micro-about-copyright"></p>
+    </section>
+</template>
+
+<template class="micro-edit-user-page-template">
+    <h1>Edit user settings</h1>
+    <form class="micro-edit-user-edit">
+        <label>
+            <input name="name" />
+            <small>Name</small>
+            <small>Your name or nick name.</small>
+        </label>
+        <p class="actions">
+            <button class="action"><i class="fa fa-check-circle"></i> Save</button>
+        </p>
+    </form>
+
+    <section class="micro-edit-user-email">
+        <header class="group">
+            <h1>Email</h1>
+            <div class="micro-edit-user-remove-email actions">
+                <button class="action"><i class="fa fa-trash-o"></i> Remove</button>
+            </div>
+        </header>
+
+        <div class="micro-edit-user-set-email-1">
+            <form>
+                <label>
+                    <input name="email" type="email" required="required" />
+                    <small>Email address</small>
+                </label>
+                <p class="actions">
+                    <button class="action">
+                        <i class="fa fa-check-circle"></i> Add email address
+                    </button>
+                </p>
+            </form>
+        </div>
+
+        <section class="micro-edit-user-set-email-2">
+            <h1>Add email address</h1>
+            <p>
+                We've sent a message to your email address. Please open it and follow the
+                instructions.
+            </p>
+            <p class="actions">
+                <button class="action">Cancel</button>
+            </p>
+            <p class="micro-progress"><i class="fa fa-spin fa-spinner"></i></p>
+        </section>
+
+        <p class="micro-edit-user-email-value"></p>
+
+        <p><small>The email address is only visible to you.</small></p>
+    </section>
+</template>
+
+<template class="micro-edit-settings-page-template">
+    <h1>Edit site settings</h1>
+    <form class="micro-edit-settings-edit">
+        <label>
+            <input name="title" required="required" />
+            <small>Title</small>
+        </label>
+        <label>
+            <input name="icon" />
+            <small>Icon (optional)</small>
+            <small>URL of the site icon.</small>
+        </label>
+        <label>
+            <input name="favicon" />
+            <small>Favicon (optional)</small>
+            <small>URL of the site icon optimized for a small size.</small>
+        </label>
+        <label>
+            <input name="provider_name" />
+            <small>Service provider name (optional)</small>
+        </label>
+        <label>
+            <input name="provider_url" />
+            <small>Service provider website (optional)</small>
+            <small>URL of the website of the service provider.</small>
+        </label>
+        <label>
+            <input name="provider_description" />
+            <small>Service provider description (optional)</small>
+            <small>“The service is provided by Provider, …”</small>
+        </label>
+        <label>
+            <input name="feedback_url" />
+            <small>Feedback &amp; help site (optional)</small>
+            <small>URL of the feedback site / help desk.</small>
+        </label>
+        <p class="actions">
+            <button class="action"><i class="fa fa-check-circle"></i> Done</button>
+            <a class="action action-cancel" href="/">Cancel</a>
+        </p>
+    </form>
 </template>
 
 <template class="micro-activity-page-template">

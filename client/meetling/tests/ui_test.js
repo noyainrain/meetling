@@ -24,7 +24,7 @@ let {promisify} = require("util");
 
 let {until} = require("selenium-webdriver");
 
-let {startBrowser, untilElementTextLocated} = require("micro/test");
+let {startBrowser, untilElementTextLocated} = require("@noyainrain/micro/test");
 
 let URL = "http://localhost:8081";
 

@@ -1,2 +1,1 @@
-tornado >= 4.4, < 5
-redis >= 2.10, < 3
+git+https://github.com/noyainrain/micro.git@0.1.0

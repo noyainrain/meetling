@@ -35,14 +35,12 @@ deps:
 	$(PIP) install $(PIPFLAGS) -r requirements.txt
 	@# Compatibility for npm 0.2 (deprecated since 0.16.4)
 	$(NPM) $(NPMFLAGS) update --prod --no-optional --no-save
-	$(NPM) $(NPMFLAGS) run link-micro
 
 .PHONY: deps-dev
 deps-dev:
 	$(PIP) install $(PIPFLAGS) -r requirements-dev.txt
 	@# Compatibility for npm 0.2 (deprecated since 0.16.4)
 	$(NPM) $(NPMFLAGS) update --no-optional --no-save
-	$(NPM) $(NPMFLAGS) run link-micro
 
 .PHONY: doc
 doc:

@@ -121,35 +121,6 @@ meetling.TimeInput = class extends HTMLInputElement {
 };
 
 /**
- * User element.
- *
- * .. attribute:: user
- *
- *    Represented :ref:`User`. Initialized from the JSON value of the corresponding HTML attribute,
- *    if present.
- */
-meetling.UserElement = class extends HTMLElement {
-    createdCallback() {
-        this._user = null;
-        this.appendChild(document.importNode(
-            document.querySelector(".meetling-user-template").content, true));
-        this.classList.add("meetling-user");
-    }
-
-    get user() {
-        return this._user;
-    }
-
-    set user(value) {
-        this._user = value;
-        if (this._user) {
-            this.querySelector("span").textContent = this._user.name;
-            this.setAttribute("title", this._user.name);
-        }
-    }
-};
-
-/**
  * Compact listing of users.
  *
  * .. attribute:: users
@@ -175,7 +146,7 @@ meetling.UserListingElement = class extends HTMLElement {
             if (i > 0) {
                 this.appendChild(document.createTextNode(", "));
             }
-            let elem = document.createElement("meetling-user");
+            let elem = document.createElement("micro-user");
             elem.user = user;
             this.appendChild(elem);
         }
@@ -196,22 +167,35 @@ meetling.UserListingElement = class extends HTMLElement {
 meetling.UI = class extends micro.UI {
     update() {
         let version = localStorage.version || null;
+
         if (!version) {
-            this._storeUser(null);
-            localStorage.version = 1;
+            localStorage.version = 2;
+            return;
+        }
+
+        // Deprecated since 0.19.0
+        if (version < 2) {
+            this._storeUser(JSON.parse(localStorage.user));
+            delete localStorage.user;
+            localStorage.version = 2;
         }
     }
 
     init() {
-        this.user = JSON.parse(localStorage.user);
-        this.settings = null;
+        function makeAboutPage() {
+            // NOTE: Using firstElementChild would be more elegant, but Edge does not support it yet
+            // on DocumentFragment (see
+            // https://wpdev.uservoice.com/forums/257854-microsoft-edge-developer/suggestions/18865648-support-the-full-set-of-apis-for-documentfragment
+            // )
+            return document
+                .importNode(ui.querySelector(".meetling-about-page-template").content, true)
+                .querySelector("micro-about-page");
+        }
 
         this.pages = this.pages.concat([
             {url: "^/$", page: "meetling-start-page"},
-            {url: "^/about$", page: "meetling-about-page"},
+            {url: "^/about$", page: makeAboutPage},
             {url: "^/create-meeting$", page: "meetling-edit-meeting-page"},
-            {url: "^/(?:users/([^/]+)|user)/edit$", page: meetling.EditUserPage.make},
-            {url: "^/settings/edit$", page: meetling.EditSettingsPage.make},
             // Compatibility routes for old meeting URLs (deprecated since 0.17.1)
             {url: "^/meetings/Meeting:([^/]+)$", page: meetling.MeetingPage.make},
             {url: "^/meetings/Meeting:([^/]+)/edit$", page: meetling.EditMeetingPage.make},
@@ -225,196 +209,17 @@ meetling.UI = class extends micro.UI {
                 a.classList.add("link");
                 a.href = meetling.makeMeetingURL(event.detail.meeting);
                 a.textContent = meetling.makeMeetingLabel(event.detail.meeting);
-                let userElem = document.createElement("meetling-user");
+                let userElem = document.createElement("micro-user");
                 userElem.user = event.user;
                 return micro.util.formatFragment("{meeting} was created by {user}",
                                                  {meeting: a, user: userElem});
             }
         });
-
-        window.addEventListener("error", this);
-        this.addEventListener("user-edit", this);
-        this.addEventListener("settings-edit", this);
-
-        return Promise.resolve().then(() => {
-            // If requested, log in with code
-            let match = /^#login=(.+)$/.exec(location.hash);
-            if (match) {
-                history.replaceState(null, null, location.pathname);
-                return micro.call("POST", "/api/login", {
-                    code: match[1]
-                }).then(this._storeUser.bind(this), e => {
-                    // Ignore invalid login codes
-                    if (!(e instanceof micro.APIError)) {
-                        throw e;
-                    }
-                });
-            }
-            return null;
-
-        }).then(() => {
-            // If not logged in (yet), log in as a new user
-            if (!this.user) {
-                return micro.call("POST", "/api/login").then(this._storeUser.bind(this));
-            }
-            return null;
-
-        }).then(() => micro.call("GET", "/api/settings")).then(settings => {
-            this.settings = settings;
-            this._update();
-
-            // Update the user details
-            micro.call("GET", `/api/users/${this.user.id}`).then(user => {
-                this.dispatchEvent(new CustomEvent("user-edit", {detail: {user}}));
-            });
-
-        }).catch(e => {
-            // Authentication errors are a corner case and happen only if a) the user has deleted
-            // their account on another device or b) the database has been reset (during
-            // development)
-            // NOTE: Should be moved to global error handling once unhandledrejection and
-            // ErrorEvent.error are available in supported browsers
-            if (e instanceof micro.APIError && e.error.__type__ === "AuthenticationError") {
-                this._storeUser(null);
-                location.reload();
-            } else {
-                throw e;
-            }
-        });
-    }
-
-    /**
-     * Is the current :attr:`user` a staff member?
-     */
-    get staff() {
-        return this.settings.staff.map(s => s.id).indexOf(this.user.id) !== -1;
-    }
-
-    /**
-     * Show a *notification* to the user.
-     *
-     * *notification* is a :class:`HTMLElement`, like for example :class:`SimpleNotification`.
-     * Alternatively, *notification* can be a simple message string to display.
-     */
-    notify(notification) {
-        if (typeof notification === "string") {
-            let elem = document.createElement("meetling-simple-notification");
-            let p = document.createElement("p");
-            p.textContent = notification;
-            elem.content.appendChild(p);
-            notification = elem;
-        }
-
-        let space = this.querySelector(".meetling-ui-notification-space");
-        space.textContent = "";
-        space.appendChild(notification);
     }
 
     synthesizeMeetingTrashAgendaItemEvent(item) {
         item = Object.assign({}, item, {trashed: true});
         this.dispatchEvent(new CustomEvent("trash-agenda-item", {detail: {item}}));
-    }
-
-    _update() {
-        this.classList.toggle("meetling-ui-user-is-staff", this.staff);
-        this.classList.toggle("meetling-ui-settings-have-feedback-url", this.settings.feedback_url);
-        this.querySelector(".meetling-ui-logo-text").textContent = this.settings.title;
-        let img = this.querySelector(".meetling-ui-logo img");
-        if (this.settings.favicon) {
-            document.querySelector("link[rel=icon]").href = this.settings.favicon;
-            img.src = this.settings.favicon;
-            img.style.display = "";
-        } else {
-            img.style.display = "none";
-        }
-        this.querySelector(".meetling-ui-feedback a").href = this.settings.feedback_url;
-
-        this.querySelector(".micro-ui-header meetling-user").user = this.user;
-        this.querySelector(".meetling-ui-edit-settings").style.display = this.staff ? "" : "none";
-    }
-
-    _storeUser(user) {
-        this.user = user;
-        if (user) {
-            localStorage.user = JSON.stringify(user);
-            document.cookie =
-                `auth_secret=${user.auth_secret}; path=/; max-age=${360 * 24 * 60 * 60}`;
-        } else {
-            localStorage.user = null;
-            document.cookie = "auth_secret=; path=/; max-age=0";
-        }
-    }
-
-    handleEvent(event) {
-        super.handleEvent(event);
-
-        if (event.currentTarget === window && event.type === "error") {
-            this.notify(document.createElement("meetling-error-notification"));
-
-            let type = "Error";
-            let stack = `${event.filename}:${event.lineno}`;
-            let message = event.message;
-            // Get more detail out of ErrorEvent.error, if the browser supports it
-            if (event.error) {
-                type = event.error.name;
-                stack = event.error.stack;
-                message = event.error.message;
-            }
-
-            micro.call("POST", "/log-client-error", {
-                type,
-                stack,
-                url: location.pathname,
-                message
-            });
-
-        } else if (event.target === this && event.type === "user-edit") {
-            this._storeUser(event.detail.user);
-            this._update();
-
-        } else if (event.target === this && event.type === "settings-edit") {
-            this.settings = event.detail.settings;
-            this._update();
-        }
-    }
-};
-
-/**
- * Simple notification.
- */
-meetling.SimpleNotification = class extends HTMLElement {
-    createdCallback() {
-        this.appendChild(document.importNode(
-            ui.querySelector(".meetling-simple-notification-template").content, true));
-        this.classList.add("meetling-notification", "meetling-simple-notification");
-        this.querySelector(".meetling-simple-notification-dismiss").addEventListener("click", this);
-        this.content = this.querySelector(".meetling-simple-notification-content");
-    }
-
-    handleEvent(event) {
-        if (event.currentTarget === this.querySelector(".meetling-simple-notification-dismiss") &&
-                event.type === "click") {
-            this.parentNode.removeChild(this);
-        }
-    }
-};
-
-/**
- * Notification that informs the user about app errors.
- */
-meetling.ErrorNotification = class extends HTMLElement {
-    createdCallback() {
-        this.appendChild(document.importNode(
-            ui.querySelector(".meetling-error-notification-template").content, true));
-        this.classList.add("meetling-notification", "meetling-error-notification");
-        this.querySelector(".meetling-error-notification-reload").addEventListener("click", this);
-    }
-
-    handleEvent(event) {
-        if (event.currentTarget === this.querySelector(".meetling-error-notification-reload") &&
-                event.type === "click") {
-            location.reload();
-        }
     }
 };
 
@@ -427,14 +232,14 @@ meetling.StartPage = class extends micro.Page {
         this.appendChild(document.importNode(
             ui.querySelector(".meetling-start-page-template").content, true));
 
-        let img = this.querySelector(".meetling-logo img");
+        let img = this.querySelector(".micro-logo img");
         if (ui.settings.icon) {
             img.src = ui.settings.icon;
             img.style.display = "";
         } else {
             img.style.display = "none";
         }
-        this.querySelector(".meetling-logo span").textContent = ui.settings.title;
+        this.querySelector(".micro-logo span").textContent = ui.settings.title;
         this.querySelector(".meetling-start-create-example-meeting").run =
             this._createExampleMeeting.bind(this);
     }
@@ -443,264 +248,6 @@ meetling.StartPage = class extends micro.Page {
         return micro.call("POST", "/api/create-example-meeting").then(meeting => {
             ui.navigate(meetling.makeMeetingURL(meeting));
         });
-    }
-};
-
-/**
- * About page.
- */
-meetling.AboutPage = class extends micro.Page {
-    createdCallback() {
-        super.createdCallback();
-        this.caption = `About ${ui.settings.title}`;
-        this.appendChild(document.importNode(
-            ui.querySelector(".meetling-about-page-template").content, true));
-
-        let h1 = this.querySelector("h1");
-        h1.textContent = h1.dataset.text.replace("{title}", ui.settings.title);
-        let p = this.querySelector(".meetling-about-short");
-        p.textContent = p.dataset.text.replace("{title}", ui.settings.title);
-
-        if (ui.settings.provider_name) {
-            let text = "The service is provided by {provider}.";
-            let args = {provider: ui.settings.provider_name};
-            if (ui.settings.provider_url) {
-                let a = document.createElement("a");
-                a.classList.add("link");
-                a.href = ui.settings.provider_url;
-                a.target = "_blank";
-                a.textContent = ui.settings.provider_name;
-                args.provider = a;
-            }
-            if (ui.settings.provider_description.en) {
-                text = "The service is provided by {provider}, {description}.";
-                args.description = ui.settings.provider_description.en;
-            }
-            this.querySelector(".meetling-about-provider").appendChild(
-                micro.util.formatFragment(text, args));
-        }
-    }
-};
-
-/**
- * Edit user page.
- */
-meetling.EditUserPage = class extends micro.Page {
-    static make(url, id) {
-        id = id || ui.user.id;
-        return micro.call("GET", `/api/users/${id}`).then(user => {
-            if (!(ui.user.id === user.id)) {
-                return document.createElement("micro-forbidden-page");
-            }
-            let page = document.createElement("meetling-edit-user-page");
-            page.user = user;
-            return page;
-        });
-    }
-
-    createdCallback() {
-        super.createdCallback();
-        this._user = null;
-        this.caption = "Edit user settings";
-        this.appendChild(document.importNode(
-            ui.querySelector(".meetling-edit-user-page-template").content, true));
-        this._form = this.querySelector("form");
-        this.querySelector(".meetling-edit-user-edit").addEventListener("submit", this);
-
-        this._setEmail1 = this.querySelector(".meetling-edit-user-set-email-1");
-        this._setEmailForm = this.querySelector(".meetling-edit-user-set-email-1 form");
-        this._setEmail2 = this.querySelector(".meetling-edit-user-set-email-2");
-        this._emailP = this.querySelector(".meetling-edit-user-email-value");
-        this._setEmailAction = this.querySelector(".meetling-edit-user-set-email-1 form button");
-        this._cancelSetEmailAction = this.querySelector(".meetling-edit-user-set-email-2 button");
-        this._removeEmailAction = this.querySelector(".meetling-edit-user-remove-email button");
-        this._removeEmailAction.addEventListener("click", this);
-        this._setEmailAction.addEventListener("click", this);
-        this._cancelSetEmailAction.addEventListener("click", this);
-        this._setEmailForm.addEventListener("submit", e => e.preventDefault());
-    }
-
-    attachedCallback() {
-        let match = /^#set-email=([^:]+):([^:]+)$/.exec(location.hash);
-        if (match) {
-            history.replaceState(null, null, location.pathname);
-            let authRequestID = `AuthRequest:${match[1]}`;
-            let authRequest = JSON.parse(localStorage.authRequest || null);
-            if (!authRequest || authRequestID !== authRequest.id) {
-                ui.notify(
-                    "The email link was not opened on the same browser/device on which the email address was entered (or the email link is outdated).");
-                return;
-            }
-
-            this._showSetEmailPanel2(true);
-            micro.call("POST", `/api/users/${this._user.id}/finish-set-email`, {
-                auth_request_id: authRequest.id,
-                auth: match[2]
-            }).then(user => {
-                delete localStorage.authRequest;
-                this.user = user;
-                this._hideSetEmailPanel2();
-            }, e => {
-                if (e.error.code === "auth_invalid") {
-                    this._showSetEmailPanel2();
-                    ui.notify("The email link was modified. Please try again.");
-                } else {
-                    delete localStorage.authRequest;
-                    this._hideSetEmailPanel2();
-                    ui.notify({
-                        auth_request_not_found: "The email link is expired. Please try again.",
-                        email_duplicate:
-                            "The given email address is already in use by another user."
-                    }[e.error.code]);
-                }
-            });
-        }
-    }
-
-    /**
-     * :ref:`User` to edit.
-     */
-    get user() {
-        return this._user;
-    }
-
-    set user(value) {
-        this._user = value;
-        this.classList.toggle("meetling-edit-user-has-email", this._user.email);
-        this._form.elements.name.value = this._user.name;
-        this._emailP.textContent = this._user.email;
-    }
-
-    _setEmail() {
-        if (!this._setEmailForm.checkValidity()) {
-            return;
-        }
-
-        micro.call("POST", `/api/users/${this.user.id}/set-email`, {
-            email: this._setEmailForm.elements.email.value
-        }).then(authRequest => {
-            localStorage.authRequest = JSON.stringify(authRequest);
-            this._setEmailForm.reset();
-            this._showSetEmailPanel2();
-        });
-    }
-
-    _cancelSetEmail() {
-        this._hideSetEmailPanel2();
-    }
-
-    _removeEmail() {
-        micro.call("POST", `/api/users/${this.user.id}/remove-email`).then(user => {
-            this.user = user;
-        }, () => {
-            // If the email address has already been removed, we just update the UI
-            this.user.email = null;
-            this.user = this.user;
-        });
-    }
-
-    _showSetEmailPanel2(progress) {
-        progress = progress || false;
-        let progressP = this.querySelector(".meetling-edit-user-set-email-2 .micro-progress");
-        let actions = this.querySelector(".meetling-edit-user-set-email-2 .actions");
-        this._emailP.style.display = "none";
-        this._setEmail1.style.display = "none";
-        this._setEmail2.style.display = "block";
-        if (progress) {
-            progressP.style.display = "";
-            actions.style.display = "none";
-        } else {
-            progressP.style.display = "none";
-            actions.style.display = "";
-        }
-    }
-
-    _hideSetEmailPanel2() {
-        this._emailP.style.display = "";
-        this._setEmail1.style.display = "";
-        this._setEmail2.style.display = "";
-    }
-
-    handleEvent(event) {
-        if (event.currentTarget === this._form) {
-            event.preventDefault();
-            micro.call("POST", `/api/users/${this._user.id}`, {
-                name: this._form.elements.name.value
-            }).then(user => {
-                ui.dispatchEvent(new CustomEvent("user-edit", {detail: {user}}));
-            }, e => {
-                if (e instanceof micro.APIError) {
-                    ui.notify("The name is missing.");
-                } else {
-                    throw e;
-                }
-            });
-
-        } else if (event.currentTarget === this._setEmailAction && event.type === "click") {
-            this._setEmail();
-        } else if (event.currentTarget === this._cancelSetEmailAction && event.type === "click") {
-            this._cancelSetEmail();
-        } else if (event.currentTarget === this._removeEmailAction && event.type === "click") {
-            this._removeEmail();
-        }
-    }
-};
-
-/**
- * Edit settings page.
- */
-meetling.EditSettingsPage = class extends micro.Page {
-    static make() {
-        if (!ui.staff) {
-            return document.createElement("micro-forbidden-page");
-        }
-        return document.createElement("meetling-edit-settings-page");
-    }
-
-    createdCallback() {
-        super.createdCallback();
-        this.caption = "Edit site settings";
-        this.appendChild(document.importNode(
-            ui.querySelector(".meetling-edit-settings-page-template").content, true));
-        this._form = this.querySelector("form");
-        this._form.elements.title.value = ui.settings.title;
-        this._form.elements.icon.value = ui.settings.icon || "";
-        this._form.elements.favicon.value = ui.settings.favicon || "";
-        this._form.elements.provider_name.value = ui.settings.provider_name || "";
-        this._form.elements.provider_url.value = ui.settings.provider_url || "";
-        this._form.elements.provider_description.value = ui.settings.provider_description.en || "";
-        this._form.elements.feedback_url.value = ui.settings.feedback_url || "";
-        this.querySelector(".meetling-edit-settings-edit").addEventListener("submit", this);
-    }
-
-    handleEvent(event) {
-        function toStringOrNull(str) {
-            return str.trim() ? str : null;
-        }
-
-        if (event.currentTarget === this._form) {
-            event.preventDefault();
-            // Cancel submit if validation fails (not all browsers do this automatically)
-            if (!this._form.checkValidity()) {
-                return;
-            }
-
-            let description = toStringOrNull(this._form.elements.provider_description.value);
-            description = description ? {en: description} : {};
-
-            micro.call("POST", "/api/settings", {
-                title: this._form.elements.title.value,
-                icon: this._form.elements.icon.value,
-                favicon: this._form.elements.favicon.value,
-                provider_name: this._form.elements.provider_name.value,
-                provider_url: this._form.elements.provider_url.value,
-                provider_description: description,
-                feedback_url: this._form.elements.feedback_url.value
-            }).then(settings => {
-                ui.navigate("/");
-                ui.dispatchEvent(new CustomEvent("settings-edit", {detail: {settings}}));
-            });
-        }
     }
 };
 
@@ -876,7 +423,7 @@ meetling.MeetingPage = class extends micro.Page {
             this._agendaUl.removeChild(li);
 
         } else if (event.currentTarget === this._shareAction && event.type === "click") {
-            let notification = document.createElement("meetling-simple-notification");
+            let notification = document.createElement("micro-simple-notification");
             notification.content.appendChild(document.importNode(
                 ui.querySelector(".meetling-share-notification-template").content, true));
             notification.content.querySelector("input").value =
@@ -1180,15 +727,9 @@ meetling.AgendaItemEditor = class extends HTMLLIElement {
 
 document.registerElement("meetling-time-input",
                          {prototype: meetling.TimeInput.prototype, extends: "input"});
-document.registerElement("meetling-user", meetling.UserElement);
 document.registerElement("meetling-user-listing", meetling.UserListingElement);
 document.registerElement("meetling-ui", {prototype: meetling.UI.prototype, extends: "body"});
-document.registerElement("meetling-simple-notification", meetling.SimpleNotification);
-document.registerElement("meetling-error-notification", meetling.ErrorNotification);
 document.registerElement("meetling-start-page", meetling.StartPage);
-document.registerElement("meetling-about-page", meetling.AboutPage);
-document.registerElement("meetling-edit-user-page", meetling.EditUserPage);
-document.registerElement("meetling-edit-settings-page", meetling.EditSettingsPage);
 document.registerElement("meetling-meeting-page", meetling.MeetingPage);
 document.registerElement("meetling-edit-meeting-page", meetling.EditMeetingPage);
 document.registerElement("meetling-agenda-item",

@@ -3,15 +3,32 @@
  *
  * Color palette:
  *
- * - text: #333
- * - text subtle: #888
- * - text inverse: #fff
  * - primary: #4d8dd9
  * - primary shade 66%: #225ca0
  * - secondary: #d94b1f
- * - delimiter: #ddd
- * - border: #bbb
  */
+
+/* ---- Colors ---- */
+
+.micro-progress,
+.action.action-subtle,
+.micro-ui-progress,
+.micro-ui-menu .action {
+    color: #4d8dd9;
+}
+
+.action {
+    background: #4d8dd9;
+}
+
+.action,
+.actions > .action:nth-child(n+2) {
+    border-color: #225ca0;
+}
+
+.link {
+    color: #d94b1f;
+}
 
 /* ---- Pikaday ---- */
 
@@ -120,192 +137,6 @@
     text-align: right;
 }
 
-/* ---- Logo ---- */
-
-.meetling-logo {
-    border-bottom: none;
-    font-size: 2rem;
-    font-weight: 300;
-    text-align: center;
-}
-
-.meetling-logo .link {
-    color: inherit;
-}
-
-.meetling-logo .link:hover {
-    text-decoration: none;
-}
-
-.meetling-logo img {
-    height: 2em;
-    vertical-align: text-bottom;
-}
-
-/* ---- UserElement ---- */
-
-.meetling-user {
-    display: inline-block;
-    vertical-align: bottom;
-    max-width: 20ch;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.meetling-user i {
-    color: #888;
-}
-
-/* ---- UI ---- */
-
-.micro-ui-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1;
-    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.33);
-    background: #fff;
-}
-
-.micro-ui-header nav {
-    display: flex;
-    white-space: nowrap;
-}
-
-.meetling-ui-logo {
-    border-bottom: none;
-    margin: 0;
-    font-size: 1rem;
-}
-
-.meetling-ui-logo .link {
-    display: block;
-    padding: calc(0.25 * 1.5em) 0;
-}
-
-.meetling-ui-logo img {
-    vertical-align: middle;
-}
-
-.meetling-ui-beta {
-    color: #888;
-    font-size: 0.875rem;
-    text-transform: uppercase;
-}
-
-.meetling-ui-header-fill {
-    flex: auto;
-    min-width: calc(0.25 * 1.5rem);
-}
-
-body:not(.meetling-ui-settings-have-feedback-url) .meetling-ui-feedback {
-    display: none;
-}
-
-body:not(.meetling-ui-user-is-staff) .meetling-ui-activity {
-    display: none;
-}
-
-main {
-    padding-top: calc(1.5 * 1.5rem);
-}
-
-.micro-ui-progress {
-    color: #4d8dd9;
-}
-
-/* ---- Notification ---- */
-
-.meetling-notification {
-    display: block;
-    padding: calc(0.5 * 1.5em) 0;
-    border-top: 1px solid #ddd;
-}
-
-.meetling-notification .micro-ui-inside > :first-child {
-    margin-top: 0;
-}
-
-.meetling-notification .micro-ui-inside > :last-child {
-    margin-bottom: 0;
-}
-
-/* ---- SimpleNotification ---- */
-
-.meetling-simple-notification-content > :first-child {
-    margin-top: 0;
-}
-
-/* ---- ErrorNotification ---- */
-
-.meetling-error-notification i {
-    color: red;
-}
-
-/* ---- UIMenu ---- */
-
-.meetling-ui-menu {
-    position: relative;
-    border-left: 1px solid #ddd;
-}
-
-.meetling-ui-menu:last-child {
-    border-right: 1px solid #ddd;
-}
-
-.meetling-ui-menu .link,
-.meetling-ui-menu .action {
-    display: block;
-    padding: calc(0.25 * 1.5em);
-    border: none;
-    border-radius: 0;
-    background: none;
-    line-height: 1.5;
-}
-
-.meetling-ui-menu .link:hover,
-.meetling-ui-menu .action:hover {
-    background: #ddd;
-    text-decoration: none;
-}
-
-.meetling-ui-menu .action {
-    color: #4d8dd9;
-}
-
-.meetling-ui-menu > .link {
-    color: inherit;
-}
-
-.meetling-ui-menu:hover > .link {
-    background: #ddd;
-}
-
-.meetling-ui-menu > .link i {
-    color: #888;
-}
-
-.meetling-ui-menu ul {
-    display: none;
-    position: absolute;
-    right: 0;
-    padding: 0;
-    margin: 0;
-    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.33);
-    background: #fff;
-    list-style: none;
-}
-
-.meetling-ui-menu:hover ul {
-    display: block;
-}
-
-.meetling-ui-menu li {
-    border-top: 1px solid #ddd;
-}
-
 /* ---- StartPage ---- */
 
 .meetling-start-intro {
@@ -313,7 +144,7 @@ main {
     text-align: center;
 }
 
-.meetling-start-intro .meetling-logo {
+.meetling-start-intro .micro-logo {
     font-size: 3rem;
 }
 
@@ -327,37 +158,6 @@ main {
 
 .meetling-start-create-meeting {
     font-size: 1.5rem;
-}
-
-/* ---- EditUserPage ---- */
-
-.meetling-edit-user-email header {
-    align-items: flex-end;
-}
-
-.meetling-edit-user-email header h1 {
-    flex: auto;
-}
-
-meetling-edit-user-page:not(.meetling-edit-user-has-email) .meetling-edit-user-remove-email {
-    display: none;
-}
-
-.meetling-edit-user-has-email .meetling-edit-user-set-email-1 {
-    display: none;
-}
-
-.meetling-edit-user-set-email-2 {
-    display: none;
-}
-
-.meetling-edit-user-set-email-2 h1 {
-    border-bottom: none;
-    font-size: 1rem;
-}
-
-meetling-edit-user-page:not(.meetling-edit-user-has-email) .meetling-edit-user-email-value {
-    display: none;
 }
 
 /* ---- MeetingPage ---- */

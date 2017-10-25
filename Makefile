@@ -24,7 +24,7 @@ watch-test:
 
 .PHONY: lint
 lint:
-	pylint -j 0 meetling micro
+	pylint -j 0 meetling
 	$(NPM) $(NPMFLAGS) run lint
 
 .PHONY: check
